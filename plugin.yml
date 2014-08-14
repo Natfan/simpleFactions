@@ -1,0 +1,16 @@
+name: simpleFactions
+main: com.crossedshadows.simpleFactions.simpleFactions
+version: 1.04
+permissions:
+  simplefactions.sf: {description: Base command, default: true}
+commands:
+   sf:
+      description: This is the base command
+      usage: /sf
+      permission: simplefactions.sf
+      permission-message: You don't have <permission>
+   f:
+      description: This is the base command alternative
+      usage: /sf
+      permission: simplefactions.sf
+      permission-message: You don't have <permission>
