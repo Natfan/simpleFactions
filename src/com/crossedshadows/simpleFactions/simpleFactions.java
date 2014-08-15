@@ -64,10 +64,9 @@ import com.sun.corba.se.impl.orbutil.ObjectWriter;
  * 		Optional power scaling systems
  * 
  * Commands TODO:
- * 		/f top (for most played)
+ * 		/f top needs fixing
  * 		/f negative (for seeing who in your faction has negative power)
  *		/f deny
- * 		/f deathtop (show players with most deaths)
  *
  *		PROTIP FOR OTHER PROGRAMMERS: If you're using eclipse, do <ctrl>+<shift>+/ (divide on the numpad) 
  *		to minimize all of the functions. Makes reading the code a breeze!
@@ -97,7 +96,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		
 		In reality, you can use any jsonObject or jsonArray, even your own; all that really matters
 		is that you keep track of what is actually containing what. So everything in this plugin COULD
-		be done with a single, or hundreds, of seperate jsonobjects; but I've broke them up like this
+		be done with a single, or hundreds, of separate jsonobjects; but I've broke them up like this
 		for simplicity sake. 
 	*/ 
 	JSONObject boardData = new JSONObject();
@@ -716,6 +715,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				if(args[0].toLowerCase().equals("help")){
     					return showHelp(sender, args);
     				}
+    				if(args[0].toLowerCase().equals("top")){
+    					return showTop(sender, args);
+    				}
     				if(args[0].toLowerCase().equals("chat") || args[0].toLowerCase().equals("c") || args[0].toLowerCase().equals("channel")){
     					return setChatChannel(sender, args);
     				}
@@ -757,6 +759,137 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	}
              
     	return true; 
+    }
+    
+    	/*
+  		playerData.put("deaths",0);
+  		playerData.put("kills",0);
+  		playerData.put("time online",(long) 0.0);
+  		*/
+    public boolean showTop(CommandSender sender, String[] args){
+    	String example = "§7Example usage: §b/sf showtop §7<§btime§7/§bkills§7/§bdeaths§7>";
+    	if(args.length>1){
+    		String arg = args[1];
+    		OfflinePlayer[] offline = Bukkit.getOfflinePlayers();
+    		Player[] online = Bukkit.getOnlinePlayers();
+    		String[] playerTop = new String[offline.length + online.length + 1];
+    		int count = 0;
+    		
+    		if(arg.equals("kills") || arg.equals("deaths")){
+    			int[] value = new int[offline.length + online.length + 1];
+    			value[0] = 0;
+    			for(int i = 0; i < offline.length; i++){
+    				if(!offline[i].isOnline()){
+    					count++;
+    					loadPlayer(offline[i].getName());
+    					playerTop[count] = playerData.getString("name");
+    					value[count] = playerData.getInt(arg);
+    				}
+    			}
+    			
+    			for(int i = 0; i < online.length; i++){
+    				if(online[i].isOnline()){
+    					count++;
+    					loadPlayer(online[i].getName());
+    					playerTop[count] = playerData.getString("name");
+    					value[count] = playerData.getInt(arg);
+    				}
+    			}
+    			
+    			
+    			boolean swapped = true;
+    		    int j = 0;
+    		    int tmp; String tmp2;
+    		    while (swapped) {
+    		        swapped = false;
+    		        j++;
+    		        for (int i = 0; i < value.length - j; i++) {
+    		            if (value[i] < value[i + 1]) {
+    		                tmp = value[i];
+    		                tmp2 = playerTop[i];
+    		                value[i] = value[i + 1];
+    		                playerTop[i] = playerTop[i + 1];
+    		                value[i + 1] = tmp;
+    		                playerTop[i + 1] = tmp2;
+    		                swapped = true;
+    		            }
+    		        }
+    		    }
+    			
+    			//for(int i = 0; i < playerTop.length; i++){
+    			//	if(value[i] < value[i+1]){
+    			//		value[i] = value[i+1];
+    			//	}
+    			//}
+    			
+    			String message = "§6Showing top data for §b" + arg + "§6. \n";
+    			int howManyToShow = 10;
+    			if(playerTop.length<=howManyToShow) howManyToShow = playerTop.length;
+    			for(int i = 0; i < howManyToShow; i++){
+    				if(playerTop[i] != null)
+    					message += "§7" + (i+1) + ". " + playerTop[i] + " (" + value[i] + " " + arg + ") \n";
+    			}
+    			sender.sendMessage(message);
+    			
+    		}
+    		
+    		if(arg.equals("time")){
+    			arg = "time online";
+    			long[] value = new long[offline.length + online.length + 1];
+    			value[0] = 0l;
+    			long temp = 0;
+    			for(int i = 0; i < offline.length; i++){
+    				if(!offline[i].isOnline()){
+    					count++;
+    					loadPlayer(offline[i].getName());
+    					playerTop[count] = playerData.getString("name");
+    					value[count] = playerData.getLong(arg);
+    				}
+    			}
+    			
+    			for(int i = 0; i < online.length; i++){
+    				if(online[i].isOnline()){
+    					count++;
+    					loadPlayer(online[i].getName());
+    					playerTop[count] = playerData.getString("name");;
+    					value[count] = playerData.getLong(arg);
+    				}
+    			}
+    			
+    			
+    			boolean swapped = true;
+    		    int j = 0;
+    		    long tmp; String tmp2;
+    		    while (swapped) {
+    		        swapped = false;
+    		        j++;
+    		        for (int i = 0; i < value.length - j; i++) {
+    		            if (value[i] < value[i + 1]) {
+    		                tmp = value[i];
+    		                tmp2 = playerTop[i];
+    		                value[i] = value[i + 1];
+    		                playerTop[i] = playerTop[i + 1];
+    		                value[i + 1] = tmp;
+    		                playerTop[i + 1] = tmp2;
+    		                swapped = true;
+    		            }
+    		        }
+    		    }
+    		    
+    		    
+    			String message = "§6Showing top data for §b" + arg + "§6. \n";
+    			int howManyToShow = 10;
+    			if(playerTop.length<=howManyToShow) howManyToShow = playerTop.length;
+    			for(int i = 0; i < howManyToShow; i++){
+    				if(playerTop[i] != null)
+    					message += "§7" + (i+1) + ". " + playerTop[i] + " (" + (value[i]/1000/60) + " minutes) \n";
+    			}
+    			sender.sendMessage(message);
+		}
+    	}else{
+    		sender.sendMessage(example);
+    	}
+    	return true;
     }
     
     /**
@@ -2359,8 +2492,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
   		playerData.put("power", configData.getInt("default player power"));
   		playerData.put("deaths",0);
   		playerData.put("kills",0);
-  		playerData.put("chat channel","global");
   		playerData.put("time online",(long) 0.0);
+  		playerData.put("chat channel","global");
   		playerData.put("last online",System.currentTimeMillis());
   		savePlayer(playerData);
     	
