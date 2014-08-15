@@ -64,7 +64,6 @@ import com.sun.corba.se.impl.orbutil.ObjectWriter;
  * 		Optional power scaling systems
  * 
  * Commands TODO:
- * 		/f top needs fixing
  * 		/f negative (for seeing who in your faction has negative power)
  *		/f deny
  *
