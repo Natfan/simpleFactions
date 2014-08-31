@@ -1,6 +1,5 @@
 package com.crossedshadows.simpleFactions;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -17,10 +16,7 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
-import net.minecraft.util.com.google.gson.JsonSerializer;
-
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -29,13 +25,11 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.libs.com.google.gson.Gson;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -50,12 +44,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import com.sun.corba.se.impl.orbutil.ObjectWriter;
 
 /**
  * TODO List
@@ -134,7 +125,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	String Rel_Other = "§f";
 	String Rel_Truce = "§6";
 	
-	String version = "1.05";
+	String version = "1.06";
 	
 	long currentTime = System.currentTimeMillis();
 	long lastTime = System.currentTimeMillis();
@@ -386,9 +377,11 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	}
     	try {
     		FileReader filereader = new FileReader(this.getDataFolder() + "/config.json");
-			Scanner scan = new Scanner(filereader).useDelimiter("\\Z");
+			Scanner scan = new Scanner(filereader);
+			scan.useDelimiter("\\Z");
 			configData = new JSONObject(scan.next());
 			scan.close();
+			filereader.close();
 			loadConfigData(); 
 			
 			if(!configData.getString("version").equals(version)){
@@ -477,10 +470,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	}
     	try {
 
-			Scanner scan = new Scanner(new FileReader(this.getDataFolder() + "/playerData/" + name + ".json")).useDelimiter("\\Z");
-			
-			if(scan.hasNext())
+			Scanner scan = new Scanner(new FileReader(this.getDataFolder() + "/playerData/" + name + ".json"));
+			scan.useDelimiter("\\Z");
+			if(scan.hasNext()){
 				playerData = new JSONObject(scan.next());
+				scan.close();
+			}
 			else{
 				scan.close();
 				if(Bukkit.getOfflinePlayer(name) == null)
@@ -490,12 +485,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
 				scan = new Scanner(new FileReader(this.getDataFolder() + "/playerData/" + name + ".json")).useDelimiter("\\Z");
 				savePlayer(playerData);
 				playerData = new JSONObject(scan.next());
+				scan.close();
 			}
-			scan.close();
 			
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
 			e.printStackTrace();
 		}
     	
@@ -524,15 +517,14 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	}
     	try {
     		
-			Scanner scan = new Scanner(new FileReader(this.getDataFolder() + "/factionData/" + name + ".json")).useDelimiter("\\Z");
+			Scanner scan = new Scanner(new FileReader(this.getDataFolder() + "/factionData/" + name + ".json"));
+			scan.useDelimiter("\\Z");
 			factionData = new JSONObject(scan.next());
 			scan.close();
     		
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} 
+		}
     	
     }
     
@@ -560,15 +552,14 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	
     	try {
 
-			Scanner scan = new Scanner(new FileReader(this.getDataFolder() + "/boardData/" + name + ".json")).useDelimiter("\\Z");
+			Scanner scan = new Scanner(new FileReader(this.getDataFolder() + "/boardData/" + name + ".json"));
+			scan.useDelimiter("\\Z");
 			boardData = new JSONObject(scan.next());
 			scan.close();
     		
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} 
+		}
     	
     }
     
@@ -742,13 +733,29 @@ public class simpleFactions extends JavaPlugin implements Listener {
     					return tryLeave(sender);
     				}
     				if(args[0].toLowerCase().equals("disband")){
-    					if(args.length>1)
-    						return tryDisband(sender,args[1]);
+    					if(args.length>1){
+    						loadPlayer(sender.getName());
+    						if(playerData.getString("faction").equals(args[1]))
+    							return tryDisband(sender,args[1]);
+    						else{
+    							if(sender.isOp() || sender.hasPermission("simplefactions.admin")){
+        							return tryDisband(sender,args[1]);
+    								}
+    							else{
+        							sender.sendMessage("You do not have the permissions to do this!");
+        							return true;
+    								}
+    							}
+    						}
     					else{
-    					
     						loadPlayer(sender.getName());
     						String factionName = playerData.getString("faction");
-    						return tryDisband(sender,factionName);
+    						if(playerData.getString("faction").equals(args[1]))
+        						return tryDisband(sender,factionName);
+    						else{
+    							sender.sendMessage("You aren't a member of this faction!");
+    							return true;
+    							}
     					}
     				}
     			}
@@ -766,7 +773,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
   		playerData.put("time online",(long) 0.0);
   		*/
     public boolean showTop(CommandSender sender, String[] args){
-    	String example = "§7Example usage: §b/sf showtop §7<§btime§7/§bkills§7/§bdeaths§7>";
+    	String example = "§7Example usage: §b/sf top §7<§btime§7/§bkills§7/§bdeaths§7>";
     	if(args.length>1){
     		String arg = args[1];
     		OfflinePlayer[] offline = Bukkit.getOfflinePlayers();
@@ -836,7 +843,6 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			arg = "time online";
     			long[] value = new long[offline.length + online.length + 1];
     			value[0] = 0l;
-    			long temp = 0;
     			for(int i = 0; i < offline.length; i++){
     				if(!offline[i].isOnline()){
     					count++;
@@ -907,7 +913,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 				"§7<§bplayer§7/§brank§7/§bfaction§7> §7<§bblock§7> §7<§btrue§7/§bfalse§7> " +
 				"(optional, this chunk only §7<§btrue§7/§bfalse§7>)";
     	
-    	Location location = Bukkit.getPlayer(sender.getName()).getLocation();
+    	Location location = ((Player) sender).getLocation();
     	int posX = location.getBlockX();
     	int posY = location.getBlockY();
     	int posZ = location.getBlockZ();
@@ -1379,6 +1385,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				factionData.put("truce", truceData);
 					saveFaction(factionData);
 					
+					//below this is messages
+					
     				int j = 0;
     				
     				if(relation.equals("enemies"))
@@ -1397,17 +1405,29 @@ public class simpleFactions extends JavaPlugin implements Listener {
     							j++;
     				
     				if(j>0 || (j==0 && relation.equals("neutral"))){
+    					
+    					//message sender's faction
     					messageFaction(playerData.getString("faction"),"§6You are now " + relString + relation + "§6 with " + 
     							getFactionRelationColor(playerData.getString("faction"),args[1]) + configData.getString("faction symbol left") + args[1] + 
     							configData.getString("faction symbol right") + "§6.");
-    					//sender.sendMessage();
+    					
+    					//message other faction
+    					messageFaction(args[1],"§6You are now " + relString + relation + "§6 with " + 
+    							getFactionRelationColor(playerData.getString("faction"),args[1]) + configData.getString("faction symbol left") + 
+    							playerData.getString("faction") + configData.getString("faction symbol right") + "§6.");
     					return true;
     				}
     				if(j==0){
-
+    					//message sender's faction
 			    		messageFaction(playerData.getString("faction"),"§6You have asked " + getFactionRelationColor(playerData.getString("faction"),args[1]) + 
-    							configData.getString("faction symbol left") + args[1] + configData.getString("faction symbol right") + " §6if they would like to become " + relString + relation + "§6.");
-    					//sender.sendMessage();
+    							configData.getString("faction symbol left") + args[1] + configData.getString("faction symbol right") + 
+    							" §6if they would like to become " + relString + relation + "§6.");
+			    		
+			    		//message ask'd faction
+			    		messageFaction(args[1],getFactionRelationColor(playerData.getString("faction"),args[1]) + configData.getString("faction symbol left") + 
+			    				playerData.getString("faction") + configData.getString("faction symbol right") + " §6have asked  if you would like to become " + 
+			    				relString + relation + "§6.");
+			    		
     					return true;
     				}
     				
@@ -1639,14 +1659,14 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		   helpMessage += " §6 leader (player) - §aAdds leader to faction." + "\n";
 
     		   //5
+    		   helpMessage += " §6 top §7<§btime§7/§bkills§7/§bdeaths§7 - §aShows server's top stats." + "\n";
     		   helpMessage += " §6 setrank (name) (rank) - §aYou can specify a" + "\n"; 
     		   helpMessage += "  §aspecific rank to give a player. You can even" + "\n"; 
     		   helpMessage += "  §ause custom rank names (with /sf access) to " + "\n"; 
     		   helpMessage += "  §acreate entirely new faction ranks!" + "\n"; 
     		   helpMessage += " \n"; 
     		   helpMessage += " §6 (§dCoty loves you :3c§6)" + "\n"; 
-    		   
-    		   
+    		   helpMessage += "§aPlugin version: " + version +" \n"; 
     		   
     	int lineCount = 0;
     	int pageCount = 0;
@@ -1676,7 +1696,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * */
     public boolean trySetHome(CommandSender sender){
     	loadPlayer(sender.getName());
-    	Player player = Bukkit.getPlayer(sender.getName());
+    	Player player = ((Player) sender);
     	String factionName = playerData.getString("faction");
     	
     	if(factionName.equals("")){
@@ -1709,7 +1729,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * */
     public boolean tryHome(CommandSender sender){
     	loadPlayer(sender.getName());
-    	Player player = Bukkit.getPlayer(sender.getName());
+    	Player player = ((Player) sender);
     	String factionName = playerData.getString("faction");
     	if(factionName.equals("")){
     		sender.sendMessage("§cYou aren't in a faction.");
@@ -1735,7 +1755,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
 
     	Block block = loc.getBlock();
     	int i = 0;
-    	while(block.getRelative(BlockFace.DOWN).getType() != Material.AIR || block.getType() != Material.AIR){
+    	while(block.getRelative(BlockFace.DOWN).getType() != Material.AIR || block.getType() != Material.AIR ||
+    		block.getRelative(BlockFace.DOWN).getType() != Material.CARPET || block.getType() != Material.CARPET ||
+    		block.getRelative(BlockFace.DOWN).getType() != Material.WATER || block.getType() != Material.WATER ||
+    		block.getRelative(BlockFace.DOWN).getType() != Material.SNOW || block.getType() != Material.SNOW){
     		block = block.getRelative((int) (Math.random()*10), (int)(Math.random()*10), (int)(Math.random()*10));
     		//sender.sendMessage("§cUnsafe! §6Trying next block! Block type here is " + block.getType().toString() + " at " + block.getLocation().toString());
     		i++;
@@ -1853,7 +1876,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	}
     	
     	for(int i = 0; i<factionIndex.size(); i++){
-    		if(!enemy.contains(factionIndex.get(i) + ",") && !enemy.contains(", " + factionIndex.get(i)) ){
+    		if(!enemy.contains(factionIndex.get(i) + ",") && !enemy.contains(", " + factionIndex.get(i)) 
+    			&& !enemy.contains(configData.getString("faction symbol left") + factionIndex.get(i) + configData.getString("faction symbol right"))){
     			loadFaction(factionIndex.get(i));
     			enemyData = factionData.getJSONArray("enemies");
     			for(int l = 0; l<enemyData.length(); l++) 
@@ -1863,6 +1887,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	}
 
     	enemy = enemy.replaceFirst(",","");
+    	
+    	
     	
     	for(int i = 0; i<truceData.length(); i++){
     		String rel = getFactionRelationColor(faction, truceData.getString(i));
@@ -2062,7 +2088,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	String mapkey = "§7Unclaimed = #";
     	String map = "";
 
-    	Player player = Bukkit.getPlayer(sender.getName());
+    	Player player = ((Player) sender);
     	loadWorld(player.getWorld().getName());
     	loadPlayer(sender.getName());
     	String factionName = playerData.getString("faction");
@@ -2140,7 +2166,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * It tries to claim the chunk.
      * */
     public boolean tryClaim(CommandSender sender){
-    	Player player = Bukkit.getPlayer(sender.getName());
+    	Player player = ((Player) sender);
     	loadWorld(player.getWorld().getName());
     	loadPlayer(sender.getName());
     	String factionName = playerData.getString("faction");
@@ -2192,7 +2218,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * It tries to unclaim the chunk.
      * */
     public boolean tryUnClaim(CommandSender sender){
-    	Player player = Bukkit.getPlayer(sender.getName());
+    	Player player = ((Player) sender);
     	loadWorld(player.getWorld().getName());
     	loadPlayer(sender.getName());
     	String factionName = playerData.getString("faction");
@@ -2255,7 +2281,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * It tries to unclaim all chunks.
      * */
     public boolean tryUnClaimAll(CommandSender sender){
-    	Player player = Bukkit.getPlayer(sender.getName());
+    	Player player = ((Player) sender);
     	loadWorld(player.getWorld().getName());
     	loadPlayer(sender.getName());
     	String factionName = playerData.getString("faction");
@@ -2403,7 +2429,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
         		Bukkit.getServer().getConsoleSender().sendMessage("removed");
         	}
         	
-        	loadWorld(Bukkit.getPlayer(sender.getName()).getWorld().getName());
+        	loadWorld(((Player) sender).getWorld().getName());
         	JSONArray array = boardData.names();
         	for(int i = 0; i < array.length(); i++){
         		String name = array.getString(i);
@@ -2449,7 +2475,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		factionIndex.remove(k);
     	}
     	
-    	loadWorld(Bukkit.getPlayer(sender.getName()).getWorld().getName());
+    	
+    	loadWorld(((Player) sender).getWorld().getName()); //
     	JSONArray array = boardData.names();
     	for(int i = 0; i < array.length(); i++){
     		String name = array.getString(i);
@@ -2842,6 +2869,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	 * Checks if the player can edit terrain at location, returns true/false if they can or cannot.
 	 * */
 	public boolean canEditHere(Player player, Location location, String breakorplace){
+		
+		if(player.isOp() || player.hasPermission("simplefactions.admin")) return true; //skip everything else
+		
 		loadPlayer(player.getName());
 		String rankEditing = playerData.getString("factionRank");
 		String factionEditing = playerData.getString("faction");
@@ -2947,6 +2977,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	 * Checks if the player can use items at this location.
 	 * */
 	public boolean canInteractHere(Player player, Location location, String itemName){
+		
+		if(player.isOp() || player.hasPermission("simplefactions.admin")) return true; //skip everything else
+		
+		
 		loadPlayer(player.getName());
 		String rankEditing = playerData.getString("factionRank");
 		String factionEditing = playerData.getString("faction");
@@ -3279,7 +3313,6 @@ public class simpleFactions extends JavaPlugin implements Listener {
         					if(power>configData.getDouble("max player power"))
         						power = configData.getDouble("max player power");
         					
-        					long lastOnline = playerData.getLong("last online");
         					long onlineTime = playerData.getLong("time online");
         					
         					onlineTime += currentTime - lastTime;
