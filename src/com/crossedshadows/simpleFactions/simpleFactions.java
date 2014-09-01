@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -57,6 +58,7 @@ import org.json.JSONObject;
  * Commands TODO:
  * 		/f negative (for seeing who in your faction has negative power)
  *		/f deny
+ *		Fix /f leader name
  *
  *		PROTIP FOR OTHER PROGRAMMERS: If you're using eclipse, do <ctrl>+<shift>+/ (divide on the numpad) 
  *		to minimize all of the functions. Makes reading the code a breeze!
@@ -117,6 +119,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	int chunkSizeX = 16;
 	int chunkSizeY = 16;
 	int chunkSizeZ = 16;
+	int powerCapMax = 750; // 25 * 30 (default power is 25 * 30 players)
 	
 	String Rel_Faction = "§b";
 	String Rel_Ally = "§d";
@@ -124,8 +127,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	String Rel_Neutral = "§2";
 	String Rel_Other = "§f";
 	String Rel_Truce = "§6";
+	String powerCapType = "none";
 	
-	String version = "1.06";
+	String version = "1.20";
 	
 	long currentTime = System.currentTimeMillis();
 	long lastTime = System.currentTimeMillis();
@@ -354,6 +358,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		configData.put("item protection in truce land", truceItemData); 
 		configData.put("item protection in other land", otherItemData); 
 		configData.put("item protection in enemy land", enemyItemData); 
+		
+		//power cap settings
+		configData.put("power cap max powe", powerCapMax);
+		configData.put("power cap type", powerCapType);
     }
 
     /**
@@ -377,16 +385,14 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	}
     	try {
     		FileReader filereader = new FileReader(this.getDataFolder() + "/config.json");
-			Scanner scan = new Scanner(filereader);
-			scan.useDelimiter("\\Z");
+			Scanner scan = new Scanner(filereader).useDelimiter("\\Z");
 			configData = new JSONObject(scan.next());
 			scan.close();
-			filereader.close();
 			loadConfigData(); 
 			
 			if(!configData.getString("version").equals(version)){
-				//Bukkit.getServer().getConsoleSender().sendMessage("");
-				Bukkit.getServer().getConsoleSender().sendMessage("§cConfig file is out of date! Backing up old config file and creating a new one! Please go and redo your configs with the new format!");
+				Bukkit.getServer().getConsoleSender().sendMessage("§cConfig file is out of date! " +
+						"Backing up old config file and creating a new one! Please go and redo your configs with the new format!");
 
 				try {
 					File backupFile = new File(configFile.getAbsoluteFile() + ".backup");
@@ -423,6 +429,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	chunkSizeX = 			configData.getInt("claim size x");
 		chunkSizeY =			configData.getInt("claim size y");
 		chunkSizeZ = 			configData.getInt("claim size z");
+		if(configData.has("power cap max power")) powerCapMax =			configData.getInt("power cap max power");
+		if(configData.has("power cap type (none/soft/hard)")) powerCapType = 			configData.getString("power cap type (none/soft/hard)");
 		
 		neutralBreakData = 		configData.getJSONArray("block break protection in neutral land");
 		allyBreakData = 		configData.getJSONArray("block break protection in ally land");
@@ -1022,6 +1030,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		
 		if(rank.equals("officer") || rank.equals("leader")){
     	if(args.length>1){
+    		
+    		if(sender.getName().equals(args[1])){
+    			sender.sendMessage("§cYou cannot set your own rank!");
+    			return true;
+    		}
+    		
     		if(playerCheck(args[1])){
     			loadPlayer(args[1]);
     			if(!playerData.getString("faction").equals(faction)){
@@ -1039,6 +1053,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				playerData.put("factionRank", "leader");
         			savePlayer(playerData);
     				messageFaction(faction,Rel_Faction + args[1] + "§a has been promoted to leader.");
+    				return true;
     			}
     			else{
     				sender.sendMessage("§cOnly leaders can select new leaders!");
@@ -1529,6 +1544,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
     public double getFactionPowerMax(String faction){
     	double factionPower = 0;
     	
+    	/*
+		configData.put("power cap max powe", powerCapMax);
+		configData.put("power cap type", powerCapType);
+		*/
 		OfflinePlayer[] off = Bukkit.getOfflinePlayers();
 		OfflinePlayer[] on = Bukkit.getOnlinePlayers();
 		
@@ -1536,6 +1555,15 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			if(!off[i].isOnline()) {
 				loadPlayer(off[i].getName());
 				if(playerData.getString("faction").equals(faction)){
+
+					if(off.length + on.length >= 30){
+						if(configData.getString("power cap type").equals("soft")){
+							factionPower += (3 * configData.getInt("power cap max power") * 
+								Math.exp(-(off.length + on.length)))/(2 * Math.pow((10 * Math.exp(-(off.length + on.length))+1),2)); 
+							continue;
+						}
+					}
+					
 					factionPower += configData.getDouble("max player power");
 				}
 			}
@@ -1545,6 +1573,15 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			if(on[i].isOnline()) {
 				loadPlayer(on[i].getName());
 				if(playerData.getString("faction").equals(faction)){
+
+					if(off.length + on.length >= 30){
+						if(configData.getString("power cap type").equals("soft")){
+							factionPower += (3 * configData.getInt("power cap max power") * 
+								Math.exp(-(off.length + on.length)))/(2 * Math.pow((10 * Math.exp(-(off.length + on.length))+1),2)); 
+							continue;
+						}
+					}
+					
 					factionPower += configData.getDouble("max player power");
 				}
 			}
@@ -1562,6 +1599,17 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			if(!off[i].isOnline()) {
 				loadPlayer(off[i].getName());
 				if(playerData.getString("faction").equals(faction)){
+					if(off.length + on.length >= 30){
+						if(configData.getString("power cap type").equals("soft")){
+							factionPower += ((3 * configData.getInt("power cap max power") * 
+								Math.exp(-(off.length + on.length)))/(2 * 
+								Math.pow((10 * Math.exp(-(off.length + on.length))+1),2))) *
+								(playerData.getDouble("power") / configData.getDouble("max player power")); 
+							continue;
+						}
+					}
+					
+					//default power scaling
 					factionPower += playerData.getDouble("power");
 				}
 			}
@@ -1571,6 +1619,17 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			if(on[i].isOnline()) {
 				loadPlayer(on[i].getName());
 				if(playerData.getString("faction").equals(faction)){
+					if(off.length + on.length >= 30){
+						if(configData.getString("power cap type").equals("soft")){
+							factionPower += ((3 * configData.getInt("power cap max power") * 
+								Math.exp(-(off.length + on.length)))/(2 * 
+								Math.pow((10 * Math.exp(-(off.length + on.length))+1),2))) *
+								(playerData.getDouble("power") / configData.getDouble("max player power")); 
+							continue;
+						}
+					}
+					
+					//default power scaling
 					factionPower += playerData.getDouble("power");
 				}
 			}
@@ -1755,11 +1814,17 @@ public class simpleFactions extends JavaPlugin implements Listener {
 
     	Block block = loc.getBlock();
     	int i = 0;
-    	while(block.getRelative(BlockFace.DOWN).getType() != Material.AIR || block.getType() != Material.AIR ||
-    		block.getRelative(BlockFace.DOWN).getType() != Material.CARPET || block.getType() != Material.CARPET ||
-    		block.getRelative(BlockFace.DOWN).getType() != Material.WATER || block.getType() != Material.WATER ||
-    		block.getRelative(BlockFace.DOWN).getType() != Material.SNOW || block.getType() != Material.SNOW){
-    		block = block.getRelative((int) (Math.random()*10), (int)(Math.random()*10), (int)(Math.random()*10));
+    	while(block.getRelative(BlockFace.UP).getType() != Material.AIR || block.getType() != Material.AIR){
+    		
+    		Random generater = new Random(System.currentTimeMillis() + block.getX() + block.getY() + block.getZ());
+    		block = block.getRelative((generater.nextInt(10) *i), (int)(generater.nextInt(10)*i), (int)(generater.nextInt(10)*i));
+    		
+    		int l = 0;
+    		while(block.getRelative(BlockFace.DOWN).getType() == Material.AIR){
+    			l++; if(l>9) break;
+    			block = block.getRelative(BlockFace.DOWN);
+    		}
+    		
     		//sender.sendMessage("§cUnsafe! §6Trying next block! Block type here is " + block.getType().toString() + " at " + block.getLocation().toString());
     		i++;
     		if(i>9){
@@ -2778,6 +2843,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    	
 		}
 		
+		//send all messages to the console
+		String loggerMessage = "[" + chatChannel_talk + "]" + " " + factionString + " (" + playerName + "): " + event.getMessage();
+		getLogger().info(loggerMessage);
+		
 		event.setCancelled(true);
 	}
 
@@ -3201,8 +3270,18 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		    	Location loc = new Location(Bukkit.getWorld(world), x, y, z);
 		    	Block block = loc.getBlock();
 		    	int i = 0;
-		    	while(block.getRelative(BlockFace.DOWN).getType() != Material.AIR || block.getType() != Material.AIR){
-		    		block = block.getRelative((int) (Math.random()*10), (int)(Math.random()*10), (int)(Math.random()*10));
+		    	while(block.getRelative(BlockFace.UP).getType() != Material.AIR || block.getType() != Material.AIR){
+		    		
+		    		Random generater = new Random(System.currentTimeMillis() + block.getX() + block.getY() + block.getZ());
+		    		block = block.getRelative((generater.nextInt(10) *i), (int)(generater.nextInt(10)*i), (int)(generater.nextInt(10)*i));
+		    		
+		    		int l = 0;
+		    		while(block.getRelative(BlockFace.DOWN).getType() == Material.AIR){
+		    			l++; if(l>9) break;
+		    			block = block.getRelative(BlockFace.DOWN);
+		    		}
+		    		
+		    		
 		    		i++;
 		    		if(i>9){
 		    			loc = player.getLocation().getWorld().getSpawnLocation();
