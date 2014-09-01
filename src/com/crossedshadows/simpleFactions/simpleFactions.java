@@ -48,6 +48,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.mcstats.MetricsLite;
 
 /**
  * TODO List
@@ -143,6 +144,14 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		loadData();
 		updatePlayerPower();
 		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has enabled successfully!]");
+		
+		try {
+	        MetricsLite metrics = new MetricsLite(this);
+	        metrics.start();
+	        getLogger().info("MetricsLite connection established!");
+	    } catch (IOException e) {
+	       getLogger().info("Failed to connect to MetricsLite!");
+	    }
 	}
 	
 	/**
