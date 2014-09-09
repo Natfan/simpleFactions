@@ -130,7 +130,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	String Rel_Truce = "§6";
 	String powerCapType = "none";
 	
-	String version = "1.20";
+	String version = "1.30";
 	
 	long currentTime = System.currentTimeMillis();
 	long lastTime = System.currentTimeMillis();
@@ -305,10 +305,15 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		configData.put("friendly fire other", "false");				  
 		configData.put("default player money", 100.0);				
 		configData.put("default player power", 10.0);				
-		configData.put("local chat distance", 500);				
+		configData.put("seconds before faction is considered really offline", 300);
+		
+		//faction chat settings				
+		configData.put("enable simplefaction chat", "true");	
+		configData.put("show faction data in global chat", "true");
+		configData.put("show faction data in local chat", "true");				
 		configData.put("faction symbol left", "/");				
 		configData.put("faction symbol right", "/");				
-		configData.put("seconds before faction is considered really offline", 300);		
+		configData.put("local chat distance", 500);		
 		
 		//power settings
 		configData.put("max player power", 25.0);				
@@ -2734,6 +2739,11 @@ public class simpleFactions extends JavaPlugin implements Listener {
     public void AsyncPlayerChatEvent(AsyncPlayerChatEvent event){
 		event.setMessage(event.getMessage().replace(">", "§a>"));
 		
+		//exit the chat event, if the config says so
+		if(configData.getString("enable simplefaction chat").equals("false")){
+			return;
+		}
+		
 		int posX_talk = event.getPlayer().getLocation().getBlockX();
 		int posZ_talk = event.getPlayer().getLocation().getBlockZ();
 		
@@ -2770,10 +2780,18 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    	
 	    	if(!faction.equals("") && !faction2.equals(""))
 	    		loadFaction(faction);
+
+			/*	
+			configData.put("show faction data in global chat", "true");
+			*/
 	    	
 	    	//global
 	    	if(chatChannel_talk.equals("global")){
-	    		player.sendMessage("" + factionRelation + rank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
+	    		String message = "";
+	    		if(configData.getString("show faction data in global chat").equals("true"))
+	    			message +=  factionRelation + rank + "" + factionString;
+	    		message += " §f(" + factionRelation + playerName + "§f): " + event.getMessage();
+	    		player.sendMessage(message);
 	    		continue;
 	    	}
 	    	
@@ -2835,13 +2853,21 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    		if(direction<106 && direction>75) Direction = "S";
 	    		if(direction<76 && direction>15) Direction = "SE";
 	    		
-	    		if(distance<configData.getInt("local chat distance") && !player.getName().equals(event.getPlayer().getName()))
-    	    		player.sendMessage(Rel_Neutral + "(local:" + (distance) + "" + Direction + ") " + 
-    	    				factionRelation + title + " " + rank + "" + factionString + " §f(" + factionRelation + 
-    	    				playerName + "§f): " + event.getMessage());
-	    		if(player.getName().equals(event.getPlayer().getName()))
-	    	    		player.sendMessage(Rel_Neutral + "(local) " + factionRelation + title + " " + rank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
-	    		continue;
+	    		if(distance<configData.getInt("local chat distance") && !player.getName().equals(event.getPlayer().getName())){
+	    				String message_ = Rel_Neutral + "(local:" + (distance) + "" + Direction + ") "; 
+	    				if(configData.getString("show faction data in local chat").equals("true")) //only display faction stuff if settings say so
+	    					message_ += factionRelation + title + " " + rank + "" + factionString;
+	    				message_ += " §f(" + factionRelation + playerName + "§f): " + event.getMessage();
+    	    			player.sendMessage(message_);
+    	    		}
+	    		if(player.getName().equals(event.getPlayer().getName())){
+	    	    		String _message = Rel_Neutral + "(local) ";
+	    				if(configData.getString("show faction data in local chat").equals("true")) 
+	    					_message += factionRelation + title + " " + rank + "" + factionString;
+	    	    		_message += " §f(" + factionRelation + playerName + "§f): " + event.getMessage();
+	    			player.sendMessage(_message);
+	    		}
+	    	    continue;
 	    	}
 	    	
 	    	//custom

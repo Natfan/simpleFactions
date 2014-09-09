@@ -1,6 +1,6 @@
 name: simpleFactions
 main: com.crossedshadows.simpleFactions.simpleFactions
-version: 1.20
+version: 1.30
 permissions:
   simplefactions.sf: {description: Base command, default: true}
   simplefactions.admin: {description: Admin powers, default: false}
