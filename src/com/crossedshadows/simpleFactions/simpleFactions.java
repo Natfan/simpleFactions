@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -130,7 +131,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	String Rel_Truce = "§6";
 	String powerCapType = "none";
 	
-	String version = "1.30";
+	String version = "1.40";
 	
 	long currentTime = System.currentTimeMillis();
 	long lastTime = System.currentTimeMillis();
@@ -252,7 +253,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     /**
      * Creates config file.
      * */
-    public void createConfigData(){
+    public String createConfigData(){
     	configData = new JSONObject();
     	neutralBreakData = new JSONArray();
     	allyBreakData = new JSONArray();
@@ -305,7 +306,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		configData.put("friendly fire other", "false");				  
 		configData.put("default player money", 100.0);				
 		configData.put("default player power", 10.0);				
-		configData.put("seconds before faction is considered really offline", 300);
+		configData.put("seconds before faction is considered really offline", 300);	 
+		configData.put("only admins can create factions", "false");					
 		
 		//faction chat settings				
 		configData.put("enable simplefaction chat", "true");	
@@ -313,7 +315,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		configData.put("show faction data in local chat", "true");				
 		configData.put("faction symbol left", "/");				
 		configData.put("faction symbol right", "/");				
-		configData.put("local chat distance", 500);		
+		configData.put("local chat distance", 500);					
+		configData.put("treat all chat like a radio", "false");		
 		
 		//power settings
 		configData.put("max player power", 25.0);				
@@ -376,6 +379,19 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		//power cap settings
 		configData.put("power cap max powe", powerCapMax);
 		configData.put("power cap type", powerCapType);
+		
+		
+		String configFile = "";
+		
+		configFile = "";
+		
+		InputStream input = getClass().getResourceAsStream("/configFile.json");
+		Scanner scan = new Scanner(input).useDelimiter("\\Z");
+		configFile = scan.next();
+		scan.close();
+		loadConfigData(); 
+		
+		return configFile;
     }
 
     /**
@@ -388,9 +404,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
 				FileWriter fw = new FileWriter(configFile);
 				BufferedWriter bw=new BufferedWriter(fw);
 				
-				createConfigData();
+				//createConfigData();
 				
-				bw.write(configData.toString(8));
+				bw.write(createConfigData());
 				bw.newLine();
 				bw.close();
 			} catch (IOException e) {
@@ -661,7 +677,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				sender.sendMessage("§6Try using a command! Example: /sf create faction");
     				return true;
     			}else{
-    				if(args[0].toLowerCase().equals("create")){
+    				if(args[0].toLowerCase().equals("create") && (configData.getString("only admins can create factions").equals("false") 
+    						|| sender.isOp() ||  sender.hasPermission("simplefactions.admin") )){
     					return tryCreateFaction(sender,args);
     				}
     				if(args[0].toLowerCase().equals("claim")){
@@ -739,6 +756,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
     					else
     						sender.sendMessage("§cYou must provide the name of the person you wish to invite to your faction!");
     				}
+    				if(args[0].toLowerCase().equals("set")){
+    					if(args.length>3)
+    						return setFactionFlag(sender, args[1],args[2],args[3]);
+    					else
+    						sender.sendMessage("§cYou must provide the name of the faction and flag! Example, /sf set factionname peaceful true");
+    				}
     				if(args[0].toLowerCase().equals("join")){
     					if(args.length>1)
     						return tryJoin(sender, args[1]);
@@ -787,6 +810,34 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	}
              
     	return true; 
+    }
+    
+    public boolean setFactionFlag(CommandSender sender, String faction, String flag, String tr){
+    	if(sender.isOp() || sender.hasPermission("simplefactions.admin")){
+    		loadFaction(faction);
+    		if(flag.equals("peaceful") || flag.equals("warzone") || flag.equals("safezone")){
+    			if(tr.equals("true") || tr.equals("false")){
+    				String ntr = "false";
+    				if(tr.equals("false")) ntr = "true";
+					factionData.put("peaceful", ntr);
+					factionData.put("warzone",  ntr);
+					factionData.put("safezone", ntr);
+					factionData.put(flag, tr);
+					saveFaction(factionData);
+					if(tr.equals("true"))
+						sender.sendMessage("§aThe faction " + faction + " is now a " + flag + " faction.");
+					if(tr.equals("false"))
+						sender.sendMessage("§aThe faction " + faction + " is no longer a " + flag + " faction.");
+    			}else{
+    				sender.sendMessage("§cPlease specify whether you want " + faction + " to be " + flag + " with true or false at the end.");
+    			}
+    		}else{
+    			sender.sendMessage("§cPlease use either peaceful, warzone, or safezone.");
+    		}
+    	}else{
+    		sender.sendMessage("§cYou must be a server OP or have the simplefactions.admin permission to do this!");
+    	}
+    	return true;
     }
     
     	/*
@@ -1947,6 +1998,17 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	truceData = factionData.getJSONArray("truce");
     	allyData = factionData.getJSONArray("allies");
     	
+
+    	if(!factionData.has("safezone"))
+    		factionData.put("safezone", "false"); 
+
+    	if(!factionData.has("warzone"))
+    		factionData.put("warzone", "false"); 
+
+    	if(!factionData.has("peaceful"))
+    		factionData.put("peaceful", "false"); 
+    	
+    	
     	for(int i = 0; i<enemyData.length(); i++){
     		String rel = getFactionRelationColor(faction, enemyData.getString(i));
     		if(rel.equals(Rel_Enemy)){
@@ -1990,6 +2052,13 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	factionInfo += "§6---- " + getFactionRelationColor(viewingFaction,faction) + 
     			configData.getString("faction symbol left") + faction + configData.getString("faction symbol right") + "§6 ---- \n";
     	factionInfo += "§6" + factionData.getString("desc") + "\n§6";
+    	
+    	if(factionData.getString("safezone").equals("true"))
+    		factionInfo += "§6This faction is a safezone.\n"; 
+    	if(factionData.getString("warzone").equals("true"))
+    		factionInfo += "§cThis faction is a warzone.\n"; 
+    	if(factionData.getString("peaceful").equals("true"))
+    		factionInfo += "§6This faction is peaceful.\n"; 
     	
     	factionInfo += "§6Power: " + getFactionClaimedLand(faction) + "/" + df.format(getFactionPower(faction)) + "/" + df.format(getFactionPowerMax(faction)) + "\n";
     	
@@ -2049,7 +2118,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			loadFaction(faction);
     			inviteData = factionData.getJSONArray("invited");
     			
-    			if(inviteData.toString().contains(sender.getName().toLowerCase()) || factionData.getString("open").equals("true")){
+    			if(inviteData.toString().contains(sender.getName().toLowerCase()) || factionData.getString("open").equals("true") || 
+    					sender.isOp() || sender.hasPermission("simplefactions.admin")){
         			playerData.put("faction", faction);
         			playerData.put("factionRank", configData.getString("default player rank"));
         			savePlayer(playerData); 
@@ -2445,6 +2515,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	inviteData = new JSONArray();
     	factionData = new JSONObject();
 		factionData.put("name", faction);
+		factionData.put("peaceful", "false");
+		factionData.put("warzone", "false");
+		factionData.put("safezone", "false");
 		factionData.put("ID", Math.random()*1000);
 		factionData.put("shekels", 0.0);
 		factionData.put("enemies",enemyData);
@@ -2643,6 +2716,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	if(senderFaction.equals("")) return Rel_Other;
     	if(senderFaction.equals(reviewedFaction)) return Rel_Faction;
     	
+    	
+    	
     	if(!senderFaction.equals("") && !reviewedFaction.equals("") && !reviewedFaction.equals("neutral territory")
     			&& !senderFaction.equals("neutral territory")) {
     		
@@ -2655,7 +2730,20 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		if(factionData.get("enemies").toString().contains(senderFaction)) relation2="enemy";// return Rel_Enemy;
     		if(factionData.get("allies").toString().contains(senderFaction)) relation2="ally";// return Rel_Ally;
     		if(factionData.get("truce").toString().contains(senderFaction)) relation2="truce";// return Rel_Truce;
-    	
+
+        	if(!factionData.has("safezone"))
+        		factionData.put("safezone", "false"); 
+
+        	if(!factionData.has("warzone"))
+        		factionData.put("warzone", "false"); 
+
+        	if(!factionData.has("peaceful"))
+        		factionData.put("peaceful", "false"); 
+
+        	if(factionData.getString("peaceful").equals("true")) return Rel_Truce;  
+        	if(factionData.getString("safezone").equals("true")) return Rel_Truce; 
+        	if(factionData.getString("warzone").equals("true")) return Rel_Enemy;
+    		
     		if(relation.equals("enemy") || relation2.equals("enemy")) return Rel_Enemy;
     		if(relation.equals("ally") && relation2.equals("ally")) return Rel_Ally;
     		if(relation.equals("truce") && relation2.equals("truce")) return Rel_Truce;
@@ -2709,9 +2797,68 @@ public class simpleFactions extends JavaPlugin implements Listener {
         	loadPlayer(playerAttacked.getName());
         	String factionAttacked = playerData.getString("faction");
         	
+        	String inFactionLand = "neutral";
+        	
+	        Location loc = playerAttacked.getLocation();
+	        loadWorld(loc.getWorld().getName());
+	        int posX = loc.getBlockX();
+	        int posY = loc.getBlockY();
+	        int posZ = loc.getBlockZ();
+	        posX = Math.round(posX / chunkSizeX) * chunkSizeX;
+	        posY = Math.round(posY / chunkSizeY) * chunkSizeY;
+	        posZ = Math.round(posZ / chunkSizeZ) * chunkSizeZ;
+
+	        if(boardData.has("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ)){
+	        	inFactionLand = boardData.getString("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ);
+	        	loadFaction(inFactionLand);
+	        	
+	        	if(factionData.has("peaceful")){
+	        		if(factionData.getString("peaceful").equals("true")){
+	        			playerAttacking.sendMessage("§7You cannot hurt players in peaceful land.");
+	        		}
+	        	}else{
+        			factionData.put("peaceful", "false");
+        			saveFaction(factionData);
+        		}
+	        	
+	        	if(factionData.has("safezone")){
+	        		if(factionData.getString("safezone").equals("true")){
+	        			playerAttacking.sendMessage("§7You cannot hurt players in a safezone.");
+	        		}
+	        	}else{
+        			factionData.put("safezone", "false");
+        			saveFaction(factionData);
+        		}
+	        }
+	        
+        	//peaceful characters
+        	loadFaction(factionAttacking);
+        	if(factionData.has("peaceful")){
+        		if(factionData.getString("peaceful").equals("true")){
+        			playerAttacking.sendMessage("§7Peaceful players cannot attack other players.");
+        			return;
+        		}
+        	}else{
+        		factionData.put("peaceful", "false");
+        		saveFaction(factionData);
+        	}
+        	
+
+        	loadFaction(factionAttacked);
+        	if(factionData.has("peaceful")){
+        		if(factionData.getString("peaceful").equals("true")){
+        			playerAttacking.sendMessage("§7You cannot hurt peaceful players.");
+        			return;
+        		}
+        	}else{
+        		factionData.put("peaceful", "false");
+        		saveFaction(factionData);
+        	}
+        	
         	if(factionAttacking.equals(factionAttacked)){
+        		loadFaction(inFactionLand); 
         		
-        		if(damagedCause == DamageCause.ENTITY_ATTACK && configData.getString("friendly fire melee").equals("true")){
+        		if(damagedCause == DamageCause.ENTITY_ATTACK && (configData.getString("friendly fire melee").equals("true") || factionData.getString("warzone").equals("true"))){
         			playerAttacking.sendMessage("§7Hit player!");
         			return;
         		}
@@ -2836,7 +2983,13 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    	}
 	    	
 	    	//local
-	    	if(chatChannel_talk.equals("local")){
+	    	boolean treatchatlikeradio = false; 
+	    	if(configData.has("treat all chat like a radio"))
+	    		if(configData.getString("treat all chat like a radio").equals("true"))
+	    			treatchatlikeradio = true;
+	    	
+	    	if(chatChannel_talk.equals("local") || treatchatlikeradio){
+	    		
 	    		String Direction = "";
 	    		int posX_listen = player.getLocation().getBlockX();
 	    		int posZ_listen = player.getLocation().getBlockZ();
@@ -2854,12 +3007,18 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    		if(direction<76 && direction>15) Direction = "SE";
 	    		
 	    		if(distance<configData.getInt("local chat distance") && !player.getName().equals(event.getPlayer().getName())){
-	    				String message_ = Rel_Neutral + "(local:" + (distance) + "" + Direction + ") "; 
+	    				String message_ = Rel_Neutral + "(" + (distance) + "" + Direction + ") "; 
 	    				if(configData.getString("show faction data in local chat").equals("true")) //only display faction stuff if settings say so
 	    					message_ += factionRelation + title + " " + rank + "" + factionString;
 	    				message_ += " §f(" + factionRelation + playerName + "§f): " + event.getMessage();
     	    			player.sendMessage(message_);
     	    		}
+	    		
+	    		if(distance>=configData.getInt("local chat distance") && distance<configData.getInt("local chat distance")*1.5 && !player.getName().equals(event.getPlayer().getName())){ 
+    				String message_ = Rel_Neutral + "(you hear something " + distance + " blocks " + Direction + " from you)";
+	    			player.sendMessage(message_);
+	    		}
+	    		
 	    		if(player.getName().equals(event.getPlayer().getName())){
 	    	    		String _message = Rel_Neutral + "(local) ";
 	    				if(configData.getString("show faction data in local chat").equals("true")) 
@@ -2995,13 +3154,17 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		
 			if(breakorplace.equals("break") && configData.getString("protect all claimed blocks from being broken in " + relation + " territory").equals("true"))
 				returnType=!returnType;
-			
+
 			if(breakorplace.equals("place") && configData.getString("protect all claimed blocks from being placed in " + relation + " territory").equals("true"))
 				returnType=!returnType;
-			
+
+			if(breakorplace.equals("break") && configData.getJSONArray("block break protection in " + relation + " land").toString().contains("" + location.getBlock().getType().getId()))
+				returnType=!returnType;
 			if(breakorplace.equals("break") && configData.getJSONArray("block break protection in " + relation + " land").toString().contains(location.getBlock().getType().toString()))
 				returnType=!returnType;
-				
+			
+			if(breakorplace.equals("place") && configData.getJSONArray("block place protection in " + relation + " land").toString().contains("" + location.getBlock().getType().getId()))
+				returnType=!returnType; 
 			if(breakorplace.equals("place") && configData.getJSONArray("block place protection in " + relation + " land").toString().contains(location.getBlock().getType().toString()))
 				returnType=!returnType;
 
@@ -3104,10 +3267,14 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		
 		if(configData.getString("block all item use by default in " + relation + " territory").equals("true"))
 			returnType=!returnType;
-		
+
+		if(itemName.equals("") && configData.getJSONArray("item protection in " + relation + " land").toString().contains("" + location.getBlock().getType().getId()))
+			returnType=!returnType;
 		if(itemName.equals("") && configData.getJSONArray("item protection in " + relation + " land").toString().contains(location.getBlock().getType().toString()))
 			returnType=!returnType;
 		
+		if(!itemName.equals("") && configData.getJSONArray("item protection in " + relation + " land").toString().contains("" + player.getItemInHand().getType().getId()))
+			returnType=!returnType;
 		if(!itemName.equals("") && configData.getJSONArray("item protection in " + relation + " land").toString().contains(itemName))
 			returnType=!returnType;
 		
@@ -3222,6 +3389,36 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	        if(boardData.has("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ)){
 	        	String faction = boardData.getString("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ);
 	        	boolean online = isFactionOnline(faction);
+
+	        	loadFaction(faction);
+	        	if(factionData.has("peaceful")){
+	        		if(factionData.getString("peaceful").equals("true")){
+	        			event.setCancelled(true);
+			        	break;
+	        		}
+	        	}else{
+	        		factionData.put("peaceful", "false");
+	        		saveFaction(factionData);
+	        	}
+	        	if(factionData.has("warzone")){
+	        		if(factionData.getString("warzone").equals("true")){
+	        			event.setCancelled(true);
+			        	break;
+	        		}
+	        	}else{
+	        		factionData.put("warzone", "false");
+	        		saveFaction(factionData);
+	        	}
+	        	if(factionData.has("safezone")){
+	        		if(factionData.getString("safezone").equals("true")){
+	        			event.setCancelled(true);
+			        	break;
+	        		}
+	        	}else{
+	        		factionData.put("safezone", "false");
+	        		saveFaction(factionData);
+	        	}
+	        	
 	        	if(online && configData.getString("protect claimed land from explosions while faction is online").equals("true")){
 		        	event.setCancelled(true);
 		        	break;
