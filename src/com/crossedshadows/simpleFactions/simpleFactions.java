@@ -135,7 +135,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	String Rel_Truce = "§6";
 	String powerCapType = "none";
 	
-	String version = "1.40";
+	String version = "1.45";
 	
 	long currentTime = System.currentTimeMillis();
 	long lastTime = System.currentTimeMillis();
@@ -449,7 +449,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 					File backupFile = new File(configFile.getAbsoluteFile() + ".backup");
 					FileWriter filew = new FileWriter(backupFile);
 					BufferedWriter baw = new BufferedWriter(filew);
-					baw.write(configData.toString(5));
+					baw.write(createConfigData());
 					baw.newLine();
 					baw.close();
 				} catch (IOException e) {
