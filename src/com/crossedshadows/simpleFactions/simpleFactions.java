@@ -2095,7 +2095,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	if(factionData.getString("peaceful").equals("true"))
     		factionInfo += "§6This faction is peaceful.\n"; 
     	
-    	if(factionHome != null)
+    	if(factionHome != null && viewingFaction.equals(faction))
     		factionInfo += "Home in" + factionHome.getWorld().getName() + "at x" + 
     			factionHome.getX() + " z" + factionHome.getZ() + " y" + factionHome.getY();
     	
