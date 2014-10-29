@@ -45,11 +45,15 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.json.JSONArray;
 import org.json.JSONObject;
+//import org.kitteh.tag.AsyncPlayerReceiveNameTagEvent;
 import org.mcstats.MetricsLite;
+
+import com.sun.corba.se.spi.activation.Server;
 
 /**
  * TODO List
@@ -145,6 +149,23 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		loadData();
 		updatePlayerPower();
 		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has enabled successfully!]");
+		
+		/*
+		boolean hasapi = false; 
+		Plugin[] plugins = getServer().getPluginManager().getPlugins();
+		
+		for(int i = 0; i < plugins.length; i++){
+			if(plugins[i].getName().toLowerCase().trim().contains("tagapi")) 
+				hasapi = true; 
+			if(plugins[i].getName().toLowerCase().contains("tag api")) 
+				hasapi = true; 
+		}
+		
+		if(!hasapi)
+			AsyncPlayerReceiveNameTagEvent.getHandlerList().unregister(getServer().getPluginManager().getPlugin("simpleFactions"));
+		else
+			getLogger().info("[TagAPI has been found!]");
+		*/
 		
 		try {
 	        MetricsLite metrics = new MetricsLite(this);
@@ -1844,8 +1865,29 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	loadFaction(playerData.getString("faction"));
     	factionData.put("home",world + " " + posX + " " + posY + " " + posZ);
     	saveFaction(factionData);
-		sender.sendMessage("§7You have set your faction home at §6" + (int)posX + "," + (int)posY + "," + (int)posZ + "§7.");
+		//sender.sendMessage("§7You have set your faction home at §6" + (int)posX + "," + (int)posY + "," + (int)posZ + "§7.");
+		messageFaction(playerData.getString("faction"), Rel_Faction + sender.getName()  + "§7 has set your faction home at §6" + (int)posX + "," + (int)posY + "," + (int)posZ + "§7.");
     	return true;
+    }
+    
+    /**
+     * Returns the Location of the faction home. 
+     * */
+    public Location getHome(String faction){
+    	loadFaction(faction);
+    	String home = factionData.getString("home");
+    	
+    	if(home.equals(""))
+    		return null;
+    	
+    	Scanner scan = new Scanner(home);
+    	String world = scan.next();
+    	double x = scan.nextDouble();
+    	double y = scan.nextDouble();
+    	double z = scan.nextDouble();
+    	scan.close();
+    	
+    	return new Location(Bukkit.getWorld(world), x, y, z);
     }
     
     /**
@@ -1862,21 +1904,13 @@ public class simpleFactions extends JavaPlugin implements Listener {
 
     	loadPlayer(sender.getName());
     	loadFaction(playerData.getString("faction"));
-    	String home = factionData.getString("home");
     	
-    	if(home.equals("")){
+    	Location loc = getHome(factionName);
+    	if(loc == null){
     		sender.sendMessage("Your faction doesn't have a home!");
     		return true;
     	}
-    	Scanner scan = new Scanner(home);
-    	String world = scan.next();
-    	double x = scan.nextDouble();
-    	double y = scan.nextDouble();
-    	double z = scan.nextDouble();
-    	scan.close();
     	
-    	Location loc = new Location(Bukkit.getWorld(world), x, y, z);
-
     	Block block = loc.getBlock();
     	int i = 0;
     	while(block.getRelative(BlockFace.UP).getType() != Material.AIR || block.getType() != Material.AIR){
@@ -1998,7 +2032,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	truceData = factionData.getJSONArray("truce");
     	allyData = factionData.getJSONArray("allies");
     	
-
+    	Location factionHome = getHome(faction); 
+    	
     	if(!factionData.has("safezone"))
     		factionData.put("safezone", "false"); 
 
@@ -2059,6 +2094,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		factionInfo += "§cThis faction is a warzone.\n"; 
     	if(factionData.getString("peaceful").equals("true"))
     		factionInfo += "§6This faction is peaceful.\n"; 
+    	
+    	if(factionHome != null)
+    		factionInfo += "Home in" + factionHome.getWorld().getName() + "at x" + 
+    			factionHome.getX() + " z" + factionHome.getZ() + " y" + factionHome.getY();
     	
     	factionInfo += "§6Power: " + getFactionClaimedLand(faction) + "/" + df.format(getFactionPower(faction)) + "/" + df.format(getFactionPowerMax(faction)) + "\n";
     	
@@ -3368,6 +3407,38 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		}
 	}
 	
+	
+	/**
+	 * Eventhandler for name tags (dependent on tagAPI)
+	 * */
+	/*public void onNameTag(AsyncPlayerReceiveNameTagEvent  event){
+		
+		boolean hasapi = false; 
+		Plugin[] plugins = getServer().getPluginManager().getPlugins();
+		
+		for(int i = 0; i < plugins.length; i++){
+			if(plugins[i].getName().toLowerCase().trim().contains("tagapi")) 
+				hasapi = true; 
+			if(plugins[i].getName().toLowerCase().contains("tag api")) 
+				hasapi = true; 
+		}
+		
+		//boolean hastagapi = getServer().getPluginManager().getPlugins().toString().toLowerCase().contains("tagapi");
+		
+		if(hasapi){
+			String player = event.getPlayer().getName();
+			String player2 = event.getNamedPlayer().getName();
+		
+			loadPlayer(player);
+			String faction = playerData.getString("faction");
+			loadPlayer(player2);
+			String faction2 = playerData.getString("faction");
+		
+			String rel = getFactionRelationColor(faction,faction2);
+		
+			event.setTag(rel + event.getTag());
+		}
+	}*/
 	
 	/**
 	 * When a creeper or tnt explodes, check all affected blocks. If claimed, ignore it (if its set that way in the options);
