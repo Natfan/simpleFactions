@@ -1333,6 +1333,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	String faction1 = playerData.getString("faction");
     	loadPlayer(player);
     	String faction2 = playerData.getString("faction");
+    	String rank = playerData.getString("rank");
     	sender.sendMessage("§7 ------ [" + getFactionRelationColor(faction1,faction2) + player + "§7] ------ ");
     	sender.sendMessage("§6Power: §f" + df.format(playerData.getDouble("power")));
     	if(!playerData.getString("faction").equals("")) 
@@ -1342,6 +1343,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	sender.sendMessage("§6Gaining §f" + df.format(configData.getDouble("power per hour while online")) + "§6 power an hour while online.");
     	sender.sendMessage("§6Losing §f" + df.format(-1*configData.getDouble("power per hour while offline")) + "§6 power an hour while offline.");
     	loadPlayer(player);
+    	sender.sendMessage("§6Rank: " + rank);
     	sender.sendMessage("§6Kills: " + playerData.getInt("kills"));
     	sender.sendMessage("§6Deaths: " + playerData.getInt("deaths"));
     	
@@ -1616,6 +1618,23 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * Returns faction power information.
      * */
     public int getFactionClaimedLand(String faction){
+        int claimedLand = 0;
+            
+           for(World w : Bukkit.getServer().getWorlds()){
+               loadWorld(w.getName());
+               JSONArray array = boardData.names();
+               for(int i = 0; i < array.length(); i++){
+                       String name = array.getString(i);
+                       if(boardData.getString(name).equals(faction)){
+                               claimedLand++;
+                       }
+               }
+           }
+           return claimedLand;
+    }
+    
+    /*
+    public int getFactionClaimedLand(String faction){
     	int claimedLand = 0;
     	loadWorld("world");
     	JSONArray array = boardData.names();
@@ -1627,6 +1646,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	}
     	return claimedLand;
     }
+    */
+    
     public double getFactionPowerMax(String faction){
     	double factionPower = 0;
     	
@@ -1809,6 +1830,16 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		   helpMessage += "  §aspecific rank to give a player. You can even" + "\n"; 
     		   helpMessage += "  §ause custom rank names (with /sf access) to " + "\n"; 
     		   helpMessage += "  §acreate entirely new faction ranks!" + "\n"; 
+    		   helpMessage += " \n"; 
+    		   helpMessage += " \n"; 
+    		   helpMessage += " \n"; 
+    		   
+    		   //6
+    		   helpMessage += " §6 set (peaceful/safezone/warzone) (true/false) - §aSets flag for faction." + "\n";
+    		   helpMessage += " §aIf peaceful, land cannot be damaged and players cannot be hurt." + "\n";
+    		   helpMessage += " §aIf safezone, land cannot be damaged and anyone inside of the land cannot be hurt." + "\n";
+    		   helpMessage += " §aIf warzone, land cannot be damaged and friendly fire inside of land is enabled." + "\n";
+    		   helpMessage += " \n"; 
     		   helpMessage += " \n"; 
     		   helpMessage += " §6 (§dCoty loves you :3c§6)" + "\n"; 
     		   helpMessage += "§aPlugin version: " + version +" \n"; 
@@ -2129,7 +2160,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			if(playerData.getString("faction").equals(faction) && !off[i].isOnline()) {
 				if(!offMembers.equals("")) 
 					offMembers+= ", ";
-				offMembers+=off[i].getName();
+				offMembers+="(" + playerData.getString("rank") + ") " + off[i].getName();
 			}
 		}
 		for(int i = 0; i < on.length; i++){
@@ -2137,7 +2168,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			if(playerData.getString("faction").equals(faction) && on[i].isOnline()) {
 				if(!members.equals("")) 
 					members+= ", ";
-				members+=on[i].getName();
+				members+="(" + playerData.getString("rank") + ") " + on[i].getName();
 			}
 		}
     	
@@ -2364,6 +2395,11 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		return true;
     	}
     	
+    	if(!playerData.getString("rank").equals("leader") && !playerData.getString("rank").equals("officer")){
+    		sender.sendMessage("§cYou aren't a high enough rank to do this.");
+    		return true;
+    	}
+    	
     	if(getFactionClaimedLand(factionName)>=getFactionPower(factionName)){
     		sender.sendMessage("§cYou need more power! §7Staying online and having more members increases power. Do §6/sf help§7 for more information.");
     		return true;
@@ -2563,6 +2599,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		factionData.put("allies",allyData);
 		factionData.put("truce", truceData);
 		factionData.put("invited", inviteData);
+		factionData.put("lastOnline", System.currentTimeMillis());
 		factionData.put("home", "");
 		factionData.put("desc", configData.getString("default faction description"));
 		factionData.put("open", configData.getString("factions open by default"));
