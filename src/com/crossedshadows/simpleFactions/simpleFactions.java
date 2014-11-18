@@ -319,7 +319,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		configData.put("default faction description","Please do /sf desc to change this description!"); 
 		configData.put("allow player titles", "true");			//#
 		configData.put("default player title", "");						
-		configData.put("default player rank", "member");				
+		configData.put("default player factionRank", "member");				
 		configData.put("factions open by default", "true");				 
 		configData.put("enforce relations", "");						
 		configData.put("friendly fire melee", "false");					
@@ -993,8 +993,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
     
     /**
      * setAccess() is complicated, read more...
-     * Example usage: /sf access <p/r/f> <player/rank/faction> <block> <true/false> (this chunk only <true/false>) 
-     * You provide p/r/f (player, rank, or faction) and then the name of the player, rank, or faction.
+     * Example usage: /sf access <p/r/f> <player/factionRank/faction> <block> <true/false> (this chunk only <true/false>) 
+     * You provide p/r/f (player, factionRank, or faction) and then the name of the player, factionRank, or faction.
      * You provide the block or item, and then true/false to show you want it to be allowed or not.
      * You can also add an additional "true" at the end of it, if you want this info to only affect the current chunk.
      * 
@@ -1002,7 +1002,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * */
     public boolean setAccess(CommandSender sender,String[] args){
     	//argument base   0     1             2               3       4                               5
-    	//example /sf access <p/r/f> <player/rank/faction> <block> <true/false> (this chunk only <true/false>) 
+    	//example /sf access <p/r/f> <player/factionRank/faction> <block> <true/false> (this chunk only <true/false>) 
     	String example = "§7Example usage: §b/sf access §7<§bp§7/§br§7/§bf§7> " +
 				"§7<§bplayer§7/§brank§7/§bfaction§7> §7<§bblock§7> §7<§btrue§7/§bfalse§7> " +
 				"(optional, this chunk only §7<§btrue§7/§bfalse§7>)";
@@ -1104,21 +1104,21 @@ public class simpleFactions extends JavaPlugin implements Listener {
     }
     
     /**
-     * Sets the rank of a player.
+     * Sets the factionRank of a player.
      * */
     public boolean setRank(CommandSender sender, String[] args){
     	// -1  0         1     2
-    	// sf setrank player rank
+    	// sf setrank player factionRank
     	// sf promote player
     	loadPlayer(sender.getName());
-		String rank = playerData.getString("factionRank");
+		String factionRank = playerData.getString("factionRank");
 		String faction = playerData.getString("faction");
 		
-		if(rank.equals("officer") || rank.equals("leader")){
+		if(factionRank.equals("officer") || factionRank.equals("leader")){
     	if(args.length>1){
     		
     		if(sender.getName().equals(args[1])){
-    			sender.sendMessage("§cYou cannot set your own rank!");
+    			sender.sendMessage("§cYou cannot set your own factionRank!");
     			return true;
     		}
     		
@@ -1134,7 +1134,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			return true;
     		}
     		if(args[0].equals("leader")){
-    			if(rank.equals("leader")){
+    			if(factionRank.equals("leader")){
         			loadPlayer(args[1]);
     				playerData.put("factionRank", "leader");
         			savePlayer(playerData);
@@ -1161,7 +1161,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
         		return true;
     		}
     		
-			if(rank.equals("leader")){
+			if(factionRank.equals("leader")){
     			loadPlayer(args[1]);
 				playerData.put("factionRank", args[2]);
     			savePlayer(playerData);
@@ -1175,14 +1175,14 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	}
     	else{
     		if(args[0].equals("setrank"))
-        		sender.sendMessage("§cInvalid!§7 Correct usage: §b/sf setrank name rank");
+        		sender.sendMessage("§cInvalid!§7 Correct usage: §b/sf setrank name factionRank");
     		else
     			sender.sendMessage("§cInvalid!§7 Correct usage: §b/sf promote§6/§bdemote§6/§bleader name");
     		
     		return true;
     	}
     	}else{
-    		sender.sendMessage("§cYour rank isn't high enough to do this!");
+    		sender.sendMessage("§cYour factionRank isn't high enough to do this!");
     		return true;
     	}
     	
@@ -1278,7 +1278,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	if(args.length>1){
     		loadPlayer(sender.getName());
     		String faction = playerData.getString("faction");
-    		String rank = playerData.getString("factionRank");
+    		String factionRank = playerData.getString("factionRank");
     		if(faction.equals("")){
     			sender.sendMessage("You are not in a faction!");
     			return true;
@@ -1291,8 +1291,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
     					return true;
     				}
     				else{
-    					if(!rank.equals("leader") && !rank.equals("officer")){
-    						sender.sendMessage("You are not a high enough rank to kick players!");
+    					if(!factionRank.equals("leader") && !factionRank.equals("officer")){
+    						sender.sendMessage("You are not a high enough factionRank to kick players!");
     						return true;
     					}
     					else{
@@ -1333,7 +1333,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	String faction1 = playerData.getString("faction");
     	loadPlayer(player);
     	String faction2 = playerData.getString("faction");
-    	String rank = playerData.getString("rank");
+    	String factionRank = playerData.getString("factionRank");
     	sender.sendMessage("§7 ------ [" + getFactionRelationColor(faction1,faction2) + player + "§7] ------ ");
     	sender.sendMessage("§6Power: §f" + df.format(playerData.getDouble("power")));
     	if(!playerData.getString("faction").equals("")) 
@@ -1343,7 +1343,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	sender.sendMessage("§6Gaining §f" + df.format(configData.getDouble("power per hour while online")) + "§6 power an hour while online.");
     	sender.sendMessage("§6Losing §f" + df.format(-1*configData.getDouble("power per hour while offline")) + "§6 power an hour while offline.");
     	loadPlayer(player);
-    	sender.sendMessage("§6Rank: " + rank);
+    	sender.sendMessage("§6Rank: " + factionRank);
     	sender.sendMessage("§6Kills: " + playerData.getInt("kills"));
     	sender.sendMessage("§6Deaths: " + playerData.getInt("deaths"));
     	
@@ -1815,7 +1815,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		   helpMessage += " §apower in order to claim their land." + "\n";
     	
     		   //4
-    		   helpMessage += " §6 access type(p/r/f) name(player/rank/faction) " + "\n"; 
+    		   helpMessage += " §6 access type(p/r/f) name(player/factionRank/faction) " + "\n"; 
     		   helpMessage += " §6 block(block) allow(true/false) thisChunkOnly(true/false) " + "\n"; 
     		   helpMessage += " §a - This very powerful command will allow you to edit  " + "\n"; 
     		   helpMessage += " §a permissions to your liking, within your faction!  " + "\n"; 
@@ -1826,9 +1826,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
 
     		   //5
     		   helpMessage += " §6 top §7<§btime§7/§bkills§7/§bdeaths§7 - §aShows server's top stats." + "\n";
-    		   helpMessage += " §6 setrank (name) (rank) - §aYou can specify a" + "\n"; 
-    		   helpMessage += "  §aspecific rank to give a player. You can even" + "\n"; 
-    		   helpMessage += "  §ause custom rank names (with /sf access) to " + "\n"; 
+    		   helpMessage += " §6 setrank (name) (factionRank) - §aYou can specify a" + "\n"; 
+    		   helpMessage += "  §aspecific factionRank to give a player. You can even" + "\n"; 
+    		   helpMessage += "  §ause custom factionRank names (with /sf access) to " + "\n"; 
     		   helpMessage += "  §acreate entirely new faction ranks!" + "\n"; 
     		   helpMessage += " \n"; 
     		   helpMessage += " \n"; 
@@ -1983,8 +1983,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	String faction = playerData.getString("faction");
     	loadFaction(faction);
     	
-    	String rank = playerData.getString("factionRank");
-    	if(rank.equals("officer") || rank.equals("leader")){
+    	String factionRank = playerData.getString("factionRank");
+    	if(factionRank.equals("officer") || factionRank.equals("leader")){
         	inviteData = factionData.getJSONArray("invited");
         	inviteData.put(invitedPlayer.toLowerCase());
         	factionData.put("invited", inviteData);
@@ -2160,7 +2160,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			if(playerData.getString("faction").equals(faction) && !off[i].isOnline()) {
 				if(!offMembers.equals("")) 
 					offMembers+= ", ";
-				offMembers+="(" + playerData.getString("rank") + ") " + off[i].getName();
+				offMembers+="(" + playerData.getString("factionRank") + ") " + off[i].getName();
 			}
 		}
 		for(int i = 0; i < on.length; i++){
@@ -2168,7 +2168,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			if(playerData.getString("faction").equals(faction) && on[i].isOnline()) {
 				if(!members.equals("")) 
 					members+= ", ";
-				members+="(" + playerData.getString("rank") + ") " + on[i].getName();
+				members+="(" + playerData.getString("factionRank") + ") " + on[i].getName();
 			}
 		}
     	
@@ -2191,7 +2191,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			if(inviteData.toString().contains(sender.getName().toLowerCase()) || factionData.getString("open").equals("true") || 
     					sender.isOp() || sender.hasPermission("simplefactions.admin")){
         			playerData.put("faction", faction);
-        			playerData.put("factionRank", configData.getString("default player rank"));
+        			playerData.put("factionRank", configData.getString("default player factionRank"));
         			savePlayer(playerData); 
         			sender.sendMessage("§6You have joined " + Rel_Faction + playerData.getString("faction") + "§6!");
         			messageFaction(faction,Rel_Faction + sender.getName() + "§6 has joined your faction!");
@@ -2395,8 +2395,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		return true;
     	}
     	
-    	if(!playerData.getString("rank").equals("leader") && !playerData.getString("rank").equals("officer")){
-    		sender.sendMessage("§cYou aren't a high enough rank to do this.");
+    	if(!playerData.getString("factionRank").equals("leader") && !playerData.getString("factionRank").equals("officer")){
+    		sender.sendMessage("§cYou aren't a high enough factionRank to do this.");
     		return true;
     	}
     	
@@ -2740,7 +2740,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
   		playerData.put("name", player.getName());
   		playerData.put("ID", player.getUniqueId());
   		playerData.put("faction","");
-  		playerData.put("factionRank",configData.getString("default player rank"));
+  		playerData.put("factionRank",configData.getString("default player factionRank"));
   		playerData.put("factionTitle",configData.getString("default player title"));
   		playerData.put("shekels", configData.getInt("default player money"));
   		playerData.put("power", configData.getInt("default player power"));
@@ -2758,7 +2758,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
   		playerData.put("name", player.getName());
   		playerData.put("ID", player.getUniqueId());
   		playerData.put("faction","");
-  		playerData.put("factionRank",configData.getString("default player rank"));
+  		playerData.put("factionRank",configData.getString("default player factionRank"));
   		playerData.put("factionTitle",configData.getString("default player title"));
   		playerData.put("shekels", configData.getInt("default player money"));
   		playerData.put("power", configData.getInt("default player power"));
@@ -2974,15 +2974,15 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		String playerName = event.getPlayer().getName();
     	loadPlayer(playerName);
     	String chatChannel_talk = playerData.getString("chat channel");
-    	String rank = playerData.get("factionRank").toString();
+    	String factionRank = playerData.get("factionRank").toString();
     	String title = playerData.get("factionTitle").toString();
     	String faction = playerData.get("faction").toString();
     	String factionString = playerData.get("faction").toString();
-    	rank += " ";
-    	if(rank.contains("leader")) rank = "** ";
-    	if(rank.contains("officer")) rank = "* ";
-    	if(rank.contains("member")) rank = "";
-    	if(rank.equals(" ")) rank = "";
+    	factionRank += " ";
+    	if(factionRank.contains("leader")) factionRank = "** ";
+    	if(factionRank.contains("officer")) factionRank = "* ";
+    	if(factionRank.contains("member")) factionRank = "";
+    	if(factionRank.equals(" ")) factionRank = "";
     	String factionRelation = "";
     	String faction2 = "";
     	if(!configData.getString("allow player titles").equals("true"))
@@ -3012,7 +3012,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    	if(chatChannel_talk.equals("global")){
 	    		String message = "";
 	    		if(configData.getString("show faction data in global chat").equals("true"))
-	    			message +=  factionRelation + rank + "" + factionString;
+	    			message +=  factionRelation + factionRank + "" + factionString;
 	    		message += " §f(" + factionRelation + playerName + "§f): " + event.getMessage();
 	    		player.sendMessage(message);
 	    		continue;
@@ -3020,7 +3020,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    	
 	    	//faction
 	    	if(chatChannel_talk.equals("faction") && faction.equals(faction2)){
-	    		player.sendMessage(Rel_Faction + "(faction) " + factionRelation + title + " " + rank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
+	    		player.sendMessage(Rel_Faction + "(faction) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
 	    		continue;
 	    	}
 	    	
@@ -3029,9 +3029,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    		allyData = factionData.getJSONArray("allies");
 	    		for(int i = 0; i<allyData.length(); i++)
 	    			if(allyData.getString(i).equals(faction2))
-	    	    		player.sendMessage(Rel_Ally + "(ally) " + factionRelation + title + " " + rank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
+	    	    		player.sendMessage(Rel_Ally + "(ally) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
 	    		if(faction.equals(faction2))
-    	    		player.sendMessage(Rel_Ally + "(ally) " + factionRelation + title + " " + rank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
+    	    		player.sendMessage(Rel_Ally + "(ally) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
 	    		continue;
 	    	}
 	    	
@@ -3040,9 +3040,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    		truceData = factionData.getJSONArray("truce");
 	    		for(int i = 0; i<truceData.length(); i++)
 	    			if(truceData.getString(i).equals(faction2))
-	    	    		player.sendMessage(Rel_Truce + "(truce) " + factionRelation + title + " " + rank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
+	    	    		player.sendMessage(Rel_Truce + "(truce) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
 	    		if(faction.equals(faction2))
-    	    		player.sendMessage(Rel_Truce + "(truce) " + factionRelation + title + " " + rank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
+    	    		player.sendMessage(Rel_Truce + "(truce) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
 	    		continue;
 	    	}
 	    	
@@ -3051,9 +3051,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    		enemyData = factionData.getJSONArray("enemies");
 	    		for(int i = 0; i<enemyData.length(); i++)
 	    			if(enemyData.getString(i).equals(faction2))
-	    	    		player.sendMessage(Rel_Enemy + "(enemy) " + factionRelation + title + " " + rank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
+	    	    		player.sendMessage(Rel_Enemy + "(enemy) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
 	    		if(faction.equals(faction2))
-    	    		player.sendMessage(Rel_Enemy + "(enemy) " + factionRelation + title + " " + rank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
+    	    		player.sendMessage(Rel_Enemy + "(enemy) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
 	    		
 	    		continue;
 	    	}
@@ -3085,7 +3085,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    		if(distance<configData.getInt("local chat distance") && !player.getName().equals(event.getPlayer().getName())){
 	    				String message_ = Rel_Neutral + "(" + (distance) + "" + Direction + ") "; 
 	    				if(configData.getString("show faction data in local chat").equals("true")) //only display faction stuff if settings say so
-	    					message_ += factionRelation + title + " " + rank + "" + factionString;
+	    					message_ += factionRelation + title + " " + factionRank + "" + factionString;
 	    				message_ += " §f(" + factionRelation + playerName + "§f): " + event.getMessage();
     	    			player.sendMessage(message_);
     	    		}
@@ -3098,7 +3098,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    		if(player.getName().equals(event.getPlayer().getName())){
 	    	    		String _message = Rel_Neutral + "(local) ";
 	    				if(configData.getString("show faction data in local chat").equals("true")) 
-	    					_message += factionRelation + title + " " + rank + "" + factionString;
+	    					_message += factionRelation + title + " " + factionRank + "" + factionString;
 	    	    		_message += " §f(" + factionRelation + playerName + "§f): " + event.getMessage();
 	    			player.sendMessage(_message);
 	    		}
@@ -3107,7 +3107,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    	
 	    	//custom
 	    	if(chatChannel_talk.equals(chatChannel_listen)){
-	    		player.sendMessage(Rel_Other + "(" + chatChannel_talk  + ") " + factionRelation + rank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
+	    		player.sendMessage(Rel_Other + "(" + chatChannel_talk  + ") " + factionRelation + factionRank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
 	    		continue;
 	    	}
 	    	
