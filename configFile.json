@@ -1,5 +1,5 @@
 {
-        "version": "1.60",
+        "version": "1.65",
 		
         "## -- FACTION SETTINGS --##": "",
         "only admins can create factions": "false",
@@ -123,5 +123,14 @@
                 "LAVA_BUCKET",
                 "WOOD_PLATE",
                 "WOOD_BUTTON"
+        ],
+		
+        "## -- Configs for slime blocks and pistons --##": "",
+        "allow pistons to move slime blocks across faction lines": "false",
+		
+        "## -- Disable the plugin for certain worlds --##": "",
+        "disable claims and homes in these worlds": [
+                "customworld_1",
+                "customworld_1_nether"
         ]
 }

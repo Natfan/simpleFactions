@@ -28,6 +28,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -36,6 +37,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
@@ -121,6 +123,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	JSONArray truceItemData = new JSONArray();
 	JSONArray otherItemData = new JSONArray();
 	JSONArray enemyItemData = new JSONArray();
+	JSONArray claimsDisabledInTheseWorlds = new JSONArray();
 	
 	//default configs
 	int chunkSizeX = 16;
@@ -136,8 +139,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	String Rel_Truce = "§6";
 	String powerCapType = "none";
 	
-	String version = "1.60";
-	
+	String version = "1.65";
+
+    public static JavaPlugin plugin;
+    
 	long currentTime = System.currentTimeMillis();
 	long lastTime = System.currentTimeMillis();
 	
@@ -151,6 +156,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		updatePlayerPower();
 		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has enabled successfully!]");
 		
+		plugin = this; 
 		/*
 		boolean hasapi = false; 
 		Plugin[] plugins = getServer().getPluginManager().getPlugins();
@@ -175,6 +181,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    } catch (IOException e) {
 	       getLogger().info("Failed to connect to MetricsLite!");
 	    }
+	}
+	
+	public static Plugin getPlugin(){
+		return plugin; 
 	}
 	
 	/**
@@ -276,6 +286,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * Creates config file.
      * */
     public String createConfigData(){
+    	
+    	/*
     	configData = new JSONObject();
     	neutralBreakData = new JSONArray();
     	allyBreakData = new JSONArray();
@@ -401,18 +413,20 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		//power cap settings
 		configData.put("power cap max powe", powerCapMax);
 		configData.put("power cap type", powerCapType);
-		
+		*/
 		
 		String configFile = "";
-		
-		configFile = "";
-		
 		InputStream input = getClass().getResourceAsStream("/configFile.json");
 		Scanner scan = new Scanner(input).useDelimiter("\\Z");
 		configFile = scan.next();
-		scan.close();
-		loadConfigData(); 
+		scan.close(); 
 		
+		configData = new JSONObject(configFile);
+		//getLogger().info("configFile: " + configFile);
+		//getLogger().info("########################");
+		//getLogger().info("configJson: " + configData.toString(8));
+
+		loadConfigData();
 		return configFile;
     }
 
@@ -439,8 +453,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		FileReader filereader = new FileReader(this.getDataFolder() + "/config.json");
 			Scanner scan = new Scanner(filereader).useDelimiter("\\Z");
 			configData = new JSONObject(scan.next());
-			scan.close();
 			loadConfigData(); 
+			scan.close();
 			
 			if(!configData.getString("version").equals(version)){
 				Bukkit.getServer().getConsoleSender().sendMessage("§cConfig file is out of date! " +
@@ -457,18 +471,11 @@ public class simpleFactions extends JavaPlugin implements Listener {
 					e.printStackTrace();
 				}
 				
-				try {
 					FileWriter fw = new FileWriter(configFile);
 					BufferedWriter bw=new BufferedWriter(fw);
-					
-					createConfigData();
-					
-					bw.write(configData.toString(8));
+					bw.write(createConfigData()); //creates a new config, sets config data, and saves it via bw
 					bw.newLine();
 					bw.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
 			}
 			
 		} catch (FileNotFoundException e) {
@@ -501,6 +508,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		truceItemData = 		configData.getJSONArray("item protection in truce land");
 		otherItemData = 		configData.getJSONArray("item protection in other land");
 		enemyItemData = 		configData.getJSONArray("item protection in enemy land");
+		
+		claimsDisabledInTheseWorlds = configData.getJSONArray("disable claims and homes in these worlds");
     }
     
     /**
@@ -601,10 +610,11 @@ public class simpleFactions extends JavaPlugin implements Listener {
 				FileWriter fw = new FileWriter(worldFile);
 				BufferedWriter bw=new BufferedWriter(fw);
 				boardData = new JSONObject();
-				boardData.put("name", "world");
+				boardData.put("name", name);
 				bw.write(boardData.toString(8));
 				bw.newLine();
 				bw.close();
+				getLogger().info("[Debug] " + name + ".json doesn't exist, so we just created one.");
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -674,7 +684,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	
     	String saveString = wData.toString(8); //save data for faction
 		try{
-			FileWriter fw=new FileWriter(this.getDataFolder() + "/boardData/" + wData.get("name").toString() + ".json");
+			FileWriter fw=new FileWriter(this.getDataFolder() + "/boardData/" + wData.getString("name").toString() + ".json");
 			BufferedWriter bw=new BufferedWriter(fw);
 			bw.write(saveString);
 			bw.newLine();
@@ -714,6 +724,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				}
     				if(args[0].toLowerCase().equals("autoclaim")){
     					return toggleAutoclaim(sender);
+    				}
+    				if(args[0].toLowerCase().equals("autounclaim")){
+    					return toggleAutounclaim(sender);
     				}
     				if(args[0].toLowerCase().equals("map")){
     					return drawMap(sender);
@@ -1833,19 +1846,61 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * */
     public boolean toggleAutoclaim(CommandSender sender){
     	loadPlayer(sender.getName());
+    	String currentclaim = "true"; 
     	if(playerData.has("autoclaim")){
     		String claim = playerData.getString("autoclaim");
     		if(claim.equals("true"))
     			playerData.put("autoclaim", "false");
-    		else
+    		else{
     			playerData.put("autoclaim", "true");
+    			currentclaim = "false"; 
+    		}
     	}
     	else{
     		playerData.put("autoclaim", "true");
     	}
+
+    	if(currentclaim.equals("false")){
+        	sender.sendMessage("§aAuto claim enabled.");
+
+        	if(playerData.getString("autounclaim").equals("true"))
+        		playerData.put("autounclaim","false"); 
+    	}
+    	else
+        	sender.sendMessage("§aAuto claim disabled.");
     	
     	savePlayer(playerData);
-    	sender.sendMessage("§aAutoclaim toggled.");
+    	return true;
+    }
+    /**
+     * Toggles autounclaim. While on, players can run around unclaiming land they touch.
+     * */
+    public boolean toggleAutounclaim(CommandSender sender){
+    	loadPlayer(sender.getName());
+    	String currentclaim = "true"; 
+    	if(playerData.has("autounclaim")){
+    		String claim = playerData.getString("autounclaim");
+    		if(claim.equals("true"))
+    			playerData.put("autounclaim", "false");
+    		else{
+    			playerData.put("autounclaim", "true");
+    			currentclaim = "false"; 
+    		}
+    	}
+    	else{
+    		playerData.put("autounclaim", "true");
+    	}
+    	
+    	
+    	if(currentclaim.equals("false")){
+        	sender.sendMessage("§aAuto unclaim enabled.");
+        	if(playerData.getString("autoclaim").equals("true"))
+        		playerData.put("autoclaim","false"); 
+        }
+    	else
+        	sender.sendMessage("§aAuto unclaim disabled.");
+
+    	savePlayer(playerData);
     	return true;
     }
     
@@ -1885,7 +1940,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		   helpMessage += " §6 info (name) - §aShows info on a faction." + "\n";
     		   helpMessage += " §6 player (name) - §aShow info on a player." + "\n";
     		   helpMessage += " §6 list (page) - §aCreates a list of Factions." + "\n";
-    		   helpMessage += " §6 autoclaim - §aToggles autoclaiming of land." + "\n";
+    		   helpMessage += " §6 auto(un)claim - §aToggles auto(un)claiming of land." + "\n";
     		   
     		   //3
     		   helpMessage += " §6 chat (channel) - §aSwitches to specified channel." + "\n";
@@ -1961,6 +2016,15 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	if(factionName.equals("")){
     		sender.sendMessage("§cYou aren't in a faction.");
     		return true;
+    	}
+    	
+    	loadConfig(); 
+    	for(int i = 0; i<claimsDisabledInTheseWorlds.length(); i++){
+    		String worldDisabled = claimsDisabledInTheseWorlds.optString(i);
+    		if(worldDisabled.equals(player.getWorld().getName())){
+        		sender.sendMessage("§cHomes are disabled in §f" + player.getWorld().getName() + "§c.");
+        		return true;
+    		}
     	}
     	
     	String world = player.getLocation().getWorld().getName().toString();
@@ -2221,8 +2285,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		factionInfo += "§6This faction is peaceful.\n"; 
     	
     	if(factionHome != null && viewingFaction.equals(faction))
-    		factionInfo += "Home in" + factionHome.getWorld().getName() + "at x" + 
-    			factionHome.getX() + " z" + factionHome.getZ() + " y" + factionHome.getY();
+    		factionInfo += "Home in " + factionHome.getWorld().getName() + " at x" + 
+    			Math.round(factionHome.getX()) + " z" + Math.round(factionHome.getZ()) + " y" + Math.round(factionHome.getY());
     	
     	factionInfo += "§6Power: " + getFactionClaimedLand(faction) + "/" + df.format(getFactionPower(faction)) + "/" + df.format(getFactionPowerMax(faction)) + "\n";
     	
@@ -2505,10 +2569,21 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		sender.sendMessage("§cYou aren't a high enough factionRank to do this.");
     		return true;
     	}
-    	
+
     	if(getFactionClaimedLand(factionName)>=getFactionPower(factionName)){
     		sender.sendMessage("§cYou need more power! §7Staying online and having more members increases power. Do §6/sf help§7 for more information.");
     		return true;
+    	}
+
+    	loadWorld(player.getWorld().getName()); //have to load world again (getFactionClaimedLand() unloads it)
+
+    	loadConfig(); 
+    	for(int i = 0; i<claimsDisabledInTheseWorlds.length(); i++){
+    		String worldDisabled = claimsDisabledInTheseWorlds.optString(i);
+    		if(worldDisabled.equals(player.getWorld().getName())){
+    			sender.sendMessage("§cClaims are disabled in §f" + player.getWorld().getName() + "§c.");
+        		return true;
+    		}
     	}
     	
     	int posX = player.getLocation().getBlockX();
@@ -2520,7 +2595,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	posZ = Math.round(posZ / chunkSizeZ) * chunkSizeZ;
 
     	if(boardData.has("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ)){
-    		if(boardData.get("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ).equals(factionName)){
+    		if(boardData.getString("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ).equals(factionName)){
     			sender.sendMessage("§cYou already own this land!");
     			return true;
     		}
@@ -2552,6 +2627,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	loadWorld(player.getWorld().getName());
     	loadPlayer(sender.getName());
     	String factionName = playerData.getString("faction");
+    	loadConfig(); 
     	
     	if(factionName.equals("")){
     		sender.sendMessage("§cYou aren't in a faction.");
@@ -2602,8 +2678,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			}
     		}
     	}
-    	
-    	sender.sendMessage("§cCould not unclaim chunk!");
+
+		if(playerData.has("autounclaim") && playerData.getString("autounclaim").equals("false"))
+			sender.sendMessage("§cCould not unclaim chunk!");
     	return true;
     }
     
@@ -2846,6 +2923,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
   		playerData.put("name", player.getName());
   		playerData.put("ID", player.getUniqueId());
   		playerData.put("faction","");
+  		playerData.put("autoclaim","false");
+  		playerData.put("autounclaim","false");
   		playerData.put("factionRank",configData.getString("default player factionRank"));
   		playerData.put("factionTitle",configData.getString("default player title"));
   		playerData.put("shekels", configData.getInt("default player money"));
@@ -3067,7 +3146,24 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	@EventHandler
     public void AsyncPlayerChatEvent(AsyncPlayerChatEvent event){
 		event.setMessage(event.getMessage().replace(">", "§a>"));
+
 		
+		String playerName = event.getPlayer().getName();
+		
+		boolean hasEssentialsUtils = false; 
+		
+		Plugin[] plugins = Bukkit.getServer().getPluginManager().getPlugins();
+		for(Plugin plugin : plugins){
+			if(plugin.getName().toLowerCase().contains("essentials")){
+				hasEssentialsUtils = true; 
+			}
+		}
+		
+		String playerNickname = ""; 
+    	if(hasEssentialsUtils) playerNickname = EssentialsUtils.getNickname(playerName);
+    	if(playerNickname == null) playerNickname = playerName; 
+		if(playerNickname.equals("")) playerNickname = playerName; 
+    			
 		//exit the chat event, if the config says so
 		if(configData.getString("enable simplefaction chat").equals("false")){
 			return;
@@ -3077,7 +3173,6 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		int posZ_talk = event.getPlayer().getLocation().getBlockZ();
 		
 		Set<Player> playerList = event.getRecipients();
-		String playerName = event.getPlayer().getName();
     	loadPlayer(playerName);
     	String chatChannel_talk = playerData.getString("chat channel");
     	String factionRank = playerData.get("factionRank").toString();
@@ -3093,6 +3188,11 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	String faction2 = "";
     	if(!configData.getString("allow player titles").equals("true"))
     		title = "";
+    	
+    	if(event.getMessage().charAt(0) == '!'){
+			chatChannel_talk = "global"; 
+			event.setMessage(event.getMessage().replace("!", ""));
+		}
     	
 		for(Player player : playerList){
 	    	loadPlayer(playerName);
@@ -3119,14 +3219,14 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    		String message = "";
 	    		if(configData.getString("show faction data in global chat").equals("true"))
 	    			message +=  factionRelation + factionRank + "" + factionString;
-	    		message += " §f(" + factionRelation + playerName + "§f): " + event.getMessage();
+	    		message += " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage();
 	    		player.sendMessage(message);
 	    		continue;
 	    	}
 	    	
 	    	//faction
 	    	if(chatChannel_talk.equals("faction") && faction.equals(faction2)){
-	    		player.sendMessage(Rel_Faction + "(faction) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
+	    		player.sendMessage(Rel_Faction + "(faction) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
 	    		continue;
 	    	}
 	    	
@@ -3135,9 +3235,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    		allyData = factionData.getJSONArray("allies");
 	    		for(int i = 0; i<allyData.length(); i++)
 	    			if(allyData.getString(i).equals(faction2))
-	    	    		player.sendMessage(Rel_Ally + "(ally) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
+	    	    		player.sendMessage(Rel_Ally + "(ally) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
 	    		if(faction.equals(faction2))
-    	    		player.sendMessage(Rel_Ally + "(ally) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
+    	    		player.sendMessage(Rel_Ally + "(ally) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
 	    		continue;
 	    	}
 	    	
@@ -3146,9 +3246,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    		truceData = factionData.getJSONArray("truce");
 	    		for(int i = 0; i<truceData.length(); i++)
 	    			if(truceData.getString(i).equals(faction2))
-	    	    		player.sendMessage(Rel_Truce + "(truce) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
+	    	    		player.sendMessage(Rel_Truce + "(truce) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
 	    		if(faction.equals(faction2))
-    	    		player.sendMessage(Rel_Truce + "(truce) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
+    	    		player.sendMessage(Rel_Truce + "(truce) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
 	    		continue;
 	    	}
 	    	
@@ -3157,9 +3257,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    		enemyData = factionData.getJSONArray("enemies");
 	    		for(int i = 0; i<enemyData.length(); i++)
 	    			if(enemyData.getString(i).equals(faction2))
-	    	    		player.sendMessage(Rel_Enemy + "(enemy) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
+	    	    		player.sendMessage(Rel_Enemy + "(enemy) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
 	    		if(faction.equals(faction2))
-    	    		player.sendMessage(Rel_Enemy + "(enemy) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
+    	    		player.sendMessage(Rel_Enemy + "(enemy) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
 	    		
 	    		continue;
 	    	}
@@ -3192,7 +3292,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    				String message_ = Rel_Neutral + "(" + (distance) + "" + Direction + ") "; 
 	    				if(configData.getString("show faction data in local chat").equals("true")) //only display faction stuff if settings say so
 	    					message_ += factionRelation + title + " " + factionRank + "" + factionString;
-	    				message_ += " §f(" + factionRelation + playerName + "§f): " + event.getMessage();
+	    				message_ += " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage();
     	    			player.sendMessage(message_);
     	    		}
 	    		
@@ -3205,7 +3305,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    	    		String _message = Rel_Neutral + "(local) ";
 	    				if(configData.getString("show faction data in local chat").equals("true")) 
 	    					_message += factionRelation + title + " " + factionRank + "" + factionString;
-	    	    		_message += " §f(" + factionRelation + playerName + "§f): " + event.getMessage();
+	    	    		_message += " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage();
 	    			player.sendMessage(_message);
 	    		}
 	    	    continue;
@@ -3213,14 +3313,14 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    	
 	    	//custom
 	    	if(chatChannel_talk.equals(chatChannel_listen)){
-	    		player.sendMessage(Rel_Other + "(" + chatChannel_talk  + ") " + factionRelation + factionRank + "" + factionString + " §f(" + factionRelation + playerName + "§f): " + event.getMessage());
+	    		player.sendMessage(Rel_Other + "(" + chatChannel_talk  + ") " + factionRelation + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
 	    		continue;
 	    	}
 	    	
 		}
 		
 		//send all messages to the console
-		String loggerMessage = "[" + chatChannel_talk + "]" + " " + factionString + " (" + playerName + "): " + event.getMessage();
+		String loggerMessage = "[" + chatChannel_talk + "]" + " " + factionString + " (" + playerNickname + "): " + event.getMessage();
 		getLogger().info(loggerMessage);
 		
 		event.setCancelled(true);
@@ -3273,7 +3373,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		k = 0;
     	}
     	
-    	if(!playerIsIn_faction.get(k).equals(inFaction)){
+    	if(!playerIsIn_faction.get(k).equals(inFaction)
+    			&& playerData.has("autoclaim") && playerData.getString("autoclaim").equals("false")
+    			&& playerData.has("autounclaim") && playerData.getString("autounclaim").equals("false")){
     		player.sendMessage("§7You have traveled from " + getFactionRelationColor(playerFaction,playerIsIn_faction.get(k)) + configData.getString("faction symbol left") + 
     				playerIsIn_faction.get(k) + configData.getString("faction symbol right") + 
     				"§7 to " + getFactionRelationColor(playerFaction,inFaction) + configData.getString("faction symbol left") + 
@@ -3282,11 +3384,20 @@ public class simpleFactions extends JavaPlugin implements Listener {
 
     	}
 
+    	//auto claim land
     	if(!playerIsIn_location.get(k).equals(location) && !playerData.getString("faction").equals(inFaction)){
     		playerIsIn_location.set(k,location);
         	if(playerData.has("autoclaim"))
         		if(playerData.getString("autoclaim").equals("true"))
         			tryClaim((CommandSender) player); 
+    	}
+    	
+    	//auto un claim land
+    	if(!playerIsIn_location.get(k).equals(location) && playerData.getString("faction").equals(inFaction) 
+    			&& !inFaction.equals("neutral territory") && !inFaction.equals("")){
+        	if(playerData.has("autounclaim"))
+        		if(playerData.getString("autounclaim").equals("true"))
+        			tryUnClaim((CommandSender) player); 
     	}
     	
     	
@@ -3741,6 +3852,71 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	}
 	
 	/**
+	 * EventHandler for when pistons move blocks.
+	 * In our case, if a slime block is moved we check the config and
+	 * see if it crossed faction lines. Programmatically we're really
+	 * only checking if it's it's exceptionally close to faction lines.
+	 * */
+	@EventHandler
+	public void PistonMovedBlocksEvent(BlockPistonExtendEvent event){
+		
+		loadConfig();
+		String allow = configData.getString("allow pistons to move slime blocks across faction lines"); 
+		
+		List<Block> blocks = event.getBlocks();
+		for(Block block : blocks){
+			if(block.getType() == Material.SLIME_BLOCK){
+		        String faction = "";
+		        String faction2 = "";
+		        
+				Location loc = block.getLocation();
+		        loadWorld(loc.getWorld().getName());
+		        int posX = loc.getBlockX();
+		        int posY = loc.getBlockY();
+		        int posZ = loc.getBlockZ();
+		        posX = Math.round(posX / chunkSizeX) * chunkSizeX;
+		        posY = Math.round(posY / chunkSizeY) * chunkSizeY;
+		        posZ = Math.round(posZ / chunkSizeZ) * chunkSizeZ;
+		        
+		        if(boardData.has("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ)){
+		        	faction = boardData.getString("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ);
+		        	faction2 = faction;
+		        }
+		        
+		        for(int i = -1; i <= 1; i++){
+		        	for(int j = -1; j <= 1; j++){
+		        		
+		        		int k = i * chunkSizeX;
+		        		int l = j * chunkSizeX;
+		        		
+		        		if(boardData.has("chunkX" + posX+k+l + " chunkY" + posY + " chunkZ" + posZ)){
+		        			faction2 = boardData.getString("chunkX" + posX+k+l + " chunkY" + posY + " chunkZ" + posZ);
+		        		}
+
+		        		k = i * chunkSizeZ;
+		        		l = j * chunkSizeZ;
+		        		if(boardData.has("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ+k+l)){
+		        			faction2 = boardData.getString("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ+k+l);
+		        		}
+
+		        		k = i * chunkSizeY;
+		        		l = j * chunkSizeY;
+		        		if(boardData.has("chunkX" + posX + " chunkY" + posY+k+l + " chunkZ" + posZ)){
+		        			faction2 = boardData.getString("chunkX" + posX + " chunkY" + posY+k+l + " chunkZ" + posZ);
+		        		}
+		        	}
+		        }
+		        
+		        if(!faction.equals(faction2) && allow.contains("false")){
+		        	getLogger().info("faction: " + faction);
+		        	getLogger().info("faction2: " + faction2);
+		        	event.setCancelled(true);
+		        }
+			}
+		}
+	}
+	
+	/**
 	 * Task handling for player power (every 3 seconds)
 	 * */
 	public void updatePlayerPower(){
@@ -3925,6 +4101,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
             }
         }, 0L, 80L);
 	}
+
+
+
 
 }
 
