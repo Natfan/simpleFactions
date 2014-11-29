@@ -1,5 +1,5 @@
 {
-        "version": "1.45",
+        "version": "1.60",
 		
         "## -- FACTION SETTINGS --##": "",
         "only admins can create factions": "false",
@@ -7,7 +7,7 @@
         "allow player titles": "true",
         "default player title": "",
         "factions open by default": "true",
-        "default player rank": "member",
+        "default player factionRank": "member",
         "friendly fire melee": "false",
         "friendly fire projectile (arrows)": "false",
         "friendly fire other": "false",
