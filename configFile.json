@@ -1,5 +1,5 @@
 {
-        "version": "1.65",
+        "version": "1.70",
 		
         "## -- FACTION SETTINGS --##": "",
         "only admins can create factions": "false",
@@ -19,6 +19,8 @@
 		
         "## -- CHAT SETTINGS --##": "",
         "enable simplefaction chat": "true",
+        "inject faction into message instead of replacing whole message": "true",
+        "allow simplefactions chat channels": "true",
         "show faction data in global chat": "true",
         "show faction data in local chat": "true",
         "faction symbol left": "/",
