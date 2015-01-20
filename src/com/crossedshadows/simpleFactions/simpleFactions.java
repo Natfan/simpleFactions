@@ -1117,7 +1117,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 							
 							Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions]" + _message);
 							
-							Collection<? extends Player> players = Bukkit.getOnlinePlayers();
+							Player[] players = Bukkit.getOnlinePlayers();
 							for(Player player : players){
 								player.sendMessage(_message);
 							}
@@ -1197,12 +1197,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	if(args.length>1){
     		String arg = args[1];
     		OfflinePlayer[] offline = Bukkit.getOfflinePlayers();
-    		Collection<? extends Player> online = Bukkit.getOnlinePlayers();
-    		String[] playerTop = new String[offline.length + online.size() + 1];
+    		Player[] online = Bukkit.getOnlinePlayers();
+    		String[] playerTop = new String[offline.length + online.length + 1];
     		int count = 0;
     		
     		if(arg.equals("kills") || arg.equals("deaths")){
-    			int[] value = new int[offline.length + online.size() + 1];
+    			int[] value = new int[offline.length + online.length + 1];
     			value[0] = 0;
     			for(int i = 0; i < offline.length; i++){
     				if(!offline[i].isOnline()){
@@ -1272,7 +1272,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		
     		if(arg.equals("time")){
     			arg = "time online";
-    			long[] value = new long[offline.length + online.size() + 1];
+    			long[] value = new long[offline.length + online.length + 1];
     			value[0] = 0l;
     			for(int i = 0; i < offline.length; i++){
     				if(!offline[i].isOnline()){
@@ -1572,7 +1572,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * Sends out a sendMessage to everyone in a certain faction.
      * */
     public void messageFaction(String faction, String message){
-    	Collection<? extends Player> on = Bukkit.getOnlinePlayers();
+    	Player[] on = Bukkit.getOnlinePlayers();
     	
     	for(Player player : on){
     		loadPlayer(player.getName()); 
@@ -1596,7 +1596,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * Sends out a sendMessage to the entire server.
      * */
     public void messageEveryone(String message){
-    	Collection<? extends Player> on = Bukkit.getOnlinePlayers();
+    	Player[] on = Bukkit.getOnlinePlayers();
     	for(Player player : on){
     		player.getPlayer().sendMessage(message);
     	}
@@ -2066,17 +2066,17 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		configData.put("power cap type", powerCapType);
 		*/
 		OfflinePlayer[] off = Bukkit.getOfflinePlayers();
-		Collection<? extends Player> on = Bukkit.getOnlinePlayers();
+		Player[] on = Bukkit.getOnlinePlayers();
 		
 		for(int i = 0; i < off.length; i++){
 			if(!off[i].isOnline()) {
 				loadPlayer(off[i].getName());
 				if(playerData.getString("faction").equals(faction)){
 
-					if(off.length + on.size() >= 30){
+					if(off.length + on.length >= 30){
 						if(configData.getString("power cap type").equals("soft")){
 							factionPower += (3 * configData.getInt("power cap max power") * 
-								Math.exp(-(off.length + on.size())))/(2 * Math.pow((10 * Math.exp(-(off.length + on.size()))+1),2)); 
+								Math.exp(-(off.length + on.length)))/(2 * Math.pow((10 * Math.exp(-(off.length + on.length))+1),2)); 
 							continue;
 						}
 					}
@@ -2091,10 +2091,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
 				loadPlayer(player.getName());
 				if(playerData.getString("faction").equals(faction)){
 
-					if(off.length + on.size() >= 30){
+					if(off.length + on.length >= 30){
 						if(configData.getString("power cap type").equals("soft")){
 							factionPower += (3 * configData.getInt("power cap max power") * 
-								Math.exp(-(off.length + on.size())))/(2 * Math.pow((10 * Math.exp(-(off.length + on.size()))+1),2)); 
+								Math.exp(-(off.length + on.length)))/(2 * Math.pow((10 * Math.exp(-(off.length + on.length))+1),2)); 
 							continue;
 						}
 					}
@@ -2130,17 +2130,17 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	double factionPower = 0;
     	
 		OfflinePlayer[] off = Bukkit.getOfflinePlayers();
-		Collection<? extends Player> on = Bukkit.getOnlinePlayers();
+		Player[] on = Bukkit.getOnlinePlayers();
 		
 		for(int i = 0; i < off.length; i++){
 			if(!off[i].isOnline()) {
 				loadPlayer(off[i].getName());
 				if(playerData.getString("faction").equals(faction)){
-					if(off.length + on.size() >= 30){
+					if(off.length + on.length >= 30){
 						if(configData.getString("power cap type").equals("soft")){
 							factionPower += ((3 * configData.getInt("power cap max power") * 
-								Math.exp(-(off.length + on.size())))/(2 * 
-								Math.pow((10 * Math.exp(-(off.length + on.size()))+1),2))) *
+								Math.exp(-(off.length + on.length)))/(2 * 
+								Math.pow((10 * Math.exp(-(off.length + on.length))+1),2))) *
 								(playerData.getDouble("power") / configData.getDouble("max player power")); 
 							continue;
 						}
@@ -2156,11 +2156,11 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			if(player.isOnline()) {
 				loadPlayer(player.getName());
 				if(playerData.getString("faction").equals(faction)){
-					if(off.length + on.size() >= 30){
+					if(off.length + on.length >= 30){
 						if(configData.getString("power cap type").equals("soft")){
 							factionPower += ((3 * configData.getInt("power cap max power") * 
-								Math.exp(-(off.length + on.size())))/(2 * 
-								Math.pow((10 * Math.exp(-(off.length + on.size()))+1),2))) *
+								Math.exp(-(off.length + on.length)))/(2 * 
+								Math.pow((10 * Math.exp(-(off.length + on.length))+1),2))) *
 								(playerData.getDouble("power") / configData.getDouble("max player power")); 
 							continue;
 						}
@@ -2548,7 +2548,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     
     public boolean isFactionOnline(String faction){
 		loadFaction(faction);
-		Collection<? extends Player> on = Bukkit.getOnlinePlayers();
+		Player[] on = Bukkit.getOnlinePlayers();
 		for(Player player : on){
 			loadPlayer(player.getName());
 			if(playerData.getString("faction").equals(faction) && player.isOnline()) {
@@ -2684,7 +2684,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	String members = "";
     	String offMembers = "";
 		OfflinePlayer[] off = Bukkit.getOfflinePlayers();
-		Collection<? extends Player> on = Bukkit.getOnlinePlayers();
+		Player[] on = Bukkit.getOnlinePlayers();
 		
 		
 		for(Player player : on){
@@ -4250,7 +4250,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	public void playerDied(PlayerDeathEvent event){
 		
 		String deathMessage = event.getDeathMessage();
-		Collection<? extends Player> players = Bukkit.getOnlinePlayers();
+		Player[] players = Bukkit.getOnlinePlayers();
 		String player = ((Player) event.getEntity()).getName();
 		String player2 = ""; 
 		
@@ -4354,7 +4354,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	 * only checking if it's it's exceptionally close to faction lines.
 	 * */
 	@EventHandler
-	public void PistonMovedBlocksEvent(BlockPistonExtendEvent event){
+	/*public void PistonMovedBlocksEvent(BlockPistonExtendEvent event){
 		
 		loadConfig();
 		String allow = configData.getString("allow pistons to move slime blocks across faction lines"); 
@@ -4411,7 +4411,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			}
 		}
 	}
-	
+	*/
 	/*
 	 * NOTE: Apparently ExplosionPrimeEvent is bugged; it sets off 1 tick before the
 	 * TNT explodes; instead of when the TNT is primed. It's been a bukkit bug for
@@ -4463,7 +4463,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
             	double powerUpdateWhileInEnemyTerritory = configData.getDouble("power per hour while in enemy territory") * update;
             	
         		OfflinePlayer[] off = Bukkit.getOfflinePlayers();
-        		Collection<? extends Player> on = Bukkit.getOnlinePlayers();
+        		Player[] on = Bukkit.getOnlinePlayers();
         		
 
         		if(configData.getString("update power while offline").equals("true"))
