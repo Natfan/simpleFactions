@@ -114,10 +114,6 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	static JSONArray truceData = new JSONArray();
 	static JSONArray inviteData = new JSONArray();
 	
-
-	
-
-	
 	//version
 	static String version = "1.83";
 
@@ -241,6 +237,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	createDirectories();
     	saveAllPlayersToDisk(); 
 		Bukkit.getServer().getConsoleSender().sendMessage("§a[All player data saved to disk!]");
+		saveAllFactionsToDisk();
+		Bukkit.getServer().getConsoleSender().sendMessage("§a[All faction data saved to disk!]");
     }
     
     /**
@@ -264,14 +262,17 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	
     	//display loaded factions and players
     	for(int i=0; i<factionIndexList.size(); i++){
-    		String name = factionIndexList.get(i).replaceFirst(".json", "");
-    		factionIndex.add(name);
+    		String uuid = factionIndexList.get(i).replaceFirst(".json", "");
+    		Bukkit.getServer().getConsoleSender().sendMessage("    §c->§7Loading " + uuid);
+    		loadFactionDisk(uuid); 
+    		factionIndex.add(factionData.getString("name"));
     		}
 		Bukkit.getServer().getConsoleSender().sendMessage("§bLoaded all factions.");
     	for(int i=0; i<playerIndexList.size(); i++){
     		String uuid = playerIndexList.get(i).replaceAll(".json", "");
     		Bukkit.getServer().getConsoleSender().sendMessage("    §c->§7Loading " + uuid); 
-    		loadPlayerDisk(uuid); 
+    		loadPlayerDisk(uuid);
+    		playerIndex.add(uuid); 
     		}
 		Bukkit.getServer().getConsoleSender().sendMessage("§bLoaded all players.");
     	for(int i=0; i<boardIndexList.size(); i++){
@@ -283,10 +284,6 @@ public class simpleFactions extends JavaPlugin implements Listener {
     
     
     public static void loadPlayer(UUID uuid){
-    	
-    	//Bukkit.getLogger().info("[LOAD]: Data.Players: ");
-    	//Bukkit.getLogger().info(Data.Players.toString(4));
-    	
     	for(int i = 0; i < Data.Players.length(); i++){
     		if(Data.Players.getJSONObject(i).getString("ID").equals(uuid.toString())){
     			playerData = Data.Players.getJSONObject(i); 
@@ -359,20 +356,30 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	
     }
     
+    
+    public static void loadFaction(String name){
+    	for(int i = 0; i < Data.Factions.length(); i++){
+    		if(Data.Factions.getJSONObject(i).getString("name").equals(name)){
+    			factionData = Data.Factions.getJSONObject(i); 
+    			//Bukkit.getLogger().info("[LoadPlayer]: Player Found! /n" + playerData.toString(4)); //debug
+    		} 
+    	}
+    }
+    
     /**
      * Loads faction data into the factionData JSONObject
      * */
-    public static void loadFaction(String name){
+    public static void loadFactionDisk(String uuid){
 
     	createDirectories();
     	
-    	File factionFile = new File(dataFolder + "/factionData/" + name + ".json");
+    	File factionFile = new File(dataFolder + "/factionData/" + uuid + ".json");
     	if(!factionFile.exists()){
 			try {
 				FileWriter fw = new FileWriter(factionFile);
 				BufferedWriter bw=new BufferedWriter(fw);
 				//factionData = new JSONObject();
-				createFaction(name);
+				createFaction(uuid);
 				bw.write(factionData.toString(8));
 				bw.newLine();
 				bw.close();
@@ -382,9 +389,17 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	}
     	try {
     		
-			Scanner scan = new Scanner(new FileReader(dataFolder + "/factionData/" + name + ".json"));
+			Scanner scan = new Scanner(new FileReader(dataFolder + "/factionData/" + uuid + ".json"));
 			scan.useDelimiter("\\Z");
 			factionData = new JSONObject(scan.next());
+			
+			for(int i = 0; i < Data.Factions.length(); i++){
+				if(Data.Factions.getJSONObject(i).getString("ID").equals(uuid)){
+					Data.Factions.remove(i); 
+				}
+			}
+			
+			Data.Factions.put(factionData);
 			scan.close();
     		
 		} catch (FileNotFoundException e) {
@@ -487,14 +502,21 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	for(int i = 0; i < Data.Players.length(); i++){
 			if(Data.Players.getJSONObject(i).getString("ID").equals(id)){
 				Data.Players.remove(i); 
-				Data.Players.put(player);
 			}
 		}
+    	
+		Data.Players.put(player);
     }
     
     public static void saveAllPlayersToDisk(){
     	for(int i = 0; i < Data.Players.length(); i++){
 			savePlayerDisk(Data.Players.getJSONObject(i)); 
+		}
+    }
+    
+    public static void saveAllFactionsToDisk(){
+    	for(int i = 0; i < Data.Factions.length(); i++){
+			saveFactionDisk(Data.Factions.getJSONObject(i)); 
 		}
     }
     
@@ -519,16 +541,29 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		}
     }
     
+    
+    public static void saveFaction(JSONObject faction){
+    	String id = faction.getString("ID"); 
+    	
+    	for(int i = 0; i < Data.Factions.length(); i++){
+			if(Data.Factions.getJSONObject(i).getString("ID").equals(id)){
+				Data.Factions.remove(i); 
+			}
+		}
+    	
+		Data.Factions.put(faction);
+    }
+    
     /**
      * Saves factionData into a JSON file
      * */
-    public static void saveFaction(JSONObject fData){
+    public static void saveFactionDisk(JSONObject fData){
 
     	createDirectories();
     	
     	String saveString = fData.toString(8); //save data for faction
 		try{
-			FileWriter fw=new FileWriter(dataFolder + "/factionData/" + fData.getString("name") + ".json");
+			FileWriter fw=new FileWriter(dataFolder + "/factionData/" + fData.getString("ID") + ".json");
 			BufferedWriter bw=new BufferedWriter(fw);
 			bw.write(saveString);
 			bw.newLine();
@@ -1576,10 +1611,32 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	return true;
     }
     
+    
+    public boolean playerCheck(String name){
+    	for(int i = 0; i < Data.Players.length(); i++){
+    		if(Data.Players.getJSONObject(i).getString("name").equals(name)){
+    			return true;
+    		}
+    	}
+    	
+    	return false; 
+    }
+    
+    public boolean factionCheck(String name){
+    	for(int i = 0; i < Data.Factions.length(); i++){
+    		if(Data.Factions.getJSONObject(i).getString("name").equals(name)){
+    			return true;
+    		}
+    	}
+    	
+    	return false; 
+    }
+    
+    
     /**
      * Returns whether or not the player exists on the server.
      * */
-    public boolean playerCheck(String name){
+    public boolean playerCheckDisk(String name){
     	createDirectories();
     	
     	File factionFile = new File(dataFolder + "/playerData/" + name + ".json");
@@ -1593,7 +1650,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     /**
      * Returns whether or not the faction exists on the server.
      * */
-    public boolean factionCheck(String faction){
+    public boolean factionCheckDisk(String faction){
     	createDirectories();
     	
     	File factionFile = new File(dataFolder + "/factionData/" + faction + ".json");
@@ -2388,6 +2445,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	loadPlayer(((Player) sender).getUniqueId());
     	String viewingFaction = playerData.getString("faction");
     	loadFaction(faction);
+    	Bukkit.getLogger().info(factionData.toString(4)); //debug
     	DecimalFormat df = new DecimalFormat("0.###");
     	
     	String truce = "";
@@ -2968,7 +3026,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		factionData.put("peaceful", "false");
 		factionData.put("warzone", "false");
 		factionData.put("safezone", "false");
-		factionData.put("ID", Math.random()*1000);
+		factionData.put("ID", UUID.randomUUID().toString());
 		factionData.put("shekels", 0.0);
 		factionData.put("enemies",enemyData);
 		factionData.put("allies",allyData);
