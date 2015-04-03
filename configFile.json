@@ -1,5 +1,9 @@
 {
-        "version": "1.83",
+        "## -- SIMPLE FACTIONS CONFIGURATION FILE --##": "",
+        "## -- Any entries with ##s are just comments that can be ignored --##": "",
+        
+        "## -- CHAT SETTINGS --##": "",
+        "version": "1.86",
 		
         "## -- FACTION SETTINGS --##": "",
         "only admins can create factions": "false",
@@ -19,6 +23,7 @@
 		
         "## -- CHAT SETTINGS --##": "",
         "enable simplefaction chat": "true",
+        "##The follow setting allows better compatibility for EssentialsChat and other plugins##": "",
         "inject faction into message instead of replacing whole message": "true",
         "allow simplefactions chat channels": "true",
         "show faction data in global chat": "true",
@@ -133,6 +138,7 @@
         "## -- Disable the plugin for certain worlds --##": "",
         "disable claims and homes in these worlds": [
                 "customworld_1",
-                "customworld_1_nether"
+                "customworld_1_nether",
+                "customworld_1_the_end"
         ]
 }

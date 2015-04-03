@@ -115,7 +115,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	static JSONArray inviteData = new JSONArray();
 	
 	//version
-	static String version = "1.83";
+	static String version = "1.86";
 
 	//global thing to pass to async task
 	static TNTPrimed lastCheckedTNT; 
@@ -239,6 +239,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		Bukkit.getServer().getConsoleSender().sendMessage("§a[All player data saved to disk!]");
 		saveAllFactionsToDisk();
 		Bukkit.getServer().getConsoleSender().sendMessage("§a[All faction data saved to disk!]");
+		saveAllWorldsToDisk(); 
+		Bukkit.getServer().getConsoleSender().sendMessage("§a[All world data saved to disk!]");
+		
     }
     
     /**
@@ -277,6 +280,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		Bukkit.getServer().getConsoleSender().sendMessage("§bLoaded all players.");
     	for(int i=0; i<boardIndexList.size(); i++){
     		String name = boardIndexList.get(i).replaceFirst(".json", "");
+    		Bukkit.getServer().getConsoleSender().sendMessage("    §c->§7Loading " + name); 
+    		loadWorldDisk(name); 
     		boardIndex.add(name);
     		}
 		Bukkit.getServer().getConsoleSender().sendMessage("§bLoaded all worlds.");
@@ -408,10 +413,20 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	
     }
     
+    
+    public static void loadWorld(String name){
+    	for(int i = 0; i < Data.Worlds.length(); i++){
+    		if(Data.Worlds.getJSONObject(i).getString("name").equals(name)){
+    			boardData = Data.Worlds.getJSONObject(i); 
+    			//Bukkit.getLogger().info("[LoadPlayer]: Player Found! /n" + playerData.toString(4)); //debug
+    		} 
+    	}
+    }
+    
     /**
      * Loads world data into the worldData JSONObject
      * */
-    public static void loadWorld(String name){
+    public static void loadWorldDisk(String name){
 
     	createDirectories();
     	
@@ -435,9 +450,18 @@ public class simpleFactions extends JavaPlugin implements Listener {
 
 			Scanner scan = new Scanner(new FileReader(dataFolder + "/boardData/" + name + ".json"));
 			scan.useDelimiter("\\Z");
+			
+			for(int i = 0; i < Data.Worlds.length(); i++){
+				if(Data.Worlds.getJSONObject(i).getString("name").equals(name)){
+					Data.Worlds.remove(i); 
+				}
+			}
+			
 			boardData = new JSONObject(scan.next());
 			scan.close();
     		
+			
+			
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -520,6 +544,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		}
     }
     
+    public static void saveAllWorldsToDisk(){
+    	for(int i = 0; i < Data.Worlds.length(); i++){
+			saveWorldDisk(Data.Worlds.getJSONObject(i)); 
+		}
+    }
+    
     /**
      * Saves playerData into a JSON file
      * */
@@ -575,10 +605,22 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		}
     }
     
+    public static void saveWorld(JSONObject world){
+    	String name = world.getString("name"); 
+    	
+    	for(int i = 0; i < Data.Worlds.length(); i++){
+			if(Data.Worlds.getJSONObject(i).getString("name").equals(name)){
+				Data.Worlds.remove(i); 
+			}
+		}
+    	
+		Data.Worlds.put(world);
+    }
+    
     /**
      * saves boardData into a JSON file
      * */
-    public static void saveWorld(JSONObject wData){
+    public static void saveWorldDisk(JSONObject wData){
 
     	createDirectories();
     	
@@ -2372,10 +2414,29 @@ public class simpleFactions extends JavaPlugin implements Listener {
         	saveFaction(factionData);
         	
         	sender.sendMessage("§6You have invited §f" + invitedPlayer + "§6 to your faction!");
-        	loadPlayer(Bukkit.getPlayer(invitedPlayer).getUniqueId()); 
-        	String factionString = getFactionRelationColor(playerData.getString("faction"),faction) + Config.configData.getString("faction symbol left") + faction + Config.configData.getString("faction symbol right");
-        	Bukkit.getPlayer(invitedPlayer).sendMessage("§6You have been invited to " + factionString + 
+        	
+        	boolean invitedSomebody = false; 
+        	for(Player on : Bukkit.getOnlinePlayers()){
+        		if(on.getName().equals(invitedPlayer)){
+        			invitedSomebody = true; 
+        			loadPlayer(on.getUniqueId()); 
+        			String factionString = getFactionRelationColor(playerData.getString("faction"),faction) + 
+        					Config.configData.getString("faction symbol left") + faction + 
+        					Config.configData.getString("faction symbol right");
+                	on.sendMessage("§6You have been invited to " + factionString + 
         			"§6. Type §b/sf join " + faction + "§6 in order to accept");
+        		}
+        	}
+        	
+        	if(!invitedSomebody){
+        		sender.sendMessage("§cThe player you invited either does not exist or is offline."); 
+        	}
+        	
+        	//old
+        	//loadPlayer(Bukkit.getPlayer(invitedPlayer).getUniqueId()); 
+        	//String factionString = getFactionRelationColor(playerData.getString("faction"),faction) + Config.configData.getString("faction symbol left") + faction + Config.configData.getString("faction symbol right");
+        	//Bukkit.getPlayer(invitedPlayer).sendMessage("§6You have been invited to " + factionString + 
+        	//		"§6. Type §b/sf join " + faction + "§6 in order to accept");
     	}else{
     		sender.sendMessage("§cYou are not ranked high enough to invite members.");
     		return true;
@@ -2445,7 +2506,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	loadPlayer(((Player) sender).getUniqueId());
     	String viewingFaction = playerData.getString("faction");
     	loadFaction(faction);
-    	Bukkit.getLogger().info(factionData.toString(4)); //debug
+    	//Bukkit.getLogger().info(factionData.toString(4)); //debug
     	DecimalFormat df = new DecimalFormat("0.###");
     	
     	String truce = "";
@@ -2537,7 +2598,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		int seconds = (int) (-time/1000);
     		factionInfo += "§6Has been offline for " + (seconds) + " seconds. \n";
     	}else{
+    		long time = factionData.getLong("lastOnline") - System.currentTimeMillis() - (Config.configData.getInt("seconds before faction is considered really offline") * 1000);
+    		int seconds = (int) (-time/1000);
+    		
+    		if(seconds<299){
     		factionInfo += "§6Faction will become §coffline§6 if no members are §bonline§6 for " + (((factionData.getLong("lastOnline") - System.currentTimeMillis())/1000) + Config.configData.getInt("seconds before faction is considered really offline")) + "§6 more seconds. \n";
+    		}
     	}
     	
     	if(!ally.equals("")) factionInfo += "§dAlly: " + ally.replace("]", "").replace("[", "").replace("\"", "") + "\n§6";
