@@ -66,6 +66,9 @@ import com.sun.corba.se.spi.activation.Server;
 /**
  * TODO List
  * 
+ * Idea TODO:
+ * 		Make a secondary claiming system, so factions can "claim" and, but won't have protections there.
+ * 
  * Misc TODO: 
  * 		Optional power scaling systems
  * 
@@ -1708,7 +1711,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * */
     public boolean setRelation(CommandSender sender, String[] args, String relation){
     	if(args.length>1){
-    		if(factionCheck(args[1])){
+
+			loadPlayer(((Player) sender).getUniqueId());
+    		String senderFaction = playerData.getString("faction"); 
+    		String otherFaction = args[1]; 
+    		
+    		if(factionCheck(otherFaction)){
 
 				String relString = "";
 				if(relation.equals("enemies")) relString = Config.Rel_Enemy;
@@ -1719,37 +1727,37 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			if(!relation.equals("neutral")){
     				
     				loadPlayer(((Player) sender).getUniqueId());
-    				loadFaction(playerData.getString("faction"));
+    				loadFaction(senderFaction);
     				enemyData = factionData.getJSONArray(relation); //says enemy data; but it can be any of them. Just a free array
     				int k = 0;
     				for(int i = 0; i < enemyData.length(); i++){ //make sure we don't already have this relation set
-    					if(enemyData.getString(i).equals(args[1]))
+    					if(enemyData.getString(i).equals(otherFaction))
     						k++;
     				}
     				if(k<1){
-    					enemyData.put(args[1]);
+    					enemyData.put(otherFaction);
         				factionData.put(relation, enemyData);
         				saveFaction(factionData);
         				
-        				loadFaction(playerData.getString("faction"));
+        				loadFaction(senderFaction);
         				enemyData = factionData.getJSONArray("enemies");
         				allyData = factionData.getJSONArray("allies");
         				truceData = factionData.getJSONArray("truce");
     					if(!relation.equals("enemies")){
         					for(int i = 0; i < enemyData.length(); i++){
-        						if(enemyData.getString(i).equals(args[1]))
+        						if(enemyData.getString(i).equals(otherFaction))
         							enemyData.remove(i);
         					}
         				}
         				if(!relation.equals("allies")){
         					for(int i = 0; i < allyData.length(); i++){
-        						if(allyData.getString(i).equals(args[1]))
+        						if(allyData.getString(i).equals(otherFaction))
         							allyData.remove(i);
         					}
         				}
         				if(!relation.equals("truce")){
         					for(int i = 0; i < truceData.length(); i++){
-        						if(truceData.getString(i).equals(args[1]))
+        						if(truceData.getString(i).equals(otherFaction))
         							truceData.remove(i);
         					}
         				}
@@ -1766,20 +1774,20 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				
     				
     				
-    				loadFaction(args[1]);
+    				loadFaction(otherFaction);
     				enemyData = factionData.getJSONArray("enemies");
     				allyData = factionData.getJSONArray("allies");
     				truceData = factionData.getJSONArray("truce");
     				
     				if(!relation.equals("allies")){
     					for(int i = 0; i < allyData.length(); i++){
-    						if(allyData.getString(i).equals(playerData.getString("faction")))
+    						if(allyData.getString(i).equals(senderFaction))
     							allyData.remove(i);
     					}
     				}
     				if(!relation.equals("truce")){
     					for(int i = 0; i < truceData.length(); i++){
-    						if(truceData.getString(i).equals(playerData.getString("faction")))
+    						if(truceData.getString(i).equals(senderFaction))
     							truceData.remove(i);
     					}
     				}
@@ -1788,12 +1796,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
 					if(relation.equals("enemies")){
 	    				int m = 0;
 	    				for(int i = 0; i < enemyData.length(); i++){ //make sure we don't already have this relation set
-	    					if(enemyData.getString(i).equals(playerData.getString("faction")))
+	    					if(enemyData.getString(i).equals(senderFaction))
 	    						m++;
 	    				}
 	    				
 	    				if(m<1){
-							enemyData.put(playerData.getString("faction"));
+							enemyData.put(senderFaction);
 	    				}
 					}
 
@@ -1808,41 +1816,43 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				
     				if(relation.equals("enemies"))
     					for(int i = 0; i < enemyData.length(); i++)
-    						if(enemyData.getString(i).equals(playerData.getString("faction")))
+    						if(enemyData.getString(i).equals(senderFaction))
     							j++;
     				
     				if(relation.equals("allies"))	
     					for(int i = 0; i < allyData.length(); i++)
-    						if(allyData.getString(i).equals(playerData.getString("faction")))
+    						if(allyData.getString(i).equals(senderFaction))
     							j++;
     				
     				if(relation.equals("truce"))		
     					for(int i = 0; i < truceData.length(); i++)
-    						if(truceData.getString(i).equals(playerData.getString("faction")))
+    						if(truceData.getString(i).equals(senderFaction))
     							j++;
     				
     				if(j>0 || (j==0 && relation.equals("neutral"))){
     					
+    					
+    					
     					//message sender's faction
-    					messageFaction(playerData.getString("faction"),"§6You are now " + relString + relation + "§6 with " + 
-    							getFactionRelationColor(playerData.getString("faction"),args[1]) + Config.configData.getString("faction symbol left") + args[1] + 
+    					messageFaction(senderFaction,"§6You are now " + relString + relation + "§6 with " + 
+    							getFactionRelationColor(senderFaction,otherFaction) + Config.configData.getString("faction symbol left") + otherFaction + 
     							Config.configData.getString("faction symbol right") + "§6.");
     					
     					//message other faction
-    					messageFaction(args[1],"§6You are now " + relString + relation + "§6 with " + 
-    							getFactionRelationColor(playerData.getString("faction"),args[1]) + Config.configData.getString("faction symbol left") + 
-    							playerData.getString("faction") + Config.configData.getString("faction symbol right") + "§6.");
+    					messageFaction(otherFaction,"§6You are now " + relString + relation + "§6 with " + 
+    							getFactionRelationColor(senderFaction,otherFaction) + Config.configData.getString("faction symbol left") + 
+    							senderFaction + Config.configData.getString("faction symbol right") + "§6.");
     					return true;
     				}
     				if(j==0){
     					//message sender's faction
-			    		messageFaction(playerData.getString("faction"),"§6You have asked " + getFactionRelationColor(playerData.getString("faction"),args[1]) + 
-			    				Config.configData.getString("faction symbol left") + args[1] + Config.configData.getString("faction symbol right") + 
+			    		messageFaction(senderFaction,"§6You have asked " + getFactionRelationColor(senderFaction,otherFaction) + 
+			    				Config.configData.getString("faction symbol left") + otherFaction + Config.configData.getString("faction symbol right") + 
     							" §6if they would like to become " + relString + relation + "§6.");
 			    		
 			    		//message ask'd faction
-			    		messageFaction(args[1],getFactionRelationColor(playerData.getString("faction"),args[1]) + Config.configData.getString("faction symbol left") + 
-			    				playerData.getString("faction") + Config.configData.getString("faction symbol right") + " §6have asked  if you would like to become " + 
+			    		messageFaction(otherFaction,getFactionRelationColor(senderFaction,otherFaction) + Config.configData.getString("faction symbol left") + 
+			    				senderFaction + Config.configData.getString("faction symbol right") + " §6have asked  if you would like to become " + 
 			    				relString + relation + "§6.");
 			    		
     					return true;
@@ -1851,7 +1861,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			}
     			else{
     				loadPlayer(((Player) sender).getUniqueId());
-    				loadFaction(playerData.getString("faction"));
+    				loadFaction(senderFaction);
     				enemyData = factionData.getJSONArray("enemies");
     				allyData = factionData.getJSONArray("allies");
     				truceData = factionData.getJSONArray("truce");
@@ -1859,24 +1869,24 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				int k = 0;
     				
     				for(int i = 0; i < enemyData.length(); i++)
-    					if(enemyData.getString(i).equals(args[1])){
+    					if(enemyData.getString(i).equals(otherFaction)){
     						enemyData.remove(i);
     						k++;
     						}
     				for(int i = 0; i < allyData.length(); i++)
-    					if(allyData.getString(i).equals(args[1])){
+    					if(allyData.getString(i).equals(otherFaction)){
     						allyData.remove(i);
     						k++;
     						}
     				for(int i = 0; i < truceData.length(); i++)
-    					if(truceData.getString(i).equals(args[1])){
+    					if(truceData.getString(i).equals(otherFaction)){
     						truceData.remove(i);
     						k++;
     						}
     				
     				if(k==0){
-    					sender.sendMessage("§6You are already neutral with " + getFactionRelationColor(playerData.getString("faction"),args[1]) + 
-    							Config.configData.getString("faction symbol left") + args[1] + Config.configData.getString("faction symbol right") + "§6!");
+    					sender.sendMessage("§6You are already neutral with " + getFactionRelationColor(senderFaction,otherFaction) + 
+    							Config.configData.getString("faction symbol left") + otherFaction + Config.configData.getString("faction symbol right") + "§6!");
     					return true;
     				}
     				
@@ -1885,7 +1895,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				factionData.put("truce", truceData);
     				saveFaction(factionData);
     				
-    				loadFaction(args[1]);
+    				loadFaction(otherFaction);
     				enemyData = factionData.getJSONArray("enemies");
     				allyData = factionData.getJSONArray("allies");
     				truceData = factionData.getJSONArray("truce");
@@ -1893,26 +1903,26 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				int j = 0;
     				
     				for(int i = 0; i < enemyData.length(); i++)
-    					if(enemyData.getString(i).equals(playerData.getString("faction"))){
+    					if(enemyData.getString(i).equals(senderFaction)){
     						j++;
     						}
     				for(int i = 0; i < allyData.length(); i++)
-    					if(allyData.getString(i).equals(playerData.getString("faction"))){
+    					if(allyData.getString(i).equals(senderFaction)){
     						j++;
     						}
     				for(int i = 0; i < truceData.length(); i++)
-    					if(truceData.getString(i).equals(playerData.getString("faction"))){
+    					if(truceData.getString(i).equals(senderFaction)){
     						j++;
     						}
     				
     				if(k>0 && j==0){
-    					sender.sendMessage("§6You are now neutral with " + getFactionRelationColor(playerData.getString("faction"),args[1]) + 
-    							Config.configData.getString("faction symbol left") + args[1] + Config.configData.getString("faction symbol right") + "§6.");
+    					sender.sendMessage("§6You are now neutral with " + getFactionRelationColor(senderFaction,otherFaction) + 
+    							Config.configData.getString("faction symbol left") + otherFaction + Config.configData.getString("faction symbol right") + "§6.");
     					return true;
     				}
     				if(k>0 && j>0){
-    					sender.sendMessage("§6You have asked " + getFactionRelationColor(playerData.getString("faction"),args[1]) +
-    							Config.configData.getString("faction symbol left") + args[1] + Config.configData.getString("faction symbol right") + 
+    					sender.sendMessage("§6You have asked " + getFactionRelationColor(senderFaction,otherFaction) +
+    							Config.configData.getString("faction symbol left") + otherFaction + Config.configData.getString("faction symbol right") + 
     							"§6 if they would like to become " + relString + "neutral.");
     					return true;
     				}
