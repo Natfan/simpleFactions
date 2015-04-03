@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.UUID;
 
 import org.bukkit.Bukkit; 
 import org.bukkit.Location;
@@ -78,16 +79,16 @@ import com.sun.corba.se.spi.activation.Server;
  * */
 
 public class simpleFactions extends JavaPlugin implements Listener {
-
+	
 	//index of players/factions (constantly updating to stay accurate)
-	List<String> factionIndex = new ArrayList<String>();
-	List<String> playerIndex = new ArrayList<String>();
-	List<String> boardIndex = new ArrayList<String>();
+	static List<String> factionIndex = new ArrayList<String>();
+	static List<String> playerIndex = new ArrayList<String>();
+	static List<String> boardIndex = new ArrayList<String>();
 	
 	//for traveling around faction territory (one of the few things that stay in memory for entire life of plugin)
-	List<String> playerIsIn_player = new ArrayList<String>();
-	List<String> playerIsIn_faction = new ArrayList<String>();
-	List<Location> playerIsIn_location = new ArrayList<Location>();
+	static List<String> playerIsIn_player = new ArrayList<String>();
+	static List<String> playerIsIn_faction = new ArrayList<String>();
+	static List<Location> playerIsIn_location = new ArrayList<Location>();
 	
 	
 	/**
@@ -104,69 +105,51 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		be done with a single, or hundreds, of separate jsonobjects; but I've broke them up like this
 		for simplicity sake. 
 	*/ 
-	JSONObject boardData = new JSONObject();
-	JSONObject factionData = new JSONObject();
-	JSONObject playerData = new JSONObject();
-	JSONArray scheduleData = new JSONArray();
-	JSONArray enemyData = new JSONArray();
-	JSONArray allyData = new JSONArray();
-	JSONArray truceData = new JSONArray();
-	JSONArray inviteData = new JSONArray();
-	JSONObject configData = new JSONObject();
-	JSONArray neutralBreakData = new JSONArray();
-	JSONArray allyBreakData = new JSONArray();
-	JSONArray truceBreakData = new JSONArray();
-	JSONArray otherBreakData = new JSONArray();
-	JSONArray enemyBreakData = new JSONArray();
-	JSONArray neutralPlaceData = new JSONArray();
-	JSONArray allyPlaceData = new JSONArray();
-	JSONArray trucePlaceData = new JSONArray();
-	JSONArray otherPlaceData = new JSONArray();
-	JSONArray enemyPlaceData = new JSONArray();
-	JSONArray neutralItemData = new JSONArray();
-	JSONArray allyItemData = new JSONArray();
-	JSONArray truceItemData = new JSONArray();
-	JSONArray otherItemData = new JSONArray();
-	JSONArray enemyItemData = new JSONArray();
-	JSONArray claimsDisabledInTheseWorlds = new JSONArray();
+	static JSONObject boardData = new JSONObject();
+	static JSONObject factionData = new JSONObject();
+	static JSONObject playerData = new JSONObject();
+	static JSONArray scheduleData = new JSONArray();
+	static JSONArray enemyData = new JSONArray();
+	static JSONArray allyData = new JSONArray();
+	static JSONArray truceData = new JSONArray();
+	static JSONArray inviteData = new JSONArray();
 	
-	//default configs
-	int chunkSizeX = 16;
-	int chunkSizeY = 16;
-	int chunkSizeZ = 16;
-	int powerCapMax = 750; // 25 * 30 (default power is 25 * 30 players)
+
 	
-	//default colors
-	String Rel_Faction = "§b";
-	String Rel_Ally = "§d";
-	String Rel_Enemy = "§c";
-	String Rel_Neutral = "§2";
-	String Rel_Other = "§f";
-	String Rel_Truce = "§6";
-	String powerCapType = "none";
+
 	
 	//version
-	String version = "1.83";
+	static String version = "1.83";
 
 	//global thing to pass to async task
-	TNTPrimed lastCheckedTNT; 
+	static TNTPrimed lastCheckedTNT; 
 	
+	public static File dataFolder;
     public static JavaPlugin plugin;
     
-	long currentTime = System.currentTimeMillis();
-	long lastTime = System.currentTimeMillis();
+    static long currentTime = System.currentTimeMillis();
+    static long lastTime = System.currentTimeMillis();
 	
 	/**
 	 * Starts with server startup or /reload
 	 * */
 	public void onEnable()
 	{
+
+		plugin = this; 
+		
+		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions is starting!]");
+		dataFolder = getDataFolder(); 
+		
 		getServer().getPluginManager().registerEvents(this, this);
+		getServer().getPluginManager().registerEvents(new eventListener(), this);
+		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has registered the events!]");
 		loadData();
+		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has loaded necessary data!]");
 		scheduleSetup(); 
+		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has set up tasks!]");
 		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has enabled successfully!]");
 		
-		plugin = this; 
 		/*
 		boolean hasapi = false; 
 		Plugin[] plugins = getServer().getPluginManager().getPlugins();
@@ -201,33 +184,35 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	 * Runs when the server is shutting down
 	 * */
     public void onDisable() {
-		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has shut down successfully!]");
+    	Bukkit.getServer().getScheduler().cancelAllTasks();
 		saveData();
+		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has shut down successfully!]");
     }
     
-    public void createDirectories(){
-    	File dir0 = new File(this.getDataFolder() + "/");
+    public static void createDirectories(){
+    	File dir0 = new File(dataFolder + "/");
     	if(!dir0.exists()){
     		dir0.mkdir();
     		}
-    	File dir_fac = new File(this.getDataFolder() + "/factionData");
+    	File dir_fac = new File(dataFolder + "/factionData");
     	if(!dir_fac.exists()){
     		dir_fac.mkdir();
     		}
-    	File dir_play = new File(this.getDataFolder() + "/playerData");
+    	File dir_play = new File(dataFolder + "/playerData");
     	if(!dir_play.exists()){
     		dir_play.mkdir();
     		}
-    	File dir_world = new File(this.getDataFolder() + "/boardData");
+    	File dir_world = new File(dataFolder + "/boardData");
     	if(!dir_world.exists()){
     		dir_world.mkdir();
     		}
 
+    	/*
     	FileUtil fileutil = new FileUtil();
 
-    	List<String> factionIndexList = Arrays.asList(fileutil.listFiles(this.getDataFolder() + "/factionData"));
-    	List<String> playerIndexList = Arrays.asList(fileutil.listFiles(this.getDataFolder() + "/playerData"));
-    	List<String> boardIndexList = Arrays.asList(fileutil.listFiles(this.getDataFolder() + "/boardData"));
+    	List<String> factionIndexList = Arrays.asList(fileutil.listFiles(dataFolder + "/factionData"));
+    	List<String> playerIndexList = Arrays.asList(fileutil.listFiles(dataFolder + "/playerData"));
+    	List<String> boardIndexList = Arrays.asList(fileutil.listFiles(dataFolder + "/boardData"));
 
     	factionIndex = new ArrayList<String>();
     	playerIndex = new ArrayList<String>();
@@ -246,13 +231,16 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		String name = boardIndexList.get(i);
     		boardIndex.add(name.replaceFirst(".json", ""));
     		}
+    	*/
     }
     
     /**
      * Saves misc data. Currently empty.
      * */
-    public void saveData(){
+    public static void saveData(){
     	createDirectories();
+    	saveAllPlayersToDisk(); 
+		Bukkit.getServer().getConsoleSender().sendMessage("§a[All player data saved to disk!]");
     }
     
     /**
@@ -262,7 +250,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 
     	createDirectories();
     	
-    	loadConfig();
+    	Config.loadConfig();
     	
     	FileUtil fileutil = new FileUtil();
     	
@@ -270,275 +258,60 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	playerIndex = new ArrayList<String>();
     	boardIndex = new ArrayList<String>();
     	
-    	List<String> factionIndexList = Arrays.asList(fileutil.listFiles(this.getDataFolder() + "/factionData"));
-    	List<String> playerIndexList = Arrays.asList(fileutil.listFiles(this.getDataFolder() + "/playerData"));
-    	List<String> boardIndexList = Arrays.asList(fileutil.listFiles(this.getDataFolder() + "/boardData"));
+    	List<String> factionIndexList = Arrays.asList(fileutil.listFiles(dataFolder + "/factionData"));
+    	List<String> playerIndexList = Arrays.asList(fileutil.listFiles(dataFolder + "/playerData"));
+    	List<String> boardIndexList = Arrays.asList(fileutil.listFiles(dataFolder + "/boardData"));
     	
     	//display loaded factions and players
     	for(int i=0; i<factionIndexList.size(); i++){
-    		String name = factionIndexList.get(i);
-    		factionIndex.add(name.replaceFirst(".json", ""));
+    		String name = factionIndexList.get(i).replaceFirst(".json", "");
+    		factionIndex.add(name);
     		}
 		Bukkit.getServer().getConsoleSender().sendMessage("§bLoaded all factions.");
     	for(int i=0; i<playerIndexList.size(); i++){
-    		String name = playerIndexList.get(i);
-    		playerIndex.add(name.replaceFirst(".json", ""));
+    		String uuid = playerIndexList.get(i).replaceAll(".json", "");
+    		Bukkit.getServer().getConsoleSender().sendMessage("    §c->§7Loading " + uuid); 
+    		loadPlayerDisk(uuid); 
     		}
 		Bukkit.getServer().getConsoleSender().sendMessage("§bLoaded all players.");
     	for(int i=0; i<boardIndexList.size(); i++){
-    		String name = boardIndexList.get(i);
-    		boardIndex.add(name.replaceFirst(".json", ""));
+    		String name = boardIndexList.get(i).replaceFirst(".json", "");
+    		boardIndex.add(name);
     		}
 		Bukkit.getServer().getConsoleSender().sendMessage("§bLoaded all worlds.");
     }
     
-    /**
-     * Creates config file.
-     * */
-    public String createConfigData(){
+    
+    public static void loadPlayer(UUID uuid){
     	
-    	/*
-    	configData = new JSONObject();
-    	neutralBreakData = new JSONArray();
-    	allyBreakData = new JSONArray();
-    	truceBreakData = new JSONArray();
-    	otherBreakData = new JSONArray();
-    	enemyBreakData = new JSONArray();
-    	neutralPlaceData = new JSONArray();
-    	allyPlaceData = new JSONArray();
-    	trucePlaceData = new JSONArray();
-    	otherPlaceData = new JSONArray();
-    	enemyPlaceData = new JSONArray();
-    	neutralItemData = new JSONArray();
-    	allyItemData = new JSONArray();
-    	truceItemData = new JSONArray();
-    	otherItemData = new JSONArray();
-    	enemyItemData = new JSONArray();
-		
-		neutralPlaceData.put("LAVA_BUCKET");
-		allyPlaceData.put("LAVA_BUCKET");
-		trucePlaceData.put("LAVA_BUCKET");
-		otherPlaceData.put("LAVA_BUCKET");
-		enemyPlaceData.put("LAVA_BUCKET");
-		
-		neutralPlaceData.put("WATER_BUCKET");
-		allyPlaceData.put("WATER_BUCKET");
-		trucePlaceData.put("WATER_BUCKET");
-		otherPlaceData.put("WATER_BUCKET");
-		enemyPlaceData.put("WATER_BUCKET");
-		
-		truceItemData.put("BUCKET");truceItemData.put("WATER_BUCKET");truceItemData.put("LAVA_BUCKET");
-			truceItemData.put("WOOD_PLATE"); 
-			
-		otherItemData.put("BUCKET");otherItemData.put("WATER_BUCKET");otherItemData.put("LAVA_BUCKET");
-			otherItemData.put("WOOD_PLATE"); otherItemData.put("WOOD_BUTTON");
-			
-		enemyItemData.put("BUCKET");enemyItemData.put("WATER_BUCKET");enemyItemData.put("LAVA_BUCKET");
-			enemyItemData.put("WOOD_PLATE"); enemyItemData.put("WOOD_BUTTON");
-		
-		//what still needs to be implemented
-		//faction settings
-		configData.put("version", version);
-		configData.put("default faction description","Please do /sf desc to change this description!"); 
-		configData.put("allow player titles", "true");			//#
-		configData.put("default player title", "");						
-		configData.put("default player factionRank", "member");				
-		configData.put("factions open by default", "true");				 
-		configData.put("enforce relations", "");						
-		configData.put("friendly fire melee", "false");					
-		configData.put("friendly fire projectile (arrows)", "false");  
-		configData.put("friendly fire other", "false");				  
-		configData.put("default player money", 100.0);				
-		configData.put("default player power", 10.0);				
-		configData.put("seconds before faction is considered really offline", 300);	 
-		configData.put("only admins can create factions", "false");					
-		
-		//faction chat settings				
-		configData.put("enable simplefaction chat", "true");	
-		configData.put("show faction data in global chat", "true");
-		configData.put("show faction data in local chat", "true");				
-		configData.put("faction symbol left", "/");				
-		configData.put("faction symbol right", "/");				
-		configData.put("local chat distance", 500);					
-		configData.put("treat all chat like a radio", "false");		
-		
-		//power settings
-		configData.put("max player power", 25.0);				
-		configData.put("minimum player power", -25.0);			
-		configData.put("power lost on death", 2.0);				
-		configData.put("update power while online", "true");	
-		configData.put("update power while offline", "true");	
-		configData.put("update power while in own territory", "true");	
-		configData.put("update power while in enemy territory", "true");
-		configData.put("update power while enemy in your territory", "true"); 
-		configData.put("power per hour while online",   2.0);					
-		configData.put("power per hour while offline", -1.0);					
-		configData.put("power per hour while in own territory",   2.0);			
-		configData.put("power per hour while in enemy territory",   2.0);		
-		configData.put("power per hour while enemy in your territory",   -0.25); 
-		
-		//protection settings
-		configData.put("claim size x", chunkSizeX);	
-		configData.put("claim size y", chunkSizeY);	
-		configData.put("claim size z", chunkSizeZ);	
-		configData.put("use 3D claim system?", "true");
-		configData.put("protect claimed land from explosions while faction is online", "false"); 
-		configData.put("protect claimed land from explosions while faction is offline", "true"); 
-		
-		configData.put("protect all claimed blocks from being broken in neutral territory", "false");
-		configData.put("protect all claimed blocks from being broken in ally territory", "false");
-		configData.put("protect all claimed blocks from being broken in truce territory", "true");
-		configData.put("protect all claimed blocks from being broken in other territory", "true");
-		configData.put("protect all claimed blocks from being broken in enemy territory", "true");
-		
-		configData.put("protect all claimed blocks from being placed in neutral territory", "false");
-		configData.put("protect all claimed blocks from being placed in ally territory", "false");
-		configData.put("protect all claimed blocks from being placed in truce territory", "true");
-		configData.put("protect all claimed blocks from being placed in other territory", "true");
-		configData.put("protect all claimed blocks from being placed in enemy territory", "true");
-		
-		configData.put("block all item use by default in neutral territory", "false"); 
-		configData.put("block all item use by default in ally territory", "false"); 
-		configData.put("block all item use by default in truce territory", "true"); 
-		configData.put("block all item use by default in other territory", "true"); 
-		configData.put("block all item use by default in enemy territory", "true"); 
-		
-		configData.put("## -- COMMENT: the lists below have the opposite effects of the above settings :COMMENT --##", ""); 
-		configData.put("block break protection in neutral land", neutralBreakData);
-		configData.put("block break protection in ally land", allyBreakData);
-		configData.put("block break protection in truce land", truceBreakData);
-		configData.put("block break protection in other land", otherBreakData);
-		configData.put("block break protection in enemy land", enemyBreakData);
-		configData.put("block place protection in neutral land", neutralPlaceData); 
-		configData.put("block place protection in ally land", allyPlaceData);
-		configData.put("block place protection in truce land", trucePlaceData); 
-		configData.put("block place protection in other land", otherPlaceData); 
-		configData.put("block place protection in enemy land", enemyPlaceData); 
-		configData.put("item protection in neutral land", neutralItemData); 
-		configData.put("item protection in ally land", allyItemData); 
-		configData.put("item protection in truce land", truceItemData); 
-		configData.put("item protection in other land", otherItemData); 
-		configData.put("item protection in enemy land", enemyItemData); 
-		
-		//power cap settings
-		configData.put("power cap max powe", powerCapMax);
-		configData.put("power cap type", powerCapType);
-		*/
-		
-		String configFile = "";
-		InputStream input = getClass().getResourceAsStream("/configFile.json");
-		Scanner scan = new Scanner(input).useDelimiter("\\Z");
-		configFile = scan.next();
-		scan.close(); 
-		
-		configData = new JSONObject(configFile);
-		//getLogger().info("configFile: " + configFile);
-		//getLogger().info("########################");
-		//getLogger().info("configJson: " + configData.toString(8));
-
-		loadConfigData();
-		return configFile;
-    }
-
-    /**
-     * Loads config data into configData JSONObject.
-     * */
-    public void loadConfig(){
-    	File configFile = new File(this.getDataFolder() + "/config.json");
-    	if(!configFile.exists()){
-			try {
-				FileWriter fw = new FileWriter(configFile);
-				BufferedWriter bw=new BufferedWriter(fw);
-				
-				//createConfigData();
-				
-				bw.write(createConfigData());
-				bw.newLine();
-				bw.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+    	//Bukkit.getLogger().info("[LOAD]: Data.Players: ");
+    	//Bukkit.getLogger().info(Data.Players.toString(4));
+    	
+    	for(int i = 0; i < Data.Players.length(); i++){
+    		if(Data.Players.getJSONObject(i).getString("ID").equals(uuid.toString())){
+    			playerData = Data.Players.getJSONObject(i); 
+    			//Bukkit.getLogger().info("[LoadPlayer]: Player Found! /n" + playerData.toString(4)); //debug
+    		} 
     	}
-    	try {
-    		FileReader filereader = new FileReader(this.getDataFolder() + "/config.json");
-			Scanner scan = new Scanner(filereader).useDelimiter("\\Z");
-			configData = new JSONObject(scan.next());
-			loadConfigData(); 
-			scan.close();
-			
-			if(!configData.getString("version").equals(version)){
-				Bukkit.getServer().getConsoleSender().sendMessage("§cConfig file is out of date! " +
-						"Backing up old config file and creating a new one! Please go and redo your configs with the new format!");
-
-				try {
-					File backupFile = new File(configFile.getAbsoluteFile() + ".backup");
-					FileWriter filew = new FileWriter(backupFile);
-					BufferedWriter baw = new BufferedWriter(filew);
-					baw.write(createConfigData());
-					baw.newLine();
-					baw.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				
-					FileWriter fw = new FileWriter(configFile);
-					BufferedWriter bw=new BufferedWriter(fw);
-					bw.write(createConfigData()); //creates a new config, sets config data, and saves it via bw
-					bw.newLine();
-					bw.close();
-			}
-			
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-    }
-    public void loadConfigData(){
-    	chunkSizeX = 			configData.getInt("claim size x");
-		chunkSizeY =			configData.getInt("claim size y");
-		chunkSizeZ = 			configData.getInt("claim size z");
-		if(configData.has("power cap max power")) powerCapMax =			configData.getInt("power cap max power");
-		if(configData.has("power cap type (none/soft/hard)")) powerCapType = 			configData.getString("power cap type (none/soft/hard)");
-		
-		neutralBreakData = 		configData.getJSONArray("block break protection in neutral land");
-		allyBreakData = 		configData.getJSONArray("block break protection in ally land");
-		truceBreakData = 		configData.getJSONArray("block break protection in truce land");
-		otherBreakData = 		configData.getJSONArray("block break protection in other land");
-		enemyBreakData = 		configData.getJSONArray("block break protection in enemy land");
-		 
-		neutralPlaceData = 		configData.getJSONArray("block place protection in neutral land");
-		allyPlaceData = 		configData.getJSONArray("block place protection in ally land");
-		trucePlaceData = 		configData.getJSONArray("block place protection in truce land");
-		otherPlaceData = 		configData.getJSONArray("block place protection in other land");
-		enemyPlaceData = 		configData.getJSONArray("block place protection in enemy land");
-		 
-		neutralItemData = 		configData.getJSONArray("item protection in neutral land");
-		allyItemData = 			configData.getJSONArray("item protection in ally land");
-		truceItemData = 		configData.getJSONArray("item protection in truce land");
-		otherItemData = 		configData.getJSONArray("item protection in other land");
-		enemyItemData = 		configData.getJSONArray("item protection in enemy land");
-		
-		claimsDisabledInTheseWorlds = configData.getJSONArray("disable claims and homes in these worlds");
     }
     
     /**
-     * Loads player data into the playerData JSONObject
+     * Loads player data into Data.Players
      * */
-    public void loadPlayer(String name){
-    	name = name.toLowerCase();
+    public static void loadPlayerDisk(String uuid){
+    	//uuid = uuid.toLowerCase();
     	createDirectories();
     	
-    	File playerFile = new File(this.getDataFolder() + "/playerData/" + name + ".json");
+    	File playerFile = new File(dataFolder + "/playerData/" + uuid + ".json");
     	if(!playerFile.exists()){
 			try {
 				
 				FileWriter fw = new FileWriter(playerFile);
 				BufferedWriter bw=new BufferedWriter(fw);
-				if(Bukkit.getOfflinePlayer(name) == null)
-					createPlayer(Bukkit.getPlayer(name));
+				if(Bukkit.getOfflinePlayer(UUID.fromString(uuid)) == null)
+					createPlayer(Bukkit.getPlayer(UUID.fromString(uuid)));
 				else
-					createPlayer(Bukkit.getOfflinePlayer(name));
+					createPlayer(Bukkit.getOfflinePlayer(UUID.fromString(uuid)));
 				bw.write(playerData.toString(8));
 				bw.newLine();
 				bw.close();
@@ -547,23 +320,36 @@ public class simpleFactions extends JavaPlugin implements Listener {
 				e.printStackTrace();
 			}
     	}
+    	
     	try {
 
-			Scanner scan = new Scanner(new FileReader(this.getDataFolder() + "/playerData/" + name + ".json"));
+			Scanner scan = new Scanner(new FileReader(dataFolder + "/playerData/" + uuid + ".json"));
 			scan.useDelimiter("\\Z");
+			
 			if(scan.hasNext()){
-				playerData = new JSONObject(scan.next());
+				JSONObject player = new JSONObject(scan.next());
+				
+				for(int i = 0; i < Data.Players.length(); i++){
+					if(Data.Players.getJSONObject(i).getString("ID").equals(uuid)){
+						Data.Players.remove(i);  
+						//debug
+					}
+				}
+				
+				Data.Players.put(player);
+				//Bukkit.getLogger().info("[LoadFromDisk]: New player"); 
+				//Bukkit.getLogger().info(Data.Players.toString(4));
 				scan.close();
 			}
 			else{
 				scan.close();
-				if(Bukkit.getOfflinePlayer(name) == null)
-					createPlayer(Bukkit.getPlayer(name));
+				if(Bukkit.getOfflinePlayer(UUID.fromString(uuid)) == null)
+					createPlayer(Bukkit.getPlayer(UUID.fromString(uuid)));
 				else
-					createPlayer(Bukkit.getOfflinePlayer(name));
-				scan = new Scanner(new FileReader(this.getDataFolder() + "/playerData/" + name + ".json")).useDelimiter("\\Z");
-				savePlayer(playerData);
+					createPlayer(Bukkit.getOfflinePlayer(UUID.fromString(uuid)));
+				scan = new Scanner(new FileReader(dataFolder + "/playerData/" + uuid + ".json")).useDelimiter("\\Z");
 				playerData = new JSONObject(scan.next());
+				savePlayer(playerData);
 				scan.close();
 			}
 			
@@ -576,11 +362,11 @@ public class simpleFactions extends JavaPlugin implements Listener {
     /**
      * Loads faction data into the factionData JSONObject
      * */
-    public void loadFaction(String name){
+    public static void loadFaction(String name){
 
     	createDirectories();
     	
-    	File factionFile = new File(this.getDataFolder() + "/factionData/" + name + ".json");
+    	File factionFile = new File(dataFolder + "/factionData/" + name + ".json");
     	if(!factionFile.exists()){
 			try {
 				FileWriter fw = new FileWriter(factionFile);
@@ -596,7 +382,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	}
     	try {
     		
-			Scanner scan = new Scanner(new FileReader(this.getDataFolder() + "/factionData/" + name + ".json"));
+			Scanner scan = new Scanner(new FileReader(dataFolder + "/factionData/" + name + ".json"));
 			scan.useDelimiter("\\Z");
 			factionData = new JSONObject(scan.next());
 			scan.close();
@@ -610,11 +396,11 @@ public class simpleFactions extends JavaPlugin implements Listener {
     /**
      * Loads world data into the worldData JSONObject
      * */
-    public void loadWorld(String name){
+    public static void loadWorld(String name){
 
     	createDirectories();
     	
-    	File worldFile = new File(this.getDataFolder() + "/boardData/" + name + ".json");
+    	File worldFile = new File(dataFolder + "/boardData/" + name + ".json");
     	if(!worldFile.exists()){
 			try {
 				FileWriter fw = new FileWriter(worldFile);
@@ -624,7 +410,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 				bw.write(boardData.toString(8));
 				bw.newLine();
 				bw.close();
-				getLogger().info("[Debug] " + name + ".json doesn't exist, so we just created one.");
+				Bukkit.getLogger().info("[Debug] " + name + ".json doesn't exist, so we just created one.");
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -632,7 +418,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	
     	try {
 
-			Scanner scan = new Scanner(new FileReader(this.getDataFolder() + "/boardData/" + name + ".json"));
+			Scanner scan = new Scanner(new FileReader(dataFolder + "/boardData/" + name + ".json"));
 			scan.useDelimiter("\\Z");
 			boardData = new JSONObject(scan.next());
 			scan.close();
@@ -646,10 +432,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
     /**
      * Loads schedule data into the scheduleData JSONObject
      * */
-    public void loadSchedules(){
+    public static void loadSchedules(){
     	createDirectories();
     	
-    	File scheduleFile = new File(this.getDataFolder() + "/schedules.json");
+    	File scheduleFile = new File(dataFolder + "/schedules.json");
     	if(!scheduleFile.exists()){
 			try {
 				
@@ -666,7 +452,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	}
     	try {
 
-			Scanner scan = new Scanner(new FileReader(this.getDataFolder() + "/schedules.json"));
+			Scanner scan = new Scanner(new FileReader(dataFolder + "/schedules.json"));
 			scan.useDelimiter("\\Z");
 			if(scan.hasNext()){
 				scheduleData = new JSONArray(scan.next());
@@ -674,7 +460,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			}
 			else{
 				scan.close();
-				scan = new Scanner(this.getDataFolder() + "/schedules.json").useDelimiter("\\Z");
+				scan = new Scanner(dataFolder + "/schedules.json").useDelimiter("\\Z");
 				//saveSchedule();
 				scheduleData = new JSONArray(scan.next());
 				scan.close();
@@ -686,7 +472,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	
     }
     
-    public void createDefaultSchedule(){
+    public static void createDefaultSchedule(){
     	scheduleData = new JSONArray(); 
     	JSONObject stats = new JSONObject(); 
     	
@@ -695,16 +481,33 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	scheduleData.put(stats);
     }
     
+    public static void savePlayer(JSONObject player){
+    	String id = player.getString("ID"); 
+    	
+    	for(int i = 0; i < Data.Players.length(); i++){
+			if(Data.Players.getJSONObject(i).getString("ID").equals(id)){
+				Data.Players.remove(i); 
+				Data.Players.put(player);
+			}
+		}
+    }
+    
+    public static void saveAllPlayersToDisk(){
+    	for(int i = 0; i < Data.Players.length(); i++){
+			savePlayerDisk(Data.Players.getJSONObject(i)); 
+		}
+    }
+    
     /**
      * Saves playerData into a JSON file
      * */
-    public void savePlayer(JSONObject pData){
-    	pData.put("name", pData.getString("name").toLowerCase());
+    public static void savePlayerDisk(JSONObject pData){
+    	//pData.put("name", pData.getString("name").toLowerCase());
     	createDirectories();
     	
     	String saveString = pData.toString(8); //save data for player
 		try{
-			FileWriter fw=new FileWriter(this.getDataFolder() + "/playerData/" + pData.getString("name") + ".json");
+			FileWriter fw=new FileWriter(dataFolder + "/playerData/" + pData.getString("ID") + ".json");
 			BufferedWriter bw=new BufferedWriter(fw);
 			bw.write(saveString);
 			bw.newLine();
@@ -719,13 +522,13 @@ public class simpleFactions extends JavaPlugin implements Listener {
     /**
      * Saves factionData into a JSON file
      * */
-    public void saveFaction(JSONObject fData){
+    public static void saveFaction(JSONObject fData){
 
     	createDirectories();
     	
     	String saveString = fData.toString(8); //save data for faction
 		try{
-			FileWriter fw=new FileWriter(this.getDataFolder() + "/factionData/" + fData.getString("name") + ".json");
+			FileWriter fw=new FileWriter(dataFolder + "/factionData/" + fData.getString("name") + ".json");
 			BufferedWriter bw=new BufferedWriter(fw);
 			bw.write(saveString);
 			bw.newLine();
@@ -740,13 +543,13 @@ public class simpleFactions extends JavaPlugin implements Listener {
     /**
      * saves boardData into a JSON file
      * */
-    public void saveWorld(JSONObject wData){
+    public static void saveWorld(JSONObject wData){
 
     	createDirectories();
     	
     	String saveString = wData.toString(8); //save data for faction
 		try{
-			FileWriter fw=new FileWriter(this.getDataFolder() + "/boardData/" + wData.getString("name").toString() + ".json");
+			FileWriter fw=new FileWriter(dataFolder + "/boardData/" + wData.getString("name").toString() + ".json");
 			BufferedWriter bw=new BufferedWriter(fw);
 			bw.write(saveString);
 			bw.newLine();
@@ -761,12 +564,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
     /**
      * Saves scheduleData into a JSON file
      * */
-    public void saveSchedule(JSONArray sData){
+    public static void saveSchedule(JSONArray sData){
     	createDirectories();
     	
     	String saveString = sData.toString(8); //save data for schdules
 		try{
-			FileWriter fw=new FileWriter(this.getDataFolder() + "/schedules.json");
+			FileWriter fw=new FileWriter(dataFolder + "/schedules.json");
 			BufferedWriter bw=new BufferedWriter(fw);
 			bw.write(saveString);
 			bw.newLine();
@@ -791,7 +594,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				sender.sendMessage("§6Try using a command! Example: /sf create faction");
     				return true;
     			}else{
-    				if(args[0].toLowerCase().equals("create") && (configData.getString("only admins can create factions").equals("false") 
+    				if(args[0].toLowerCase().equals("create") && (Config.configData.getString("only admins can create factions").equals("false") 
     						|| sender.isOp() ||  sender.hasPermission("simplefactions.admin") )){
     					return tryCreateFaction(sender,args);
     				}
@@ -902,7 +705,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				}
     				if(args[0].toLowerCase().equals("disband")){
     					if(args.length>1){
-    						loadPlayer(sender.getName());
+    						loadPlayer(((Player) sender).getUniqueId());
     						if(playerData.getString("faction").equals(args[1]))
     							return tryDisband(sender,args[1]);
     						else{
@@ -916,7 +719,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     							}
     						}
     					else{
-    						loadPlayer(sender.getName());
+    						loadPlayer(((Player) sender).getUniqueId());
     						String factionName = playerData.getString("faction");
     						if(playerData.getString("faction").equals(args[1]))
         						return tryDisband(sender,factionName);
@@ -998,7 +801,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		saveSchedule(scheduleData);
     }
     
-    public String getScheduledTime(){
+    public static String getScheduledTime(){
     	loadSchedules(); 
 		for(int i = 0; i < scheduleData.length(); i++){
 			JSONObject scheduled = scheduleData.getJSONObject(i);
@@ -1007,8 +810,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			}
 		}
 		
-		getLogger().info("[SimpleFactions error! No wartime/peacetime block found in " +
-				"the save file while getting! Creating...");		
+		//getLogger().info("[SimpleFactions error! No wartime/peacetime block found in " +
+		//		"the save file while getting! Creating...");		
 		JSONObject scheduled = new JSONObject(); 
 		scheduled.put("currently", ""); 
 		scheduled.put("ID", 0); 
@@ -1023,7 +826,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
 
 		BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
 		scheduler.cancelAllTasks();
-		updatePlayerPower();
+		Tasks.updatePlayerPower();
+		Tasks.saveDataToDisk(); 
 		
 		for(int i = 0; i < scheduleData.length(); i++){
 			JSONObject scheduled = scheduleData.getJSONObject(i);
@@ -1076,7 +880,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 					Bukkit.getServer().getConsoleSender().sendMessage("§b[SimpleFactions] Performing a scheduled task!");
 				
 					for(int j = 0; j < scheduleData.length(); j++){
-						loadConfig(); 
+						Config.loadConfig(); 
 						JSONObject scheduled = scheduleData.getJSONObject(j);
 						if(scheduled.getInt("ID") == ID){
 							scheduled.put("ID", scheduleData.length());
@@ -1101,14 +905,14 @@ public class simpleFactions extends JavaPlugin implements Listener {
 							
 							String weAre = getScheduledTime(); 
 							weAre = weAre.toUpperCase();
-							String rel = Rel_Truce; 
-							if(weAre.equals("WAR")) rel = Rel_Enemy;
+							String rel = Config.Rel_Truce; 
+							if(weAre.equals("WAR")) rel = Config.Rel_Enemy;
 							String _message = rel + "IT IS NOW TIME FOR " + weAre + "! " 
 									+ weAre + " WILL LAST FOR " + length + " " +
 									lengthType2.toUpperCase() + "!"; 
 							
 							if(weAre.equals("")){
-								rel = Rel_Other; 
+								rel = Config.Rel_Other; 
 								if(type.equals("wartime") || type.equals("war"))
 									_message = rel + "Wartime is now over.";
 								if(type.equals("peacetime") || type.equals("peace"))
@@ -1135,7 +939,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     
     public boolean tryOpen(CommandSender sender){
     	
-    	loadPlayer(sender.getName());
+    	loadPlayer(((Player) sender).getUniqueId());
     	
     	if(!playerData.getString("factionRank").equals("officer") && !playerData.getString("factionRank").equals("leader")){
     		sender.sendMessage("§cYou aren't a high enough rank to do this.");
@@ -1207,7 +1011,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			for(int i = 0; i < offline.length; i++){
     				if(!offline[i].isOnline()){
     					count++;
-    					loadPlayer(offline[i].getName());
+    					loadPlayer(offline[i].getUniqueId());
     					playerTop[count] = playerData.getString("name");
     					value[count] = playerData.getInt(arg);
     				}
@@ -1216,7 +1020,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			for(Player player : online){
     				if(player.isOnline()){
     					count++;
-    					loadPlayer(player.getName());
+    					loadPlayer(player.getUniqueId());
     					playerTop[count] = playerData.getString("name");
     					value[count] = playerData.getInt(arg);
     				}
@@ -1277,7 +1081,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			for(int i = 0; i < offline.length; i++){
     				if(!offline[i].isOnline()){
     					count++;
-    					loadPlayer(offline[i].getName());
+    					loadPlayer(offline[i].getUniqueId());
     					playerTop[count] = playerData.getString("name");
     					value[count] = playerData.getLong(arg);
     				}
@@ -1286,7 +1090,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			for(Player player : online){
     				if(player.isOnline()){
     					count++;
-    					loadPlayer(player.getName());
+    					loadPlayer(player.getUniqueId());
     					playerTop[count] = playerData.getString("name");;
     					value[count] = playerData.getLong(arg);
     				}
@@ -1356,16 +1160,16 @@ public class simpleFactions extends JavaPlugin implements Listener {
 				"(optional, this chunk only §7<§btrue§7/§bfalse§7>)";
     	
     	Location location = ((Player) sender).getLocation();
-    	int posX = location.getBlockX();
-    	int posY = location.getBlockY();
-    	int posZ = location.getBlockZ();
+    	int posX = location.getBlockX(), chunkSizeX = Config.chunkSizeX;
+    	int posY = location.getBlockY(), chunkSizeY = Config.chunkSizeY;
+    	int posZ = location.getBlockZ(), chunkSizeZ = Config.chunkSizeZ;
     	posX = Math.round(posX / chunkSizeX) * chunkSizeX;
     	posY = Math.round(posY / chunkSizeY) * chunkSizeY;
     	posZ = Math.round(posZ / chunkSizeZ) * chunkSizeZ;
     	String board = location.getWorld().getName() + "chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ;
     	
     	if(args.length>4){
-    		loadPlayer(sender.getName());
+    		loadPlayer(((Player) sender).getUniqueId());
     		loadFaction(playerData.getString("faction"));
     	JSONObject chunk = new JSONObject();
     		JSONObject type = new JSONObject();
@@ -1428,8 +1232,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
         		saveFaction(factionData);
         		
         		String stype = ""; 
-        			if(args[1].equals("p")) stype = "§7The player " + Rel_Faction;
-        			if(args[1].equals("r")) stype = "§7Members ranked as " + Rel_Faction;
+        			if(args[1].equals("p")) stype = "§7The player " + Config.Rel_Faction;
+        			if(args[1].equals("r")) stype = "§7Members ranked as " + Config.Rel_Faction;
         			if(args[1].equals("f")) stype = "§7The faction " + getFactionRelationColor(factionData.getString("name"),args[2]);
         		String sSubType = args[2];
         		String access = "";
@@ -1454,11 +1258,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
     /**
      * Sets the factionRank of a player.
      * */
-    public boolean setRank(CommandSender sender, String[] args){
+    @SuppressWarnings("deprecation")
+	public boolean setRank(CommandSender sender, String[] args){
     	// -1  0         1     2
     	// sf setrank player factionRank
     	// sf promote player
-    	loadPlayer(sender.getName());
+    	loadPlayer(((Player) sender).getUniqueId());
 		String factionRank = playerData.getString("factionRank");
 		String faction = playerData.getString("faction");
 		
@@ -1466,7 +1271,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			if(args[1].equals(sender.getName())){
 				int otherleaders = 0; 
 		    	for(String player : playerIndex){
-		    		loadPlayer(player);
+		    		loadPlayer(UUID.fromString(player)); 
 		    		if(playerData.getString("faction").equals(faction)){
 		    			if(!player.equals(sender.getName())){
 		    				if(playerData.getString("factionRank").equals("leader")){
@@ -1492,7 +1297,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		}
     		
     		if(playerCheck(args[1])){
-    			loadPlayer(args[1]);
+    			loadPlayer(Bukkit.getPlayer(args[1]).getUniqueId());
     			if(!playerData.getString("faction").equals(faction)){
     				sender.sendMessage("§cThis player is not in your faction!");
     				return true;
@@ -1504,10 +1309,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		}
     		if(args[0].equals("leader")){
     			if(factionRank.equals("leader")){
-        			loadPlayer(args[1]);
+        			loadPlayer(Bukkit.getPlayer(args[1]).getUniqueId());
     				playerData.put("factionRank", "leader");
         			savePlayer(playerData);
-    				messageFaction(faction,Rel_Faction + args[1] + "§a has been promoted to leader.");
+    				messageFaction(faction,Config.Rel_Faction + args[1] + "§a has been promoted to leader.");
     				return true;
     			}
     			else{
@@ -1517,17 +1322,17 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		}
     		if(factionRank.equals("leader")){
 	    		if(args[0].equals("promote")){
-	    			loadPlayer(args[1]);
+	    			loadPlayer(Bukkit.getPlayer(args[1]).getUniqueId());
 	    			playerData.put("factionRank", "officer");
 	        		savePlayer(playerData);
-	    			messageFaction(faction,Rel_Faction + args[1] + "§a has been promoted to officer.");
+	    			messageFaction(faction,Config.Rel_Faction + args[1] + "§a has been promoted to officer.");
 	        		return true;
 	    		}
 	    		if(args[0].equals("demote")){
-	    			loadPlayer(args[1]);
+	    			loadPlayer(Bukkit.getPlayer(args[1]).getUniqueId());
 	    			playerData.put("factionRank", "member");
 	        		savePlayer(playerData);
-	    			messageFaction(faction,Rel_Faction + args[1] + "§a has been demoted to member.");
+	    			messageFaction(faction,Config.Rel_Faction + args[1] + "§a has been demoted to member.");
 	        		return true;
 	    		}
     		}else{
@@ -1542,10 +1347,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		}
     		
 			if(factionRank.equals("leader")){
-    			loadPlayer(args[1]);
+    			loadPlayer(Bukkit.getPlayer(args[1]).getUniqueId());
 				playerData.put("factionRank", args[2]);
     			savePlayer(playerData);
-				messageFaction(faction,Rel_Faction + args[1] + "§a has been set as to a " + args[2] + ".");
+				messageFaction(faction,Config.Rel_Faction + args[1] + "§a has been set as to a " + args[2] + ".");
     			return true;
 			}
 			else{
@@ -1571,11 +1376,11 @@ public class simpleFactions extends JavaPlugin implements Listener {
     /**
      * Sends out a sendMessage to everyone in a certain faction.
      * */
-    public void messageFaction(String faction, String message){
+    public static void messageFaction(String faction, String message){
     	Collection<? extends Player> on = Bukkit.getOnlinePlayers();
     	
     	for(Player player : on){
-    		loadPlayer(player.getName()); 
+    		loadPlayer(player.getUniqueId()); 
     		if(playerData.getString("faction").equals(faction)){
     			player.getPlayer().sendMessage(message);
     		}
@@ -1612,7 +1417,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * Sets the description of the faction.
      * */
     public boolean setDesc(CommandSender sender, String[] args){
-    	loadPlayer(sender.getName());
+    	loadPlayer(((Player) sender).getUniqueId());
     	String faction = playerData.getString("faction");
     	if(faction.equals("")){
     		sender.sendMessage("§cYou are not in a faction!");
@@ -1638,14 +1443,14 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * */
     public boolean setChatChannel(CommandSender sender, String[] args){
     	
-    	if(configData.getString("allow simplefactions chat channels").equals("false")){
+    	if(Config.configData.getString("allow simplefactions chat channels").equals("false")){
     		sender.sendMessage("§cSimpleFactions chat channels are §6disabled §con this server. Sorry! " +
     				"Contact an admin if you believe this message is in error."); 
     		return true; 
     	}
     	
     	if(args.length>1){
-    		String rel = Rel_Other;
+    		String rel = Config.Rel_Other;
     		
     		if(args[1].equals("f")) args[1] = "faction";
     		if(args[1].equals("a")) args[1] = "ally";
@@ -1655,22 +1460,22 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		if(args[1].equals("g")) args[1] = "global";
     		if(args[1].equals("p") || args[1].equals("all") || args[1].equals("public")) args[1] = "global";
     		
-    		if(args[1].equals("faction")) rel = Rel_Faction;
-    		if(args[1].equals("ally")) rel = Rel_Ally;
-    		if(args[1].equals("truce")) rel = Rel_Truce;
-    		if(args[1].equals("enemy")) rel = Rel_Enemy;
-    		if(args[1].equals("local")) rel = Rel_Neutral;
+    		if(args[1].equals("faction")) rel = Config.Rel_Faction;
+    		if(args[1].equals("ally")) rel = Config.Rel_Ally;
+    		if(args[1].equals("truce")) rel = Config.Rel_Truce;
+    		if(args[1].equals("enemy")) rel = Config.Rel_Enemy;
+    		if(args[1].equals("local")) rel = Config.Rel_Neutral;
     		
     		//if(args[1].equals("faction") || args[1].equals("ally") || args[1].equals("truce") || args[1].equals("enemy") || args[1].equals("local") || args[1].equals("global")){
-    			loadPlayer(sender.getName());
+    			loadPlayer(((Player) sender).getUniqueId());
     			playerData.put("chat channel", args[1]);
     			savePlayer(playerData);
     			sender.sendMessage("You have switched to " + rel + args[1] + " chat.");
     		//}
     	}
     	else{
-    		sender.sendMessage("Default chat channels: " + Rel_Faction + "faction, " + Rel_Ally + "ally, " + 
-    				Rel_Truce + "truce, " + Rel_Enemy + "enemy, " + Rel_Neutral + "local, " + Rel_Other + "global.");
+    		sender.sendMessage("Default chat channels: " + Config.Rel_Faction + "faction, " + Config.Rel_Ally + "ally, " + 
+    				Config.Rel_Truce + "truce, " + Config.Rel_Enemy + "enemy, " + Config.Rel_Neutral + "local, " + Config.Rel_Other + "global.");
     	}
     	
     	return true;
@@ -1682,7 +1487,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     public boolean tryKick(CommandSender sender, String[] args){
     	
     	if(args.length>1){
-    		loadPlayer(sender.getName());
+    		loadPlayer(((Player) sender).getUniqueId());
     		String faction = playerData.getString("faction");
     		String factionRank = playerData.getString("factionRank");
     		if(faction.equals("")){
@@ -1691,7 +1496,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		}
     		else{
     			if(playerCheck(args[1])){
-    				loadPlayer(args[1]);
+    				loadPlayer(Bukkit.getPlayer(args[1]).getUniqueId());
     				if(!playerData.getString("faction").equals(faction)){
     					sender.sendMessage("Player not in your faction!");
     					return true;
@@ -1708,7 +1513,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     						}
     						playerData.put("faction", "");
     						savePlayer(playerData);
-    						messageFaction(faction,Rel_Other + playerData.getString("name") + "§7 kicked from faction by " + Rel_Faction + sender.getName());
+    						messageFaction(faction,Config.Rel_Other + playerData.getString("name") + "§7 kicked from faction by " + Config.Rel_Faction + sender.getName());
     						Bukkit.getPlayer(playerData.getString("name")).sendMessage("You have been kicked from your faction!");
     			    		//sender.sendMessage("Player kicked from faction!");
     						return true;
@@ -1739,20 +1544,20 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			sender.sendMessage("§cPlayer not found.");
     	}
     	DecimalFormat df = new DecimalFormat("0.###");
-    	loadPlayer(sender.getName());
+    	loadPlayer(((Player) sender).getUniqueId());
     	String faction1 = playerData.getString("faction");
-    	loadPlayer(player);
+    	loadPlayer(Bukkit.getPlayer(player).getUniqueId());
     	String faction2 = playerData.getString("faction");
     	String factionRank = playerData.getString("factionRank");
     	sender.sendMessage("§7 ------ [" + getFactionRelationColor(faction1,faction2) + player + "§7] ------ ");
     	sender.sendMessage("§6Power: §f" + df.format(playerData.getDouble("power")));
     	if(!playerData.getString("faction").equals("")) 
-    		sender.sendMessage(getFactionRelationColor(faction1,faction2) + configData.getString("faction symbol left") + faction2 + 
-    				configData.getString("faction symbol right") + "'s §6power: " + getFactionClaimedLand(faction2) + "/" + 
+    		sender.sendMessage(getFactionRelationColor(faction1,faction2) + Config.configData.getString("faction symbol left") + faction2 + 
+    				Config.configData.getString("faction symbol right") + "'s §6power: " + getFactionClaimedLand(faction2) + "/" + 
     				df.format(getFactionPower(faction2)) + "/" + df.format(getFactionPowerMax(faction2)));
-    	sender.sendMessage("§6Gaining §f" + df.format(configData.getDouble("power per hour while online")) + "§6 power an hour while online.");
-    	sender.sendMessage("§6Losing §f" + df.format(-1*configData.getDouble("power per hour while offline")) + "§6 power an hour while offline.");
-    	loadPlayer(player);
+    	sender.sendMessage("§6Gaining §f" + df.format(Config.configData.getDouble("power per hour while online")) + "§6 power an hour while online.");
+    	sender.sendMessage("§6Losing §f" + df.format(-1*Config.configData.getDouble("power per hour while offline")) + "§6 power an hour while offline.");
+    	loadPlayer(Bukkit.getPlayer(player).getUniqueId());
     	sender.sendMessage("§6Rank: " + factionRank);
     	sender.sendMessage("§6Kills: " + playerData.getInt("kills"));
     	sender.sendMessage("§6Deaths: " + playerData.getInt("deaths"));
@@ -1777,7 +1582,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     public boolean playerCheck(String name){
     	createDirectories();
     	
-    	File factionFile = new File(this.getDataFolder() + "/playerData/" + name + ".json");
+    	File factionFile = new File(dataFolder + "/playerData/" + name + ".json");
     	if(factionFile.exists()){
 			return true;
 		}
@@ -1791,7 +1596,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     public boolean factionCheck(String faction){
     	createDirectories();
     	
-    	File factionFile = new File(this.getDataFolder() + "/factionData/" + faction + ".json");
+    	File factionFile = new File(dataFolder + "/factionData/" + faction + ".json");
     	if(factionFile.exists()){
 			return true;
 		}
@@ -1807,14 +1612,14 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		if(factionCheck(args[1])){
 
 				String relString = "";
-				if(relation.equals("enemies")) relString = Rel_Enemy;
-				if(relation.equals("allies")) relString = Rel_Ally;
-				if(relation.equals("truce")) relString = Rel_Truce;
-				if(relation.equals("neutral")) relString = Rel_Other;
+				if(relation.equals("enemies")) relString = Config.Rel_Enemy;
+				if(relation.equals("allies")) relString = Config.Rel_Ally;
+				if(relation.equals("truce")) relString = Config.Rel_Truce;
+				if(relation.equals("neutral")) relString = Config.Rel_Other;
 				
     			if(!relation.equals("neutral")){
     				
-    				loadPlayer(sender.getName());
+    				loadPlayer(((Player) sender).getUniqueId());
     				loadFaction(playerData.getString("faction"));
     				enemyData = factionData.getJSONArray(relation); //says enemy data; but it can be any of them. Just a free array
     				int k = 0;
@@ -1921,24 +1726,24 @@ public class simpleFactions extends JavaPlugin implements Listener {
     					
     					//message sender's faction
     					messageFaction(playerData.getString("faction"),"§6You are now " + relString + relation + "§6 with " + 
-    							getFactionRelationColor(playerData.getString("faction"),args[1]) + configData.getString("faction symbol left") + args[1] + 
-    							configData.getString("faction symbol right") + "§6.");
+    							getFactionRelationColor(playerData.getString("faction"),args[1]) + Config.configData.getString("faction symbol left") + args[1] + 
+    							Config.configData.getString("faction symbol right") + "§6.");
     					
     					//message other faction
     					messageFaction(args[1],"§6You are now " + relString + relation + "§6 with " + 
-    							getFactionRelationColor(playerData.getString("faction"),args[1]) + configData.getString("faction symbol left") + 
-    							playerData.getString("faction") + configData.getString("faction symbol right") + "§6.");
+    							getFactionRelationColor(playerData.getString("faction"),args[1]) + Config.configData.getString("faction symbol left") + 
+    							playerData.getString("faction") + Config.configData.getString("faction symbol right") + "§6.");
     					return true;
     				}
     				if(j==0){
     					//message sender's faction
 			    		messageFaction(playerData.getString("faction"),"§6You have asked " + getFactionRelationColor(playerData.getString("faction"),args[1]) + 
-    							configData.getString("faction symbol left") + args[1] + configData.getString("faction symbol right") + 
+			    				Config.configData.getString("faction symbol left") + args[1] + Config.configData.getString("faction symbol right") + 
     							" §6if they would like to become " + relString + relation + "§6.");
 			    		
 			    		//message ask'd faction
-			    		messageFaction(args[1],getFactionRelationColor(playerData.getString("faction"),args[1]) + configData.getString("faction symbol left") + 
-			    				playerData.getString("faction") + configData.getString("faction symbol right") + " §6have asked  if you would like to become " + 
+			    		messageFaction(args[1],getFactionRelationColor(playerData.getString("faction"),args[1]) + Config.configData.getString("faction symbol left") + 
+			    				playerData.getString("faction") + Config.configData.getString("faction symbol right") + " §6have asked  if you would like to become " + 
 			    				relString + relation + "§6.");
 			    		
     					return true;
@@ -1946,7 +1751,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				
     			}
     			else{
-    				loadPlayer(sender.getName());
+    				loadPlayer(((Player) sender).getUniqueId());
     				loadFaction(playerData.getString("faction"));
     				enemyData = factionData.getJSONArray("enemies");
     				allyData = factionData.getJSONArray("allies");
@@ -1972,7 +1777,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				
     				if(k==0){
     					sender.sendMessage("§6You are already neutral with " + getFactionRelationColor(playerData.getString("faction"),args[1]) + 
-    							configData.getString("faction symbol left") + args[1] + configData.getString("faction symbol right") + "§6!");
+    							Config.configData.getString("faction symbol left") + args[1] + Config.configData.getString("faction symbol right") + "§6!");
     					return true;
     				}
     				
@@ -2003,12 +1808,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				
     				if(k>0 && j==0){
     					sender.sendMessage("§6You are now neutral with " + getFactionRelationColor(playerData.getString("faction"),args[1]) + 
-    							configData.getString("faction symbol left") + args[1] + configData.getString("faction symbol right") + "§6.");
+    							Config.configData.getString("faction symbol left") + args[1] + Config.configData.getString("faction symbol right") + "§6.");
     					return true;
     				}
     				if(k>0 && j>0){
     					sender.sendMessage("§6You have asked " + getFactionRelationColor(playerData.getString("faction"),args[1]) +
-    							configData.getString("faction symbol left") + args[1] + configData.getString("faction symbol right") + 
+    							Config.configData.getString("faction symbol left") + args[1] + Config.configData.getString("faction symbol right") + 
     							"§6 if they would like to become " + relString + "neutral.");
     					return true;
     				}
@@ -2027,7 +1832,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     /**
      * Returns faction power information.
      * */
-    public int getFactionClaimedLand(String faction){
+    public static int getFactionClaimedLand(String faction){
         int claimedLand = 0;
             
            for(World w : Bukkit.getServer().getWorlds()){
@@ -2070,36 +1875,36 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		
 		for(int i = 0; i < off.length; i++){
 			if(!off[i].isOnline()) {
-				loadPlayer(off[i].getName());
+				loadPlayer(off[i].getUniqueId());
 				if(playerData.getString("faction").equals(faction)){
 
 					if(off.length + on.size() >= 30){
-						if(configData.getString("power cap type").equals("soft")){
-							factionPower += (3 * configData.getInt("power cap max power") * 
+						if(Config.configData.getString("power cap type").equals("soft")){
+							factionPower += (3 * Config.configData.getInt("power cap max power") * 
 								Math.exp(-(off.length + on.size())))/(2 * Math.pow((10 * Math.exp(-(off.length + on.size()))+1),2)); 
 							continue;
 						}
 					}
 					
-					factionPower += configData.getDouble("max player power");
+					factionPower += Config.configData.getDouble("max player power");
 				}
 			}
 		}
 		
 		for (Player player : on){
 			if(player.isOnline()) {
-				loadPlayer(player.getName());
+				loadPlayer(player.getUniqueId());
 				if(playerData.getString("faction").equals(faction)){
 
 					if(off.length + on.size() >= 30){
-						if(configData.getString("power cap type").equals("soft")){
-							factionPower += (3 * configData.getInt("power cap max power") * 
+						if(Config.configData.getString("power cap type").equals("soft")){
+							factionPower += (3 * Config.configData.getInt("power cap max power") * 
 								Math.exp(-(off.length + on.size())))/(2 * Math.pow((10 * Math.exp(-(off.length + on.size()))+1),2)); 
 							continue;
 						}
 					}
 					
-					factionPower += configData.getDouble("max player power");
+					factionPower += Config.configData.getDouble("max player power");
 				}
 			}
 		}
@@ -2126,7 +1931,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	
     	return factionPower;
     }
-    public double getFactionPower(String faction){
+    public static double getFactionPower(String faction){
     	double factionPower = 0;
     	
 		OfflinePlayer[] off = Bukkit.getOfflinePlayers();
@@ -2134,14 +1939,14 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		
 		for(int i = 0; i < off.length; i++){
 			if(!off[i].isOnline()) {
-				loadPlayer(off[i].getName());
+				loadPlayer(off[i].getUniqueId());
 				if(playerData.getString("faction").equals(faction)){
 					if(off.length + on.size() >= 30){
-						if(configData.getString("power cap type").equals("soft")){
-							factionPower += ((3 * configData.getInt("power cap max power") * 
+						if(Config.configData.getString("power cap type").equals("soft")){
+							factionPower += ((3 * Config.configData.getInt("power cap max power") * 
 								Math.exp(-(off.length + on.size())))/(2 * 
 								Math.pow((10 * Math.exp(-(off.length + on.size()))+1),2))) *
-								(playerData.getDouble("power") / configData.getDouble("max player power")); 
+								(playerData.getDouble("power") / Config.configData.getDouble("max player power")); 
 							continue;
 						}
 					}
@@ -2154,14 +1959,14 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		
 		for(Player player : on){
 			if(player.isOnline()) {
-				loadPlayer(player.getName());
+				loadPlayer(player.getUniqueId());
 				if(playerData.getString("faction").equals(faction)){
 					if(off.length + on.size() >= 30){
-						if(configData.getString("power cap type").equals("soft")){
-							factionPower += ((3 * configData.getInt("power cap max power") * 
+						if(Config.configData.getString("power cap type").equals("soft")){
+							factionPower += ((3 * Config.configData.getInt("power cap max power") * 
 								Math.exp(-(off.length + on.size())))/(2 * 
 								Math.pow((10 * Math.exp(-(off.length + on.size()))+1),2))) *
-								(playerData.getDouble("power") / configData.getDouble("max player power")); 
+								(playerData.getDouble("power") / Config.configData.getDouble("max player power")); 
 							continue;
 						}
 					}
@@ -2212,7 +2017,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * Toggles autoclaim. While on, players can run around claiming land they touch.
      * */
     public boolean toggleAutoclaim(CommandSender sender){
-    	loadPlayer(sender.getName());
+    	loadPlayer(((Player) sender).getUniqueId());
     	String currentclaim = "true"; 
     	if(playerData.has("autoclaim")){
     		String claim = playerData.getString("autoclaim");
@@ -2243,7 +2048,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * Toggles autounclaim. While on, players can run around unclaiming land they touch.
      * */
     public boolean toggleAutounclaim(CommandSender sender){
-    	loadPlayer(sender.getName());
+    	loadPlayer(((Player) sender).getUniqueId());
     	String currentclaim = "true"; 
     	if(playerData.has("autounclaim")){
     		String claim = playerData.getString("autounclaim");
@@ -2376,7 +2181,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * Attempts to set a home on the specified block.
      * */
     public boolean trySetHome(CommandSender sender){
-    	loadPlayer(sender.getName());
+    	loadPlayer(((Player) sender).getUniqueId());
     	Player player = ((Player) sender);
     	String factionName = playerData.getString("faction");
     	
@@ -2390,9 +2195,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		return true; 
     	}
     	
-    	loadConfig(); 
-    	for(int i = 0; i<claimsDisabledInTheseWorlds.length(); i++){
-    		String worldDisabled = claimsDisabledInTheseWorlds.optString(i);
+    	Config.loadConfig(); 
+    	for(int i = 0; i<Config.claimsDisabledInTheseWorlds.length(); i++){
+    		String worldDisabled = Config.claimsDisabledInTheseWorlds.optString(i);
     		if(worldDisabled.equals(player.getWorld().getName())){
         		sender.sendMessage("§cHomes are disabled in §f" + player.getWorld().getName() + "§c.");
         		return true;
@@ -2411,12 +2216,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		sender.sendMessage("§cMake more empty space above you, and then try setting a home again.");
     	}
     	
-    	loadPlayer(player.getName());
+    	loadPlayer(player.getUniqueId());
     	loadFaction(playerData.getString("faction"));
     	factionData.put("home",world + " " + posX + " " + posY + " " + posZ);
     	saveFaction(factionData);
 		//sender.sendMessage("§7You have set your faction home at §6" + (int)posX + "," + (int)posY + "," + (int)posZ + "§7.");
-		messageFaction(playerData.getString("faction"), Rel_Faction + sender.getName()  + "§7 has set your faction home at §6" + (int)posX + "," + (int)posY + "," + (int)posZ + "§7.");
+		messageFaction(playerData.getString("faction"), Config.Rel_Faction + sender.getName()  + "§7 has set your faction home at §6" + (int)posX + "," + (int)posY + "," + (int)posZ + "§7.");
     	return true;
     }
     
@@ -2444,7 +2249,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * Tries to teleport home. If the home is blocked, attempts to find the next best spot.
      * */
     public boolean tryHome(CommandSender sender){
-    	loadPlayer(sender.getName());
+    	loadPlayer(((Player) sender).getUniqueId());
     	Player player = ((Player) sender);
     	String factionName = playerData.getString("faction");
     	if(factionName.equals("")){
@@ -2452,7 +2257,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		return true;
     	}
 
-    	loadPlayer(sender.getName());
+    	loadPlayer(((Player) sender).getUniqueId());
     	loadFaction(playerData.getString("faction"));
     	
     	Location loc = getHome(factionName);
@@ -2498,7 +2303,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		return true;
     	}
     	
-    	loadPlayer(sender.getName());
+    	loadPlayer(((Player) sender).getUniqueId());
     	String faction = playerData.getString("faction");
     	loadFaction(faction);
     	
@@ -2510,8 +2315,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
         	saveFaction(factionData);
         	
         	sender.sendMessage("§6You have invited §f" + invitedPlayer + "§6 to your faction!");
-        	loadPlayer(invitedPlayer);
-        	String factionString = getFactionRelationColor(playerData.getString("faction"),faction) + configData.getString("faction symbol left") + faction + configData.getString("faction symbol right");
+        	loadPlayer(Bukkit.getPlayer(invitedPlayer).getUniqueId()); 
+        	String factionString = getFactionRelationColor(playerData.getString("faction"),faction) + Config.configData.getString("faction symbol left") + faction + Config.configData.getString("faction symbol right");
         	Bukkit.getPlayer(invitedPlayer).sendMessage("§6You have been invited to " + factionString + 
         			"§6. Type §b/sf join " + faction + "§6 in order to accept");
     	}else{
@@ -2534,7 +2339,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	}
     	
     	if(playerCheck(name)){
-    		loadPlayer(name);
+    		loadPlayer(Bukkit.getPlayer(name).getUniqueId());
     		if(!playerData.getString("faction").equals(""))
     			sender.sendMessage(factionInformationString(sender,playerData.getString("faction")));
     		else
@@ -2546,11 +2351,11 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	return true;
     }
     
-    public boolean isFactionOnline(String faction){
+    public static boolean isFactionOnline(String faction){
 		loadFaction(faction);
 		Collection<? extends Player> on = Bukkit.getOnlinePlayers();
 		for(Player player : on){
-			loadPlayer(player.getName());
+			loadPlayer(player.getUniqueId());
 			if(playerData.getString("faction").equals(faction) && player.isOnline()) {
 				factionData.put("lastOnline", System.currentTimeMillis());
 				saveFaction(factionData);
@@ -2569,7 +2374,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			}
 		}*/
     	
-		if(factionData.getLong("lastOnline")+ (configData.getInt("seconds before faction is considered really offline") * 1000) > System.currentTimeMillis()){
+		if(factionData.getLong("lastOnline")+ (Config.configData.getInt("seconds before faction is considered really offline") * 1000) > System.currentTimeMillis()){
 			return true;
 		}
 		
@@ -2580,7 +2385,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * Gather information on a faction and put it into a string.
      * */
     public String factionInformationString(CommandSender sender, String faction){
-    	loadPlayer(sender.getName());
+    	loadPlayer(((Player) sender).getUniqueId());
     	String viewingFaction = playerData.getString("faction");
     	loadFaction(faction);
     	DecimalFormat df = new DecimalFormat("0.###");
@@ -2607,19 +2412,19 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	
     	for(int i = 0; i<enemyData.length(); i++){
     		String rel = getFactionRelationColor(faction, enemyData.getString(i));
-    		if(rel.equals(Rel_Enemy)){
-    			enemy += ", " + configData.getString("faction symbol left") + enemyData.getString(i) + configData.getString("faction symbol right");// enemyData.getString(i);
+    		if(rel.equals(Config.Rel_Enemy)){
+    			enemy += ", " + Config.configData.getString("faction symbol left") + enemyData.getString(i) + Config.configData.getString("faction symbol right");// enemyData.getString(i);
     		}
     	}
     	
     	for(int i = 0; i<factionIndex.size(); i++){
     		if(!enemy.contains(factionIndex.get(i) + ",") && !enemy.contains(", " + factionIndex.get(i)) 
-    			&& !enemy.contains(configData.getString("faction symbol left") + factionIndex.get(i) + configData.getString("faction symbol right"))){
+    			&& !enemy.contains(Config.configData.getString("faction symbol left") + factionIndex.get(i) + Config.configData.getString("faction symbol right"))){
     			loadFaction(factionIndex.get(i));
     			enemyData = factionData.getJSONArray("enemies");
     			for(int l = 0; l<enemyData.length(); l++) 
     				if(enemyData.getString(l).equals(faction)) 
-    					enemy += ", " + configData.getString("faction symbol left") + factionIndex.get(i) + configData.getString("faction symbol right");
+    					enemy += ", " + Config.configData.getString("faction symbol left") + factionIndex.get(i) + Config.configData.getString("faction symbol right");
     		}
     	}
 
@@ -2629,16 +2434,16 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	
     	for(int i = 0; i<truceData.length(); i++){
     		String rel = getFactionRelationColor(faction, truceData.getString(i));
-    		if(rel.equals(Rel_Truce)){
-    			truce += ", " + configData.getString("faction symbol left") + truceData.getString(i) + configData.getString("faction symbol right"); //truceData.getString(i);
+    		if(rel.equals(Config.Rel_Truce)){
+    			truce += ", " + Config.configData.getString("faction symbol left") + truceData.getString(i) + Config.configData.getString("faction symbol right"); //truceData.getString(i);
     		}
     	}
     	truce = truce.replaceFirst(",","");
 
     	for(int i = 0; i<allyData.length(); i++){
     		String rel = getFactionRelationColor(faction, allyData.getString(i));
-    		if(rel.equals(Rel_Ally)){
-    			ally += ", " + configData.getString("faction symbol left") + allyData.getString(i) + configData.getString("faction symbol right");// + allyData.getString(i);
+    		if(rel.equals(Config.Rel_Ally)){
+    			ally += ", " + Config.configData.getString("faction symbol left") + allyData.getString(i) + Config.configData.getString("faction symbol right");// + allyData.getString(i);
     		}
     	}
     	ally = ally.replaceFirst(",","");
@@ -2646,7 +2451,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	loadFaction(faction);
     	String factionInfo = "";
     	factionInfo += "§6---- " + getFactionRelationColor(viewingFaction,faction) + 
-    			configData.getString("faction symbol left") + faction + configData.getString("faction symbol right") + "§6 ---- \n";
+    			Config.configData.getString("faction symbol left") + faction + Config.configData.getString("faction symbol right") + "§6 ---- \n";
     	factionInfo += "§6" + factionData.getString("desc") + "\n§6";
     	
     	if(factionData.getString("safezone").equals("true"))
@@ -2670,11 +2475,11 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	factionInfo += "§6This faction is " + isOnline + "§6.\n";
     	
     	if(isOnline.equals("§coffline")){
-    		long time = factionData.getLong("lastOnline") - System.currentTimeMillis() - (configData.getInt("seconds before faction is considered really offline") * 1000);
+    		long time = factionData.getLong("lastOnline") - System.currentTimeMillis() - (Config.configData.getInt("seconds before faction is considered really offline") * 1000);
     		int seconds = (int) (-time/1000);
     		factionInfo += "§6Has been offline for " + (seconds) + " seconds. \n";
     	}else{
-    		factionInfo += "§6Faction will become §coffline§6 if no members are §bonline§6 for " + (((factionData.getLong("lastOnline") - System.currentTimeMillis())/1000) + configData.getInt("seconds before faction is considered really offline")) + "§6 more seconds. \n";
+    		factionInfo += "§6Faction will become §coffline§6 if no members are §bonline§6 for " + (((factionData.getLong("lastOnline") - System.currentTimeMillis())/1000) + Config.configData.getInt("seconds before faction is considered really offline")) + "§6 more seconds. \n";
     	}
     	
     	if(!ally.equals("")) factionInfo += "§dAlly: " + ally.replace("]", "").replace("[", "").replace("\"", "") + "\n§6";
@@ -2688,7 +2493,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		
 		
 		for(Player player : on){
-			loadPlayer(player.getName());
+			loadPlayer(player.getUniqueId());
 			if(playerData.getString("faction").equals(faction) && player.isOnline()) {
 				if(!members.equals("")) 
 					members+= ", ";
@@ -2697,7 +2502,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		}
 		
 		for(int i = 0; i < off.length; i++){
-			loadPlayer(off[i].getName());
+			loadPlayer(off[i].getUniqueId());
 			if(playerData.getString("faction").equals(faction) && !off[i].isOnline()) {
 				if(!members.contains(off[i].getName())){
 					if(!offMembers.equals("")) 
@@ -2729,7 +2534,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * */
     public boolean tryJoin(CommandSender sender, String faction){
     	if(factionIndex.contains(faction)){
-    		loadPlayer(sender.getName());
+    		loadPlayer(((Player) sender).getUniqueId());
     		if(playerData.getString("faction").equals("")){
     			loadFaction(faction);
     			inviteData = factionData.getJSONArray("invited");
@@ -2737,10 +2542,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			if(inviteData.toString().contains(sender.getName().toLowerCase()) || factionData.getString("open").equals("true") || 
     					sender.isOp() || sender.hasPermission("simplefactions.admin")){
         			playerData.put("faction", faction);
-        			playerData.put("factionRank", configData.getString("default player factionRank"));
+        			playerData.put("factionRank", Config.configData.getString("default player factionRank"));
         			savePlayer(playerData); 
-        			sender.sendMessage("§6You have joined " + Rel_Faction + playerData.getString("faction") + "§6!");
-        			messageFaction(faction,Rel_Faction + sender.getName() + "§6 has joined your faction!");
+        			sender.sendMessage("§6You have joined " + Config.Rel_Faction + playerData.getString("faction") + "§6!");
+        			messageFaction(faction,Config.Rel_Faction + sender.getName() + "§6 has joined your faction!");
         			return true;
     			}
     			else{
@@ -2752,7 +2557,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		else
     			sender.sendMessage("§cYou must leave your current faction first! Do /sf leave");
     	}else{
-    		sender.sendMessage("§cThe faction §f" + configData.getString("faction symbol left") + faction + configData.getString("faction symbol right") + " §cdoes not exist!");
+    		sender.sendMessage("§cThe faction §f" + Config.configData.getString("faction symbol left") + faction + Config.configData.getString("faction symbol right") + " §cdoes not exist!");
     	}
     	
     	return true;
@@ -2801,21 +2606,21 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	else
     		sender.sendMessage("§6There are " + factionIndex.size() + " factions on this server.");
     	
-    	loadPlayer(sender.getName());
+    	loadPlayer(((Player) sender).getUniqueId());
     	String factionName = playerData.getString("faction");
-    		factionList += "  " + getFactionRelationColor(factionName,factionName) + "" + configData.getString("faction symbol left") + factionName + configData.getString("faction symbol right")
+    		factionList += "  " + getFactionRelationColor(factionName,factionName) + "" + Config.configData.getString("faction symbol left") + factionName + Config.configData.getString("faction symbol right")
     			+ " "  + getFactionClaimedLand(factionName) + "/" + df.format(getFactionPower(factionName)) + "/" + df.format(getFactionPowerMax(factionName))   +"" + "§7 <-- you\n";
     	
     	for(int i=0; i<factionIndex.size(); i++){
     		String name = factionIndex.get(i);
         	String Rel = "";
-        	if(filter.equals("ally")) Rel = Rel_Ally;
-        	if(filter.equals("enemy")) Rel = Rel_Enemy;
-        	if(filter.equals("truce")) Rel = Rel_Truce;
+        	if(filter.equals("ally")) Rel = Config.Rel_Ally;
+        	if(filter.equals("enemy")) Rel = Config.Rel_Enemy;
+        	if(filter.equals("truce")) Rel = Config.Rel_Truce;
         	if(filter.equals("")) Rel = getFactionRelationColor(factionName,name);
         		
         	if(!factionIndex.get(i).equals(factionName) && Rel.equals(getFactionRelationColor(factionName,name)))
-        		factionList += "  " + getFactionRelationColor(factionName,name) + "" + configData.getString("faction symbol left") + name + configData.getString("faction symbol right")
+        		factionList += "  " + getFactionRelationColor(factionName,name) + "" + Config.configData.getString("faction symbol left") + name + Config.configData.getString("faction symbol right")
         			+ " " + getFactionClaimedLand(name) + "/" + df.format(getFactionPower(name)) + "/" + df.format(getFactionPowerMax(name))   + "\n";
         }
     	
@@ -2839,9 +2644,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		sender.sendMessage("§cThere are only " + (pageCount+1) + " faction list pages!");
     	}
     	
-    	if(filter.equals("ally")) sender.sendMessage("§6Filter: " + Rel_Ally + "Ally");
-    	if(filter.equals("truce")) sender.sendMessage("§6Filter: " + Rel_Truce + "Truce");
-    	if(filter.equals("enemy")) sender.sendMessage("§6Filter: " + Rel_Enemy + "Enemy");
+    	if(filter.equals("ally")) sender.sendMessage("§6Filter: " + Config.Rel_Ally + "Ally");
+    	if(filter.equals("truce")) sender.sendMessage("§6Filter: " + Config.Rel_Truce + "Truce");
+    	if(filter.equals("enemy")) sender.sendMessage("§6Filter: " + Config.Rel_Enemy + "Enemy");
     	sender.sendMessage("§6Faction List - page " + (page+1) + "/ " + (pageCount+1) + " \n" + pageToDisplay);
     	return true;
     }
@@ -2855,12 +2660,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
 
     	Player player = ((Player) sender);
     	loadWorld(player.getWorld().getName());
-    	loadPlayer(sender.getName());
+    	loadPlayer(((Player) sender).getUniqueId());
     	String factionName = playerData.getString("faction");
     	
-    	int posX = player.getLocation().getBlockX();
-    	int posY = player.getLocation().getBlockY();
-    	int posZ = player.getLocation().getBlockZ();
+    	int posX = player.getLocation().getBlockX(), chunkSizeX = Config.chunkSizeX;
+    	int posY = player.getLocation().getBlockY(), chunkSizeY = Config.chunkSizeY;
+    	int posZ = player.getLocation().getBlockZ(), chunkSizeZ = Config.chunkSizeZ;
     	
     	posX = Math.round(posX / chunkSizeX) * chunkSizeX;
     	posY = Math.round(posY / chunkSizeY) * chunkSizeY;
@@ -2930,10 +2735,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
     /**
      * It tries to claim the chunk.
      * */
-    public boolean tryClaim(CommandSender sender){
+    public static boolean tryClaim(CommandSender sender){
     	Player player = ((Player) sender);
     	loadWorld(player.getWorld().getName());
-    	loadPlayer(sender.getName());
+    	loadPlayer(((Player) sender).getUniqueId());
     	String factionName = playerData.getString("faction");
     	
     	if(factionName.equals("")){
@@ -2953,18 +2758,18 @@ public class simpleFactions extends JavaPlugin implements Listener {
 
     	loadWorld(player.getWorld().getName()); //have to load world again (getFactionClaimedLand() unloads it)
 
-    	loadConfig(); 
-    	for(int i = 0; i<claimsDisabledInTheseWorlds.length(); i++){
-    		String worldDisabled = claimsDisabledInTheseWorlds.optString(i);
+    	Config.loadConfig(); 
+    	for(int i = 0; i<Config.claimsDisabledInTheseWorlds.length(); i++){
+    		String worldDisabled = Config.claimsDisabledInTheseWorlds.optString(i);
     		if(worldDisabled.equals(player.getWorld().getName())){
     			sender.sendMessage("§cClaims are disabled in §f" + player.getWorld().getName() + "§c.");
         		return true;
     		}
     	}
     	
-    	int posX = player.getLocation().getBlockX();
-    	int posY = player.getLocation().getBlockY();
-    	int posZ = player.getLocation().getBlockZ();
+    	int posX = player.getLocation().getBlockX(), chunkSizeX = Config.chunkSizeX;
+    	int posY = player.getLocation().getBlockY(), chunkSizeY = Config.chunkSizeY;
+    	int posZ = player.getLocation().getBlockZ(), chunkSizeZ = Config.chunkSizeZ;
     	
     	posX = Math.round(posX / chunkSizeX) * chunkSizeX;
     	posY = Math.round(posY / chunkSizeY) * chunkSizeY;
@@ -2990,7 +2795,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		
     		if(!faction2.equals("")){
     			if(getFactionPower(faction2)>=getFactionClaimedLand(faction2)){
-    				sender.sendMessage(getFactionRelationColor(factionName,faction2) + configData.getString("faction symbol left") + faction2 + configData.getString("faction symbol right") + "§cowns this chunk.§7 If you want it, you need to lower their power before claiming it.");
+    				sender.sendMessage(getFactionRelationColor(factionName,faction2) + Config.configData.getString("faction symbol left") + faction2 + Config.configData.getString("faction symbol right") + "§cowns this chunk.§7 If you want it, you need to lower their power before claiming it.");
     				return true;
     			}
     		}
@@ -3000,8 +2805,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	boardData.put("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ, factionName);
     	
     	saveWorld(boardData);
-    	messageFaction(factionName,Rel_Faction + sender.getName() + "§6 claimed x:" + posX + " y:" + posY + 
-    			" z:" + posZ + " for " + Rel_Faction + configData.getString("faction symbol left") + factionName + configData.getString("faction symbol right") + "§6!");
+    	messageFaction(factionName,Config.Rel_Faction + sender.getName() + "§6 claimed x:" + posX + " y:" + posY + 
+    			" z:" + posZ + " for " + Config.Rel_Faction + Config.configData.getString("faction symbol left") + factionName + Config.configData.getString("faction symbol right") + "§6!");
     	//sender.sendMessage();
     	return true;
     }
@@ -3009,21 +2814,21 @@ public class simpleFactions extends JavaPlugin implements Listener {
     /**
      * It tries to unclaim the chunk.
      * */
-    public boolean tryUnClaim(CommandSender sender){
+    public static boolean tryUnClaim(CommandSender sender){
     	Player player = ((Player) sender);
     	loadWorld(player.getWorld().getName());
-    	loadPlayer(sender.getName());
+    	loadPlayer(((Player) sender).getUniqueId());
     	String factionName = playerData.getString("faction");
-    	loadConfig(); 
+    	Config.loadConfig(); 
     	
     	if(factionName.equals("")){
     		sender.sendMessage("§cYou aren't in a faction.");
     		return true;
     	}
-    	
-    	int posX = player.getLocation().getBlockX();
-    	int posY = player.getLocation().getBlockY();
-    	int posZ = player.getLocation().getBlockZ();
+
+    	int posX = player.getLocation().getBlockX(), chunkSizeX = Config.chunkSizeX;
+    	int posY = player.getLocation().getBlockY(), chunkSizeY = Config.chunkSizeY;
+    	int posZ = player.getLocation().getBlockZ(), chunkSizeZ = Config.chunkSizeZ;
     	
     	posX = Math.round(posX / chunkSizeX) * chunkSizeX;
     	posY = Math.round(posY / chunkSizeY) * chunkSizeY;
@@ -3040,7 +2845,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
         		if(boardData.get("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ).equals(factionName)){
         			boardData.remove("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ);
         			//sender.sendMessage("§6Chunk has been unclaimed.");
-        			messageFaction(factionName,Rel_Faction + sender.getName() + "§6 unclaimed " + "chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ);
+        			messageFaction(factionName,Config.Rel_Faction + sender.getName() + "§6 unclaimed " + "chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ);
         	    	saveWorld(boardData);
         			return true;
         		}
@@ -3048,10 +2853,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			String faction2 = boardData.getString("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ);
     			if(getFactionPower(faction2)<getFactionClaimedLand(faction2)){
     				
-    				messageFaction(factionName,Rel_Faction + sender.getName() + "§6 unclaimed " + getFactionRelationColor(factionName,faction2) + 
-    						configData.getString("faction symbol left") + faction2 + configData.getString("faction symbol right") + "§6's land!");
-    				messageFaction(faction2,getFactionRelationColor(faction2,factionName) + configData.getString("faction symbol left") +  factionName + 
-    						configData.getString("faction symbol right") + " " + sender.getName() + "§6 unclaimed your land!");
+    				messageFaction(factionName,Config.Rel_Faction + sender.getName() + "§6 unclaimed " + getFactionRelationColor(factionName,faction2) + 
+    						Config.configData.getString("faction symbol left") + faction2 + Config.configData.getString("faction symbol right") + "§6's land!");
+    				messageFaction(faction2,getFactionRelationColor(faction2,factionName) + Config.configData.getString("faction symbol left") +  factionName + 
+    						Config.configData.getString("faction symbol right") + " " + sender.getName() + "§6 unclaimed your land!");
     				//sender.sendMessage();
         			
     				
@@ -3060,7 +2865,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				return true;
     			}
     			else{
-    				sender.sendMessage("§cYou could not unclaim " + getFactionRelationColor(factionName,faction2) + configData.getString("faction symbol left") + faction2 + configData.getString("faction symbol right") + "§c's land!§7 They have too much power!");
+    				sender.sendMessage("§cYou could not unclaim " + getFactionRelationColor(factionName,faction2) + Config.configData.getString("faction symbol left") + faction2 + Config.configData.getString("faction symbol right") + "§c's land!§7 They have too much power!");
     				return true;
     			}
     		}
@@ -3077,7 +2882,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     public boolean tryUnClaimAll(CommandSender sender){
     	Player player = ((Player) sender);
     	loadWorld(player.getWorld().getName());
-    	loadPlayer(sender.getName());
+    	loadPlayer(((Player) sender).getUniqueId());
     	String factionName = playerData.getString("faction");
     	
     	if(factionName.equals("")){
@@ -3095,7 +2900,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		saveWorld(boardData);
     	
     	//sender.sendMessage("§6Unclaimed all of your faction's land!");
-    	messageFaction(factionName,Rel_Faction + sender.getName() + "§6 has unclaimed all of your factions land in §f" + player.getWorld().getName());
+    	messageFaction(factionName,Config.Rel_Faction + sender.getName() + "§6 has unclaimed all of your factions land in §f" + player.getWorld().getName());
     	return true;
     }
     
@@ -3121,24 +2926,24 @@ public class simpleFactions extends JavaPlugin implements Listener {
 				}
 			}
 
-			loadPlayer(sender.getName()); //load up playerData jsonobject
+			loadPlayer(((Player) sender).getUniqueId()); //load up playerData jsonobject
 			
 			String factionName = playerData.getString("faction");
 			if(!factionName.equals("")){
 				sender.sendMessage("§cYou are already in a faction!");
-				sender.sendMessage("§ccurrent faction: §b" + configData.getString("faction symbol left") + factionName + configData.getString("faction symbol right"));
+				sender.sendMessage("§ccurrent faction: §b" + Config.configData.getString("faction symbol left") + factionName + Config.configData.getString("faction symbol right"));
 				sender.sendMessage("§cPlease do /sf leave in order to create a new faction!");
 				return false;
 			}
 
 			createFaction(args[1].toString());
 			
-			loadPlayer(sender.getName());
+			loadPlayer(((Player) sender).getUniqueId());
 			playerData.put("factionRank","leader");
 			playerData.put("faction", args[1].toString());
 			savePlayer(playerData);
 			
-			messageEveryone("§6The faction name " + Rel_Other + args[1].toString() + " §6has been created!");
+			messageEveryone("§6The faction name " + Config.Rel_Other + args[1].toString() + " §6has been created!");
 			//sender.sendMessage();
 			return true;
 			
@@ -3153,7 +2958,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * 		New faction creation
      * 		used if faction is somehow deleted from filesystem
      * */
-    public void createFaction(String faction){
+    public static void createFaction(String faction){
     	enemyData = new JSONArray();
     	allyData = new JSONArray();
     	truceData = new JSONArray();
@@ -3171,8 +2976,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		factionData.put("invited", inviteData);
 		factionData.put("lastOnline", System.currentTimeMillis());
 		factionData.put("home", "");
-		factionData.put("desc", configData.getString("default faction description"));
-		factionData.put("open", configData.getString("factions open by default"));
+		factionData.put("desc", Config.configData.getString("default faction description"));
+		factionData.put("open", Config.configData.getString("factions open by default"));
 		saveFaction(factionData);
     	factionIndex.add(faction);
     }
@@ -3191,7 +2996,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * Leaves the current faction, if possible.
      * */
     public boolean tryLeave(CommandSender sender){
-    	loadPlayer(sender.getName());
+    	loadPlayer(((Player) sender).getUniqueId());
     	String factionName = playerData.getString("faction");
     	
     	if(factionName.equals("")){
@@ -3201,7 +3006,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 
     	int otherleaders = 0; 
     	for(String player : playerIndex){
-    		loadPlayer(player);
+    		loadPlayer(UUID.fromString(player));
     		if(playerData.getString("faction").equals(factionName)){
     			if(!player.equals(sender.getName())){
     				if(playerData.getString("factionRank").equals("leader")){
@@ -3216,22 +3021,22 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			return true; 
     	}
     	
-    	loadPlayer(sender.getName());
+    	loadPlayer(((Player) sender).getUniqueId());
     	playerData.put("faction", "");
     	playerData.put("factionRank", "member");
     	savePlayer(playerData);
     	
     	//disband if you're the last one there
     	boolean canDisband = true;
-    	for(String name : playerIndex){
-    		loadPlayer(name);
+    	for(String player : playerIndex){
+    		loadPlayer(UUID.fromString(player));
     		if(playerData.getString("faction").equals(factionName)){
     			canDisband = false;
     		}
     	}
     	
     	if(canDisband){
-    		File file = new File(this.getDataFolder() + "/factionData/" + factionName + ".json");
+    		File file = new File(dataFolder + "/factionData/" + factionName + ".json");
     		file.delete();
         	int k = -1;
         	for(int i = 0; i<factionIndex.size(); i++){
@@ -3267,7 +3072,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * */
     public boolean tryDisband(CommandSender sender,String factionName){
     	
-    	loadPlayer(sender.getName());
+    	loadPlayer(((Player) sender).getUniqueId());
     	if(playerData.getString("faction").equals("")){
     		sender.sendMessage("You must be in a faction to do this!");
     		return true;
@@ -3278,8 +3083,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		return true; 
     	}
     	
-    	for(String name : playerIndex){
-    		loadPlayer(name.replaceFirst(".json", ""));
+    	for(String player : playerIndex){
+    		loadPlayer(UUID.fromString(player));
     		if(playerData.getString("faction").equals(factionName)){
     			playerData.put("faction", "");
     			playerData.put("factionRank", "member");
@@ -3287,7 +3092,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		}
     	}
     	
-    	File file = new File(this.getDataFolder() + "/factionData/" + factionName + ".json");
+    	File file = new File(dataFolder + "/factionData/" + factionName + ".json");
     	if(file.exists())
     		file.delete();
 
@@ -3317,16 +3122,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	return true;
     }
     
-    /**
-     * Does stuff when a new player joins the server.
-     * */
-    @EventHandler
-    public void onPlayerJoinEvent(PlayerJoinEvent event) {
-    	File playerFile = new File(this.getDataFolder() + "/playerData/" + event.getPlayer().getName() + ".json");
-    	if(!playerFile.exists()){
-        	createPlayer(event.getPlayer());
-    	}
-    }
+    
     
     /**
      * Creates player data.
@@ -3334,17 +3130,17 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		New player join
     		When the player file is missing (deleted?)
      * */
-    public void createPlayer(Player player){
+    public static void createPlayer(Player player){
     	playerData = new JSONObject();
   		playerData.put("name", player.getName());
-  		playerData.put("ID", player.getUniqueId());
+  		playerData.put("ID", player.getUniqueId().toString());
   		playerData.put("faction","");
   		playerData.put("autoclaim","false");
   		playerData.put("autounclaim","false");
-  		playerData.put("factionRank",configData.getString("default player factionRank"));
-  		playerData.put("factionTitle",configData.getString("default player title"));
-  		playerData.put("shekels", configData.getInt("default player money"));
-  		playerData.put("power", configData.getInt("default player power"));
+  		playerData.put("factionRank",Config.configData.getString("default player factionRank"));
+  		playerData.put("factionTitle",Config.configData.getString("default player title"));
+  		playerData.put("shekels", Config.configData.getInt("default player money"));
+  		playerData.put("power", Config.configData.getInt("default player power"));
   		playerData.put("deaths",0);
   		playerData.put("kills",0);
   		playerData.put("time online",(long) 0.0);
@@ -3352,67 +3148,69 @@ public class simpleFactions extends JavaPlugin implements Listener {
   		playerData.put("last online",System.currentTimeMillis());
   		savePlayer(playerData);
     	
-    	playerIndex.add(player.getName());
+  		Data.Players.put(playerData); 
+    	playerIndex.add(player.getUniqueId().toString());
     }
-    public void createPlayer(OfflinePlayer player){
+    public static void createPlayer(OfflinePlayer player){
     	playerData = new JSONObject();
   		playerData.put("name", player.getName());
-  		playerData.put("ID", player.getUniqueId());
+  		playerData.put("ID", player.getUniqueId().toString());
   		playerData.put("faction","");
   		playerData.put("autoclaim","false");
   		playerData.put("autounclaim","false");
-  		playerData.put("factionRank",configData.getString("default player factionRank"));
-  		playerData.put("factionTitle",configData.getString("default player title"));
-  		playerData.put("shekels", configData.getInt("default player money"));
-  		playerData.put("power", configData.getInt("default player power"));
+  		playerData.put("factionRank",Config.configData.getString("default player factionRank"));
+  		playerData.put("factionTitle",Config.configData.getString("default player title"));
+  		playerData.put("shekels", Config.configData.getInt("default player money"));
+  		playerData.put("power", Config.configData.getInt("default player power"));
   		playerData.put("deaths",0);
   		playerData.put("kills",0);
   		playerData.put("time online",(long) 0.0);
   		playerData.put("chat channel","global");
   		playerData.put("last online",System.currentTimeMillis());
   		savePlayer(playerData);
-    	
-    	playerIndex.add(player.getName());
+
+  		Data.Players.put(playerData); 
+    	playerIndex.add(player.getUniqueId().toString());
     }
     
     /**
      * The first argument is your faction, the second argument is the other faction.
      * Returns a string with the color code of your relation to the second faction.
      * */
-    public String getFactionRelationColor(String senderFaction, String reviewedFaction){
+    public static String getFactionRelationColor(String senderFaction, String reviewedFaction){
 
-    	String relation = Rel_Other;
+    	String relation = Config.Rel_Other;
     	String relation2 = "";
     	
-    	if(!configData.getString("enforce relations").equals("")){
-    		String rel = configData.getString("enforce relations");
-    		if(rel.equals("enemies")) return Rel_Enemy;
-    		if(rel.equals("ally")) return Rel_Ally;
-    		if(rel.equals("truce")) return Rel_Truce;
-    		if(rel.equals("neutral")) return Rel_Other;
-    		if(rel.equals("other")) return Rel_Other;
+    	if(!Config.configData.getString("enforce relations").equals("")){
+    		String rel = Config.configData.getString("enforce relations");
+    		if(rel.equals("enemies")) return Config.Rel_Enemy;
+    		if(rel.equals("ally")) return Config.Rel_Ally;
+    		if(rel.equals("truce")) return Config.Rel_Truce;
+    		if(rel.equals("neutral")) return Config.Rel_Other;
+    		if(rel.equals("other")) return Config.Rel_Other;
     	}
     	
     	if(getScheduledTime().equals("war")){
 			relation="enemy";
 			relation2="enemy";
 			if(senderFaction.equals("neutral territory"))
-				return Rel_Enemy; 
+				return Config.Rel_Enemy; 
     	}
     	
     	if(getScheduledTime().equals("peace")){
 			relation="truce";
 			relation2="truce";
 			if(senderFaction.equals("neutral territory"))
-				return Rel_Truce; 
+				return Config.Rel_Truce; 
     	}
     	
     	if(senderFaction.equals("")){
-    		if(relation.equals("enemy")) return Rel_Enemy;
-    		if(relation.equals("truce")) return Rel_Truce;
+    		if(relation.equals("enemy")) return Config.Rel_Enemy;
+    		if(relation.equals("truce")) return Config.Rel_Truce;
     	}
     	
-    	if(senderFaction.equals(reviewedFaction)) return Rel_Faction;
+    	if(senderFaction.equals(reviewedFaction)) return Config.Rel_Faction;
     	
     	if(!senderFaction.equals("") && !reviewedFaction.equals("") && !reviewedFaction.equals("neutral territory")
     			&& !senderFaction.equals("neutral territory")) {
@@ -3436,434 +3234,36 @@ public class simpleFactions extends JavaPlugin implements Listener {
         	if(!factionData.has("peaceful"))
         		factionData.put("peaceful", "false"); 
 
-        	if(factionData.getString("peaceful").equals("true")) return Rel_Truce;  
-        	if(factionData.getString("safezone").equals("true")) return Rel_Truce; 
-        	if(factionData.getString("warzone").equals("true")) return Rel_Enemy;
+        	if(factionData.getString("peaceful").equals("true")) return Config.Rel_Truce;  
+        	if(factionData.getString("safezone").equals("true")) return Config.Rel_Truce; 
+        	if(factionData.getString("warzone").equals("true")) return Config.Rel_Enemy;
     		
-    		if(relation.equals("enemy") || relation2.equals("enemy")) return Rel_Enemy;
-    		if(relation.equals("ally") && relation2.equals("ally")) return Rel_Ally;
-    		if(relation.equals("truce") && relation2.equals("truce")) return Rel_Truce;
+    		if(relation.equals("enemy") || relation2.equals("enemy")) return Config.Rel_Enemy;
+    		if(relation.equals("ally") && relation2.equals("ally")) return Config.Rel_Ally;
+    		if(relation.equals("truce") && relation2.equals("truce")) return Config.Rel_Truce;
     	
     		loadFaction(senderFaction);
 
-    		if(relation.equals("enemy")) return Rel_Enemy;
-    		if(relation.equals("truce")) return Rel_Truce;
+    		if(relation.equals("enemy")) return Config.Rel_Enemy;
+    		if(relation.equals("truce")) return Config.Rel_Truce;
         	return relation;
     	}else{
-    		if(relation.equals("enemy")) return Rel_Enemy;
-    		if(relation.equals("truce")) return Rel_Truce;
+    		if(relation.equals("enemy")) return Config.Rel_Enemy;
+    		if(relation.equals("truce")) return Config.Rel_Truce;
         	return relation;
     	}
     }
     
-    /**
-     * EventHandler for damage being done/taken
-     * */
-    @EventHandler
-    public void onAttack(EntityDamageByEntityEvent event) {
-    	Entity entityAttacking = event.getDamager();
-    	Entity entityAttacked = event.getEntity();
-    	
-    	DamageCause damagedCause = event.getCause();
-    	
-    	if((entityAttacking.getType() == EntityType.PLAYER || entityAttacking.getType() == EntityType.ARROW) && entityAttacked.getType() == EntityType.PLAYER){
-    		
-    		if(entityAttacking.getType() == EntityType.ARROW){
-    			Arrow arrow = (Arrow) entityAttacking;
-    			
-            	if(arrow instanceof Player){
-                	Player playerAttacked = (Player) entityAttacked;
-            		Player playerAttacking = (Player) arrow.getShooter();
-            		loadPlayer(playerAttacking.getName());
-            		String factionAttacking = playerData.getString("faction");
-            		loadPlayer(playerAttacked.getName());
-            		String factionAttacked = playerData.getString("faction");
-            	
-            		if(configData.getString("friendly fire projectile (arrows)").equals("false")){
-        				playerAttacking.sendMessage("§7You cannot shoot members of " + getFactionRelationColor(factionAttacking,factionAttacked) + 
-        						configData.getString("faction symbol left") + factionAttacked + configData.getString("faction symbol right") + "§7!");
-            			event.setCancelled(true);
-        				return;
-        			}
-            	}
-            	return;
-    		}
-    		
-        	Player playerAttacking = (Player) entityAttacking;
-        	Player playerAttacked = (Player) entityAttacked;
-        	
-        	loadPlayer(playerAttacking.getName());
-        	String factionAttacking = playerData.getString("faction");
-        	loadPlayer(playerAttacked.getName());
-        	String factionAttacked = playerData.getString("faction");
-        	
-        	String inFactionLand = "neutral";
-        	
-	        Location loc = playerAttacked.getLocation();
-	        loadWorld(loc.getWorld().getName());
-	        int posX = loc.getBlockX();
-	        int posY = loc.getBlockY();
-	        int posZ = loc.getBlockZ();
-	        posX = Math.round(posX / chunkSizeX) * chunkSizeX;
-	        posY = Math.round(posY / chunkSizeY) * chunkSizeY;
-	        posZ = Math.round(posZ / chunkSizeZ) * chunkSizeZ;
-
-	        if(boardData.has("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ)){
-	        	inFactionLand = boardData.getString("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ);
-	        	loadFaction(inFactionLand);
-	        	
-	        	if(factionData.has("peaceful")){
-	        		if(factionData.getString("peaceful").equals("true")){
-	        			playerAttacking.sendMessage("§7You cannot hurt players in peaceful land.");
-	        			event.setCancelled(true);
-	        		}
-	        	}else{
-        			factionData.put("peaceful", "false");
-        			saveFaction(factionData);
-        		}
-	        	
-	        	if(factionData.has("safezone")){
-	        		if(factionData.getString("safezone").equals("true")){
-	        			playerAttacking.sendMessage("§7You cannot hurt players in a safezone.");
-	        			event.setCancelled(true);
-	        		}
-	        	}else{
-        			factionData.put("safezone", "false");
-        			saveFaction(factionData);
-        		}
-	        }
-	        
-        	//peaceful characters
-        	loadFaction(factionAttacking);
-        	if(factionData.has("peaceful")){
-        		if(factionData.getString("peaceful").equals("true")){
-        			playerAttacking.sendMessage("§7Peaceful players cannot attack other players.");
-        			return;
-        		}
-        	}else{
-        		factionData.put("peaceful", "false");
-        		saveFaction(factionData);
-        	}
-        	
-
-        	loadFaction(factionAttacked);
-        	if(factionData.has("peaceful")){
-        		if(factionData.getString("peaceful").equals("true")){
-        			playerAttacking.sendMessage("§7You cannot hurt peaceful players.");
-        			return;
-        		}
-        	}else{
-        		factionData.put("peaceful", "false");
-        		saveFaction(factionData);
-        	}
-        	
-        	if(factionAttacking.equals(factionAttacked)){
-        		loadFaction(inFactionLand); 
-        		
-        		if(damagedCause == DamageCause.ENTITY_ATTACK && (configData.getString("friendly fire melee").equals("true") || factionData.getString("warzone").equals("true"))){
-        			playerAttacking.sendMessage("§7Hit player!");
-        			return;
-        		}
-        		
-        		if(configData.getString("friendly fire other").equals("false")){
-        			playerAttacking.sendMessage("§7You cannot hurt members of " + getFactionRelationColor(factionAttacking,factionAttacked) + 
-        					configData.getString("faction symbol left") + factionAttacked + configData.getString("faction symbol right") + "§7!");
-            		event.setCancelled(true);
-            		return;
-        		}
-        		
-        		return;
-        	}
-        	else{
-        		return;
-        	}
-    	}
-    	return;
-    }
     
-    /**
-     * This is where the plugin edits the chat messages/formatting.
-     * */
-	@EventHandler
-    public void AsyncPlayerChatEvent(AsyncPlayerChatEvent event){
-		event.setMessage(event.getMessage().replace(">", "§a>"));
-
-		
-		String playerName = event.getPlayer().getName();
-		
-		boolean hasEssentialsUtils = false; 
-		
-		Plugin[] plugins = Bukkit.getServer().getPluginManager().getPlugins();
-		for(Plugin plugin : plugins){
-			if(plugin.getName().toLowerCase().contains("essentials")){
-				hasEssentialsUtils = true; 
-			}
-		}
-		
-		String playerNickname = ""; 
-    	if(hasEssentialsUtils) playerNickname = EssentialsUtils.getNickname(playerName);
-    	if(playerNickname == null) playerNickname = playerName; 
-		if(playerNickname.equals("")) playerNickname = playerName; 
-    			
-		//exit the chat event, if the config says so
-		if(configData.getString("enable simplefaction chat").equals("false")){
-			return;
-		}
-		
-		int posX_talk = event.getPlayer().getLocation().getBlockX();
-		int posZ_talk = event.getPlayer().getLocation().getBlockZ();
-		
-		Set<Player> playerList = event.getRecipients();
-    	loadPlayer(playerName);
-    	String chatChannel_talk = playerData.getString("chat channel");
-    	String factionRank = playerData.get("factionRank").toString();
-    	String title = playerData.get("factionTitle").toString();
-    	String faction = playerData.get("faction").toString();
-    	String factionString = playerData.get("faction").toString();
-    	factionRank += " ";
-    	if(factionRank.contains("leader")) factionRank = "** ";
-    	if(factionRank.contains("officer")) factionRank = "* ";
-    	if(factionRank.contains("member")) factionRank = "";
-    	if(factionRank.equals(" ")) factionRank = "";
-    	String factionRelation = "";
-    	String faction2 = "";
-    	if(!configData.getString("allow player titles").equals("true"))
-    		title = "";
-    	
-    	if(event.getMessage().charAt(0) == '!'){
-			chatChannel_talk = "global"; 
-			event.setMessage(event.getMessage().replace("!", ""));
-		}
-    	
-		for(Player player : playerList){
-	    	loadPlayer(playerName);
-	    	factionString = playerData.getString("faction");
-	    	loadPlayer(player.getName());
-	    	faction2 = playerData.getString("faction");
-	    	String chatChannel_listen = playerData.getString("chat channel");
-	    	if(!faction.equals("") && !faction2.equals(""))
-	    		factionRelation = getFactionRelationColor(faction2,faction);
-	    	else
-	    		factionRelation = Rel_Other;
-	    	if(!faction.equals("")) factionString = configData.getString("faction symbol left") + faction + configData.getString("faction symbol right");
-
-	    	
-	    	if(!faction.equals("") && !faction2.equals(""))
-	    		loadFaction(faction);
-
-			/*	
-			configData.put("show faction data in global chat", "true");
-			*/
-	    	
-	    	//global
-	    	if(chatChannel_talk.equals("global")){
-	    		String message = "";
-	    		if(configData.getString("show faction data in global chat").equals("true"))
-	    			message +=  factionRelation + factionRank + "" + factionString;
-	    		message += " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage();
-	    		
-	    		if(configData.getString("inject faction into message instead of replacing whole message").equals("true")){
-	    			String format = event.getFormat();
-	    			message = format.replaceFirst("%1", factionRelation + factionRank + "" + factionString + " " + playerNickname);
-	    			message = message.replaceFirst("%2", event.getMessage().replaceAll("\\$", "\\\\\\$")); //man don't ask me shit
-	    			message = message.replaceAll("\\$s", "§f");
-	    		}
-	    		
-	    		player.sendMessage(message);
-	    		continue;
-	    	}
-	    	
-	    	//faction
-	    	if(chatChannel_talk.equals("faction")){
-	    		if(faction.equals(faction2))
-	    			player.sendMessage(Rel_Faction + "(faction) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
-	    		continue;
-	    	}
-	    	
-	    	//ally
-	    	if(chatChannel_talk.equals("ally")){
-	    		allyData = factionData.getJSONArray("allies");
-	    		for(int i = 0; i<allyData.length(); i++)
-	    			if(allyData.getString(i).equals(faction2))
-	    	    		player.sendMessage(Rel_Ally + "(ally) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
-	    		if(faction.equals(faction2))
-    	    		player.sendMessage(Rel_Ally + "(ally) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
-	    		continue;
-	    	}
-	    	
-	    	//truce
-	    	if(chatChannel_talk.equals("truce")){
-	    		truceData = factionData.getJSONArray("truce");
-	    		for(int i = 0; i<truceData.length(); i++)
-	    			if(truceData.getString(i).equals(faction2))
-	    	    		player.sendMessage(Rel_Truce + "(truce) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
-	    		if(faction.equals(faction2))
-    	    		player.sendMessage(Rel_Truce + "(truce) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
-	    		continue;
-	    	}
-	    	
-	    	//enemy
-	    	if(chatChannel_talk.equals("enemy")){
-	    		enemyData = factionData.getJSONArray("enemies");
-	    		for(int i = 0; i<enemyData.length(); i++)
-	    			if(enemyData.getString(i).equals(faction2))
-	    	    		player.sendMessage(Rel_Enemy + "(enemy) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
-	    		if(faction.equals(faction2))
-    	    		player.sendMessage(Rel_Enemy + "(enemy) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
-	    		
-	    		continue;
-	    	}
-	    	
-	    	//local
-	    	boolean treatchatlikeradio = false; 
-	    	if(configData.has("treat all chat like a radio"))
-	    		if(configData.getString("treat all chat like a radio").equals("true"))
-	    			treatchatlikeradio = true;
-	    	
-	    	if(chatChannel_talk.equals("local") || treatchatlikeradio){
-	    		
-	    		String Direction = "";
-	    		int posX_listen = player.getLocation().getBlockX();
-	    		int posZ_listen = player.getLocation().getBlockZ();
-	    			//it's time for highschool trig!
-	    		int distance = (int) Math.sqrt(Math.pow(posX_talk - posX_listen,2) + Math.pow(posZ_talk - posZ_listen,2));
-	    		double direction = Math.toDegrees(Math.atan2((posZ_talk - posZ_listen), (posX_talk - posX_listen) + 0.001));
-	    		
-	    		if(direction>-15 && direction<15) Direction = "E";
-	    		if(direction>-75 && direction<-14) Direction = "NE";
-	    		if(direction>-105 && direction<-74) Direction = "N";
-	    		if(direction>-165 && direction<-104) Direction = "NW";
-	    		if(direction<-164 || direction>165) Direction = "W";
-	    		if(direction<165 && direction>105) Direction = "SW";
-	    		if(direction<106 && direction>75) Direction = "S";
-	    		if(direction<76 && direction>15) Direction = "SE";
-	    		
-	    		if(distance<configData.getInt("local chat distance") && !player.getName().equals(event.getPlayer().getName())){
-	    				String message_ = Rel_Neutral + "(" + (distance) + "" + Direction + ") "; 
-	    				if(configData.getString("show faction data in local chat").equals("true")) //only display faction stuff if settings say so
-	    					message_ += factionRelation + title + " " + factionRank + "" + factionString;
-	    				message_ += " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage();
-    	    			player.sendMessage(message_);
-    	    		}
-	    		
-	    		if(distance>=configData.getInt("local chat distance") && distance<configData.getInt("local chat distance")*1.5 && !player.getName().equals(event.getPlayer().getName())){ 
-    				String message_ = Rel_Neutral + "(you hear something " + distance + " blocks " + Direction + " from you)";
-	    			player.sendMessage(message_);
-	    		}
-	    		
-	    		if(player.getName().equals(event.getPlayer().getName())){
-	    	    		String _message = Rel_Neutral + "(local) ";
-	    				if(configData.getString("show faction data in local chat").equals("true")) 
-	    					_message += factionRelation + title + " " + factionRank + "" + factionString;
-	    	    		_message += " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage();
-	    			player.sendMessage(_message);
-	    		}
-	    	    continue;
-	    	}
-	    	
-	    	//custom
-	    	if(chatChannel_talk.equals(chatChannel_listen)){
-	    		player.sendMessage(Rel_Other + "(" + chatChannel_talk  + ") " + factionRelation + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
-	    		continue;
-	    	}
-	    	
-		}
-		
-		//send all messages to the console
-		String loggerMessage = "[" + chatChannel_talk + "]" + " " + factionString + " (" + playerNickname + "): " + event.getMessage();
-		getLogger().info(loggerMessage);
-		
-		event.setCancelled(true);
-	}
-
-	/**
-	 * Run this code whenever a player moves from one block to another.
-	 * */
-	@EventHandler
-	public void onPlayerMove(PlayerMoveEvent event) {
-		//declare stuff
-		Location loc = event.getTo().getBlock().getLocation();
-		Player player = event.getPlayer();
-		World world = player.getWorld();
-		String inFaction = "neutral territory";
-		
-		//load stuff into databases
-    	loadWorld(world.getName());
-    	loadPlayer(player.getName());
-    	
-    	String playerFaction = playerData.getString("faction");
-    	
-    	//do math
-		int posX = loc.getBlockX();
-		int posY = loc.getBlockY();
-		int posZ = loc.getBlockZ();
-    	posX = Math.round(posX / chunkSizeX) * chunkSizeX;
-    	posY = Math.round(posY / chunkSizeY) * chunkSizeY;
-    	posZ = Math.round(posZ / chunkSizeZ) * chunkSizeZ;
-    	
-    	
-    	
-    	
-    	if(boardData.has("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ))
-    		inFaction = boardData.getString("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ);
-    	
-    	
-    	//figure out if this is a new place
-    	int k = -1;
-    	for(int i = 0; i < playerIsIn_player.size(); i++){
-    		if(playerIsIn_player.get(i).equals(player.getName())){
-    			k = i;
-    		}
-    	}
-    	
-    	Location location = new Location(loc.getWorld(),posX,posY,posZ);
-    	
-    	if(k==-1){
-    		playerIsIn_player.add(player.getName());
-    		playerIsIn_faction.add(inFaction);
-    		playerIsIn_location.add(location);
-    		k = 0;
-    	}
-    	
-    	if(!playerIsIn_faction.get(k).equals(inFaction)
-    			&& playerData.has("autoclaim") && playerData.getString("autoclaim").equals("false")
-    			&& playerData.has("autounclaim") && playerData.getString("autounclaim").equals("false")
-    			){
-    		player.sendMessage("§7You have traveled from " + getFactionRelationColor(playerFaction,playerIsIn_faction.get(k)) + configData.getString("faction symbol left") + 
-    				playerIsIn_faction.get(k) + configData.getString("faction symbol right") + 
-    				"§7 to " + getFactionRelationColor(playerFaction,inFaction) + configData.getString("faction symbol left") + 
-    				inFaction + configData.getString("faction symbol right") + "§7.");
-    		playerIsIn_faction.set(k, inFaction);
-
-    	}
-
-    	//auto claim land
-    	if(!playerIsIn_location.get(k).equals(location) && !playerData.getString("faction").equals(inFaction)){
-    		playerIsIn_location.set(k,location);
-        	if(playerData.has("autoclaim"))
-        		if(playerData.getString("autoclaim").equals("true"))
-        			tryClaim((CommandSender) player); 
-    	}
-    	
-    	//auto un claim land
-    	if(!playerIsIn_location.get(k).equals(location) && playerData.getString("faction").equals(inFaction) 
-    			&& !inFaction.equals("neutral territory") && !inFaction.equals("")){
-        	if(playerData.has("autounclaim"))
-        		if(playerData.getString("autounclaim").equals("true"))
-        			tryUnClaim((CommandSender) player); 
-    	}
-    	
-    	
-	}
 	
 	
-	public String getFactionAt(Location location){
+	public static String getFactionAt(Location location){
 		String faction = "";
     	loadWorld(location.getWorld().getName());
-    	
-    	int posX = location.getBlockX();
-    	int posY = location.getBlockY();
-    	int posZ = location.getBlockZ();
+
+    	int posX = location.getBlockX(), chunkSizeX = Config.chunkSizeX;
+    	int posY = location.getBlockY(), chunkSizeY = Config.chunkSizeY;
+    	int posZ = location.getBlockZ(), chunkSizeZ = Config.chunkSizeZ;
     	posX = Math.round(posX / chunkSizeX) * chunkSizeX;
     	posY = Math.round(posY / chunkSizeY) * chunkSizeY;
     	posZ = Math.round(posZ / chunkSizeZ) * chunkSizeZ;
@@ -3877,11 +3277,11 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	/**
 	 * Checks if the player can edit terrain at location, returns true/false if they can or cannot.
 	 * */
-	public boolean canEditHere(Player player, Location location, String breakorplace){
+	public static boolean canEditHere(Player player, Location location, String breakorplace){
 		
 		if(player.isOp() || player.hasPermission("simplefactions.admin")) return true; //skip everything else
 		
-		loadPlayer(player.getName());
+		loadPlayer(player.getUniqueId());
 		String rankEditing = playerData.getString("factionRank");
 		String factionEditing = playerData.getString("faction");
 		String factionBeingEdited = getFactionAt(location);
@@ -3891,27 +3291,27 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		
     		Boolean returnType = true;
     		String relation = "neutral";
-    		String forceRel = configData.getString("enforce relations");
+    		String forceRel = Config.configData.getString("enforce relations");
     		if(!getScheduledTime().equals("") && !getScheduledTime().equals("war") && !getScheduledTime().equals("peace")) rel = forceRel;
-    		if(rel.equals(Rel_Ally)) relation = "ally";
-    		if(rel.equals(Rel_Enemy)) relation = "enemy";
-    		if(rel.equals(Rel_Truce)) relation = "truce";
-    		if(rel.equals(Rel_Other)) relation = "other";
+    		if(rel.equals(Config.Rel_Ally)) relation = "ally";
+    		if(rel.equals(Config.Rel_Enemy)) relation = "enemy";
+    		if(rel.equals(Config.Rel_Truce)) relation = "truce";
+    		if(rel.equals(Config.Rel_Other)) relation = "other";
     		
-			if(breakorplace.equals("break") && configData.getString("protect all claimed blocks from being broken in " + relation + " territory").equals("true"))
+			if(breakorplace.equals("break") && Config.configData.getString("protect all claimed blocks from being broken in " + relation + " territory").equals("true"))
 				returnType=!returnType;
 
-			if(breakorplace.equals("place") && configData.getString("protect all claimed blocks from being placed in " + relation + " territory").equals("true"))
+			if(breakorplace.equals("place") && Config.configData.getString("protect all claimed blocks from being placed in " + relation + " territory").equals("true"))
 				returnType=!returnType;
 
-			if(breakorplace.equals("break") && configData.getJSONArray("block break protection in " + relation + " land").toString().contains("" + location.getBlock().getType().getId()))
+			if(breakorplace.equals("break") && Config.configData.getJSONArray("block break protection in " + relation + " land").toString().contains("" + location.getBlock().getType().getId()))
 				returnType=!returnType;
-			if(breakorplace.equals("break") && configData.getJSONArray("block break protection in " + relation + " land").toString().contains(location.getBlock().getType().toString()))
+			if(breakorplace.equals("break") && Config.configData.getJSONArray("block break protection in " + relation + " land").toString().contains(location.getBlock().getType().toString()))
 				returnType=!returnType;
 			
-			if(breakorplace.equals("place") && configData.getJSONArray("block place protection in " + relation + " land").toString().contains("" + location.getBlock().getType().getId()))
+			if(breakorplace.equals("place") && Config.configData.getJSONArray("block place protection in " + relation + " land").toString().contains("" + location.getBlock().getType().getId()))
 				returnType=!returnType; 
-			if(breakorplace.equals("place") && configData.getJSONArray("block place protection in " + relation + " land").toString().contains(location.getBlock().getType().toString()))
+			if(breakorplace.equals("place") && Config.configData.getJSONArray("block place protection in " + relation + " land").toString().contains(location.getBlock().getType().toString()))
 				returnType=!returnType;
 
 			loadFaction(factionBeingEdited);
@@ -3919,9 +3319,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
 				JSONObject chunk = new JSONObject();
 				
 				if(j==0){
-		    		int posX = location.getBlockX();
-		    		int posY = location.getBlockY();
-		    		int posZ = location.getBlockZ();
+			    	int posX = location.getBlockX(), chunkSizeX = Config.chunkSizeX;
+			    	int posY = location.getBlockY(), chunkSizeY = Config.chunkSizeY;
+			    	int posZ = location.getBlockZ(), chunkSizeZ = Config.chunkSizeZ;
 		    		posX = Math.round(posX / chunkSizeX) * chunkSizeX;
 		    		posY = Math.round(posY / chunkSizeY) * chunkSizeY;
 		    		posZ = Math.round(posZ / chunkSizeZ) * chunkSizeZ;
@@ -3993,39 +3393,39 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	/**
 	 * Checks if the player can use items at this location.
 	 * */
-	public boolean canInteractHere(Player player, Location location, String itemName){
+	public static boolean canInteractHere(Player player, Location location, String itemName){
 		
 		if(player.isOp() || player.hasPermission("simplefactions.admin")) return true; //skip everything else
 		
 		
-		loadPlayer(player.getName());
+		loadPlayer(player.getUniqueId());
 		String rankEditing = playerData.getString("factionRank");
 		String factionEditing = playerData.getString("faction");
 		String factionBeingEdited = getFactionAt(location);
 		
-    	String rel = Rel_Neutral;
+    	String rel = Config.Rel_Neutral;
     	String relation = "neutral";
     	
     	boolean returnType = true;
     	if(!factionBeingEdited.equals(""))
     		rel = getFactionRelationColor(factionEditing,factionBeingEdited);
 
-		if(rel.equals(Rel_Ally)) relation = "ally";
-		if(rel.equals(Rel_Enemy)) relation = "enemy";
-		if(rel.equals(Rel_Truce)) relation = "truce";
-		if(rel.equals(Rel_Other)) relation = "other";
+		if(rel.equals(Config.Rel_Ally)) relation = "ally";
+		if(rel.equals(Config.Rel_Enemy)) relation = "enemy";
+		if(rel.equals(Config.Rel_Truce)) relation = "truce";
+		if(rel.equals(Config.Rel_Other)) relation = "other";
 		
-		if(configData.getString("block all item use by default in " + relation + " territory").equals("true"))
+		if(Config.configData.getString("block all item use by default in " + relation + " territory").equals("true"))
 			returnType=!returnType;
 
-		if(itemName.equals("") && configData.getJSONArray("item protection in " + relation + " land").toString().contains("" + location.getBlock().getType().getId()))
+		if(itemName.equals("") && Config.configData.getJSONArray("item protection in " + relation + " land").toString().contains("" + location.getBlock().getType().getId()))
 			returnType=!returnType;
-		if(itemName.equals("") && configData.getJSONArray("item protection in " + relation + " land").toString().contains(location.getBlock().getType().toString()))
+		if(itemName.equals("") && Config.configData.getJSONArray("item protection in " + relation + " land").toString().contains(location.getBlock().getType().toString()))
 			returnType=!returnType;
 		
-		if(!itemName.equals("") && configData.getJSONArray("item protection in " + relation + " land").toString().contains("" + player.getItemInHand().getType().getId()))
+		if(!itemName.equals("") && Config.configData.getJSONArray("item protection in " + relation + " land").toString().contains("" + player.getItemInHand().getType().getId()))
 			returnType=!returnType;
-		if(!itemName.equals("") && configData.getJSONArray("item protection in " + relation + " land").toString().contains(itemName))
+		if(!itemName.equals("") && Config.configData.getJSONArray("item protection in " + relation + " land").toString().contains(itemName))
 			returnType=!returnType;
 		
 		loadFaction(factionBeingEdited);
@@ -4033,9 +3433,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			JSONObject chunk = new JSONObject();
 			
 			if(j==0){
-	    		int posX = location.getBlockX();
-	    		int posY = location.getBlockY();
-	    		int posZ = location.getBlockZ();
+		    	int posX = location.getBlockX(), chunkSizeX = Config.chunkSizeX;
+		    	int posY = location.getBlockY(), chunkSizeY = Config.chunkSizeY;
+		    	int posZ = location.getBlockZ(), chunkSizeZ = Config.chunkSizeZ;
 	    		posX = Math.round(posX / chunkSizeX) * chunkSizeX;
 	    		posY = Math.round(posY / chunkSizeY) * chunkSizeY;
 	    		posZ = Math.round(posZ / chunkSizeZ) * chunkSizeZ;
@@ -4100,535 +3500,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		
 		return returnType;
 	}
-	
-	
-	/**
-	 * Eventhandler for block breaking
-	 * */
-	@EventHandler
-	public void blockBreak(BlockBreakEvent event){
-		if(!canEditHere(event.getPlayer(),event.getBlock().getLocation(),"break")){
-			event.setCancelled(true);
-		}
-		
-	}
-	
-	
-	/**
-	 * Eventhandler for block placing
-	 * */
-	@EventHandler
-	public void blockPlace(BlockPlaceEvent event){
-		if(!canEditHere(event.getPlayer(),event.getBlock().getLocation(),"place")){
-			event.setCancelled(true);
-		}
-	}
-	
-	
-	/**
-	 * Eventhandler for name tags (dependent on tagAPI)
-	 * */
-	/*public void onNameTag(AsyncPlayerReceiveNameTagEvent  event){
-		
-		boolean hasapi = false; 
-		Plugin[] plugins = getServer().getPluginManager().getPlugins();
-		
-		for(int i = 0; i < plugins.length; i++){
-			if(plugins[i].getName().toLowerCase().trim().contains("tagapi")) 
-				hasapi = true; 
-			if(plugins[i].getName().toLowerCase().contains("tag api")) 
-				hasapi = true; 
-		}
-		
-		//boolean hastagapi = getServer().getPluginManager().getPlugins().toString().toLowerCase().contains("tagapi");
-		
-		if(hasapi){
-			String player = event.getPlayer().getName();
-			String player2 = event.getNamedPlayer().getName();
-		
-			loadPlayer(player);
-			String faction = playerData.getString("faction");
-			loadPlayer(player2);
-			String faction2 = playerData.getString("faction");
-		
-			String rel = getFactionRelationColor(faction,faction2);
-		
-			event.setTag(rel + event.getTag());
-		}
-	}*/
-	
-	/**
-	 * When a creeper or tnt explodes, check all affected blocks. If claimed, ignore it (if its set that way in the options);
-	 * */
-	@EventHandler
-    public void onEntityExplode(EntityExplodeEvent event) {
-		if(getScheduledTime().equals("peace")){ //never explode in peacetime
-			event.setCancelled(true);
-			return;
-		}
-		
-		if(!getScheduledTime().equals("war")){ //always explode things in wartime
-		    List<Block> destroyed = event.blockList();
-		    Iterator<Block> it = destroyed.iterator();
-		    while (it.hasNext()) {
-		        Block block = it.next();
-		        Location loc = block.getLocation();
-		        loadWorld(loc.getWorld().getName());
-		        int posX = loc.getBlockX();
-		        int posY = loc.getBlockY();
-		        int posZ = loc.getBlockZ();
-		        posX = Math.round(posX / chunkSizeX) * chunkSizeX;
-		        posY = Math.round(posY / chunkSizeY) * chunkSizeY;
-		        posZ = Math.round(posZ / chunkSizeZ) * chunkSizeZ;
-		        if(boardData.has("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ)){
-		        	String faction = boardData.getString("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ);
-		        	boolean online = isFactionOnline(faction);
-	
-		        	loadFaction(faction);
-		        	if(factionData.has("peaceful")){
-		        		if(factionData.getString("peaceful").equals("true")){
-		        			event.setCancelled(true);
-				        	break;
-		        		}
-		        	}else{
-		        		factionData.put("peaceful", "false");
-		        		saveFaction(factionData);
-		        	}
-		        	if(factionData.has("warzone")){
-		        		if(factionData.getString("warzone").equals("true")){
-		        			event.setCancelled(true);
-				        	break;
-		        		}
-		        	}else{
-		        		factionData.put("warzone", "false");
-		        		saveFaction(factionData);
-		        	}
-		        	if(factionData.has("safezone")){
-		        		if(factionData.getString("safezone").equals("true")){
-		        			event.setCancelled(true);
-				        	break;
-		        		}
-		        	}else{
-		        		factionData.put("safezone", "false");
-		        		saveFaction(factionData);
-		        	}
-		        	
-		        	if(online && configData.getString("protect claimed land from explosions while faction is online").equals("true")){
-			        	event.setCancelled(true);
-			        	break;
-		        	}
-		        	if(!online && configData.getString("protect claimed land from explosions while faction is offline").equals("true")){
-			        	event.setCancelled(true);
-			        	break;
-		        	}
-		        }
-		    }
-		}
-    }
 
-	/**
-	 * when a player right clicks an item
-	 * */
-	@EventHandler
-	public void playerInteract(PlayerInteractEvent event){
-		if(event.hasBlock() && event.getAction() == Action.RIGHT_CLICK_BLOCK){
-			if(!canInteractHere(event.getPlayer(),event.getClickedBlock().getLocation(),"")){
-				event.setCancelled(true);
-			}
-		}
-		if(event.hasItem() && event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.LEFT_CLICK_BLOCK){
-			if(!canInteractHere(event.getPlayer(),event.getPlayer().getLocation(),event.getItem().getType().toString())){
-				event.setCancelled(true);
-			}
-		}
-	}
-	
-	/**
-	 * when a player dies
-	 * */
-	@EventHandler
-	public void playerDied(PlayerDeathEvent event){
-		
-		String deathMessage = event.getDeathMessage();
-		Collection<? extends Player> players = Bukkit.getOnlinePlayers();
-		String player = ((Player) event.getEntity()).getName();
-		String player2 = ""; 
-		
-		for(Player p : players){
-			if(deathMessage.contains(p.getName())){
-				if(!p.getName().equals(player))
-					player2 = p.getName(); 
-			}
-		}
-
-		if(!player2.equals("")){
-			loadPlayer(player2);
-			deathMessage = deathMessage.replace(player2, configData.getString("faction symbol left") + 
-				playerData.getString("faction") + configData.getString("faction symbol right") + " " + player2); 
-		}
-		
-		loadPlayer(player);
-
-		deathMessage = deathMessage.replace(player, configData.getString("faction symbol left") + 
-				playerData.getString("faction") + configData.getString("faction symbol right") + " " + player); 
-		
-		event.setDeathMessage(deathMessage); 
-		
-
-		if(player2.equals("")){
-			event.setDeathMessage(null); 
-		}
-		
-		double power = playerData.getDouble("power");
-		double maxpower = configData.getDouble("max player power");
-		double minpower = configData.getDouble("minimum player power");
-		
-		power-=configData.getDouble("power lost on death");
-		if(power<minpower) power = minpower;
-		if(power>maxpower) power = maxpower;
-		
-		int deaths = playerData.getInt("deaths") + 1;
-		playerData.put("deaths", deaths);
-		playerData.put("power", power);
-		savePlayer(playerData);
-		Player p = event.getEntity();
-		if(p.isDead()) {
-			p.getKiller();
-			if(p.getKiller() instanceof Player) {
-				loadPlayer(p.getKiller().getName());
-				int kills = playerData.getInt("kills") + 1;
-				playerData.put("kills", kills);
-				savePlayer(playerData);
-			}
-		}
-	}
-
-	@EventHandler
-	public void respawnEvent(PlayerRespawnEvent event){
-		//set new spawn (if faction has one)
-		Player player = event.getPlayer();
-		String playerString = player.getName();
-		loadPlayer(playerString);
-		if(!playerData.equals("")){
-			loadFaction(playerData.getString("faction"));
-			String home = factionData.getString("home");
-			if(!home.equals("")){
-				Scanner scan = new Scanner(home);
-		    	String world = scan.next();
-		    	double x = scan.nextDouble();
-		    	double y = scan.nextDouble();
-		    	double z = scan.nextDouble();
-		    	scan.close();
-		    	
-		    	Location loc = new Location(Bukkit.getWorld(world), x, y, z);
-		    	Block block = loc.getBlock();
-		    	int i = 0;
-		    	while(block.getRelative(BlockFace.UP).getType() != Material.AIR || block.getType() != Material.AIR){
-		    		
-		    		Random generater = new Random(System.currentTimeMillis() + block.getX() + block.getY() + block.getZ());
-		    		block = block.getRelative((generater.nextInt(10) *i), (int)(generater.nextInt(10)*i), (int)(generater.nextInt(10)*i));
-		    		
-		    		int l = 0;
-		    		while(block.getRelative(BlockFace.DOWN).getType() == Material.AIR){
-		    			l++; if(l>9) break;
-		    			block = block.getRelative(BlockFace.DOWN);
-		    		}
-		    		
-		    		
-		    		i++;
-		    		if(i>9){
-		    			loc = player.getLocation().getWorld().getSpawnLocation();
-		    		}
-		    	}
-		    	
-		    	loc = block.getLocation();
-				event.setRespawnLocation(loc);
-			}
-		}
-	}
-	
-	/**
-	 * EventHandler for when pistons move blocks.
-	 * In our case, if a slime block is moved we check the config and
-	 * see if it crossed faction lines. Programmatically we're really
-	 * only checking if it's it's exceptionally close to faction lines.
-	 * */
-	@EventHandler
-	/*public void PistonMovedBlocksEvent(BlockPistonExtendEvent event){
-		
-		loadConfig();
-		String allow = configData.getString("allow pistons to move slime blocks across faction lines"); 
-		
-		List<Block> blocks = event.getBlocks();
-		for(Block block : blocks){
-			if(block.getType() == Material.SLIME_BLOCK){
-		        String faction = "";
-		        String faction2 = "";
-		        
-				Location loc = block.getLocation();
-		        loadWorld(loc.getWorld().getName());
-		        int posX = loc.getBlockX();
-		        int posY = loc.getBlockY();
-		        int posZ = loc.getBlockZ();
-		        posX = Math.round(posX / chunkSizeX) * chunkSizeX;
-		        posY = Math.round(posY / chunkSizeY) * chunkSizeY;
-		        posZ = Math.round(posZ / chunkSizeZ) * chunkSizeZ;
-		        
-		        if(boardData.has("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ)){
-		        	faction = boardData.getString("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ);
-		        	faction2 = faction;
-		        }
-		        
-		        for(int i = -1; i <= 1; i++){
-		        	for(int j = -1; j <= 1; j++){
-		        		
-		        		int k = i * chunkSizeX;
-		        		int l = j * chunkSizeX;
-		        		
-		        		if(boardData.has("chunkX" + posX+k+l + " chunkY" + posY + " chunkZ" + posZ)){
-		        			faction2 = boardData.getString("chunkX" + posX+k+l + " chunkY" + posY + " chunkZ" + posZ);
-		        		}
-
-		        		k = i * chunkSizeZ;
-		        		l = j * chunkSizeZ;
-		        		if(boardData.has("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ+k+l)){
-		        			faction2 = boardData.getString("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ+k+l);
-		        		}
-
-		        		k = i * chunkSizeY;
-		        		l = j * chunkSizeY;
-		        		if(boardData.has("chunkX" + posX + " chunkY" + posY+k+l + " chunkZ" + posZ)){
-		        			faction2 = boardData.getString("chunkX" + posX + " chunkY" + posY+k+l + " chunkZ" + posZ);
-		        		}
-		        	}
-		        }
-		        
-		        if(!faction.equals(faction2) && allow.contains("false")){
-		        	getLogger().info("faction: " + faction);
-		        	getLogger().info("faction2: " + faction2);
-		        	event.setCancelled(true);
-		        }
-			}
-		}
-	}
-	*/
-	/*
-	 * NOTE: Apparently ExplosionPrimeEvent is bugged; it sets off 1 tick before the
-	 * TNT explodes; instead of when the TNT is primed. It's been a bukkit bug for
-	 * years apparently and has never been fixed. 
-	 * TODO: figure out wtf to do about it.
-	 * TODO: Looks like the Spigot team might introduce a new event to solve our issue.
-	 * Will keep this code commented out until their next build which implements the 
-	 * new event is ready. 
-	@SuppressWarnings("deprecation")
-	@EventHandler
-	public void BlockIgnitedEvent(ExplosionPrimeEvent event){
-		getLogger().info("[TNT Debug]: event triggered");
-		final TNTPrimed tnt = (TNTPrimed) event.getEntity();
-		BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-		scheduler.scheduleAsyncRepeatingTask(this, new BukkitRunnable() {
-			@Override
-			public void run() {
-				double fall = tnt.getFallDistance(); 
-				getLogger().info("[TNT Debug]: fall = " + fall);
-				if(fall > 10 || tnt.isDead()){
-					tnt.setFuseTicks(1); 
-					getLogger().info("[TNT Debug]: Should cancel the task now. ");
-					getServer().getScheduler().cancelTask(this.getTaskId());
-					getLogger().info("[TNT Debug]: Task cancelled. ");
-				}
-			}},5L,5L);
-	}
-	*/
-	
-	/**
-	 * Task handling for player power (every minute)
-	 * */
-	@SuppressWarnings("deprecation")
-	public void updatePlayerPower(){
-		BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-        scheduler.scheduleAsyncRepeatingTask(this, new Runnable() {
-            @Override
-            public void run() {
-        		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions]: Updating player power..");
-            	//Update player power
-        		currentTime = System.currentTimeMillis();
-        		loadConfig();
-            	double power = 0;
-            	double update = (1200.0/72000.0);
-            	double powerUpdateOnline = configData.getDouble("power per hour while online") * update;
-            	double powerUpdateOffline = configData.getDouble("power per hour while offline") * update;
-            	double powerUpdateEnemyInYourTerritory = configData.getDouble("power per hour while enemy in your territory") * update;
-            	double powerUpdateWhileInOwnTerritory = configData.getDouble("power per hour while in own territory") * update;
-            	double powerUpdateWhileInEnemyTerritory = configData.getDouble("power per hour while in enemy territory") * update;
-            	
-        		OfflinePlayer[] off = Bukkit.getOfflinePlayers();
-        		Collection<? extends Player> on = Bukkit.getOnlinePlayers();
-        		
-
-        		if(configData.getString("update power while offline").equals("true"))
-        			for(int i = 0; i < off.length; i++){ //offline players
-        				if(!off[i].isOnline()) {
-        					loadPlayer(off[i].getName());
-        					power = playerData.getDouble("power");
-        					power += powerUpdateOffline;
-        					
-        					if(power<configData.getDouble("minimum player power"))
-        						power = configData.getDouble("minimum player power");
-        					if(power>configData.getDouble("max player power"))
-        						power = configData.getDouble("max player power");
-        					
-        					playerData.put("power",power);
-        					savePlayer(playerData);
-        				}
-        			}
-        		
-        		if(configData.getString("update power while online").equals("true"))
-        			for(Player player : on){
-        				if(player.isOnline()) {
-        					loadPlayer(player.getName());
-
-        					power  = playerData.getDouble("power");
-        					
-        					if(configData.getString("update power while enemy in your territory").equals("true")
-        							|| configData.getString("update power while in enemy territory").equals("true")){
-            					loadWorld(Bukkit.getPlayer(player.getName()).getLocation().getWorld().getName());
-            					Player p = player.getPlayer();
-            			    	int posX = p.getLocation().getBlockX();
-            			    	int posY = p.getLocation().getBlockY();
-            			    	int posZ = p.getLocation().getBlockZ();
-            			    	
-            			    	posX = Math.round(posX / chunkSizeX) * chunkSizeX;
-            			    	posY = Math.round(posY / chunkSizeY) * chunkSizeY;
-            			    	posZ = Math.round(posZ / chunkSizeZ) * chunkSizeZ;
-            			    	
-            			    	if(boardData.has("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ)){
-            			    		String pFaction = playerData.getString("faction");
-            			    		String rel = getFactionRelationColor(boardData.getString("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ),pFaction);
-            			    		
-            			    		if(rel.equals(Rel_Enemy)){
-            			    			if(configData.getString("update power while in enemy territory").equals("true")){
-            			    				power += powerUpdateWhileInEnemyTerritory;
-            			    			}
-            			    			if(configData.getString("update power while enemy in your territory").equals("true")){
-            			    				
-            			    				for(Player player2 : on){
-            			    					loadPlayer(player2.getPlayer().getName());
-            			    					if(getFactionRelationColor(playerData.getString("faction"),pFaction).equals(Rel_Enemy)){
-            			    						power += powerUpdateEnemyInYourTerritory;
-            			    					}
-            			    				}
-            			    			}
-            			    		}
-            			    		
-            			    		if(rel.equals(Rel_Faction)){
-            			    			if(configData.getString("update power while in own territory").equals("true")){
-            			    				power += powerUpdateWhileInOwnTerritory;
-            			    			}
-            			    		}
-            			    		
-            			    	}
-            			    	else{
-                					power += powerUpdateOnline;
-            			    	}
-        					}
-        					else{
-            					power += powerUpdateOnline;
-        					}
-        					
-        					
-        					if(power<configData.getDouble("minimum player power"))
-        						power = configData.getDouble("minimum player power");
-        					if(power>configData.getDouble("max player power"))
-        						power = configData.getDouble("max player power");
-        					
-        					long onlineTime = playerData.getLong("time online");
-        					
-        					onlineTime += currentTime - lastTime;
-        					
-        					playerData.put("last online", System.currentTimeMillis());
-        					playerData.put("time online", onlineTime);
-        					playerData.put("power",power);
-        					savePlayer(playerData);
-        				}
-        			}
-        			
-        		/*
-        		 * Code from 1.7.9
-        			for(int i = 0; i < on.length; i++){ //online players
-        				if(on[i].isOnline()) {
-        					loadPlayer(on[i].getName());
-
-        					power  = playerData.getDouble("power");
-        					
-        					if(configData.getString("update power while enemy in your territory").equals("true")
-        							|| configData.getString("update power while in enemy territory").equals("true")){
-            					loadWorld(Bukkit.getPlayer(on[i].getName()).getLocation().getWorld().getName());
-            					Player p = on[i].getPlayer();
-            			    	int posX = p.getLocation().getBlockX();
-            			    	int posY = p.getLocation().getBlockY();
-            			    	int posZ = p.getLocation().getBlockZ();
-            			    	
-            			    	posX = Math.round(posX / chunkSizeX) * chunkSizeX;
-            			    	posY = Math.round(posY / chunkSizeY) * chunkSizeY;
-            			    	posZ = Math.round(posZ / chunkSizeZ) * chunkSizeZ;
-            			    	
-            			    	if(boardData.has("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ)){
-            			    		String pFaction = playerData.getString("faction");
-            			    		String rel = getFactionRelationColor(boardData.getString("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ),pFaction);
-            			    		
-            			    		if(rel.equals(Rel_Enemy)){
-            			    			if(configData.getString("update power while in enemy territory").equals("true")){
-            			    				power += powerUpdateWhileInEnemyTerritory;
-            			    			}
-            			    			if(configData.getString("update power while enemy in your territory").equals("true")){
-            			    				for(int j = 0; j < on.length; j++){
-            			    					loadPlayer(on[j].getPlayer().getName());
-            			    					if(getFactionRelationColor(playerData.getString("faction"),pFaction).equals(Rel_Enemy)){
-            			    						power += powerUpdateEnemyInYourTerritory;
-            			    					}
-            			    				}
-            			    			}
-            			    		}
-            			    		
-            			    		if(rel.equals(Rel_Faction)){
-            			    			if(configData.getString("update power while in own territory").equals("true")){
-            			    				power += powerUpdateWhileInOwnTerritory;
-            			    			}
-            			    		}
-            			    		
-            			    	}
-            			    	else{
-                					power += powerUpdateOnline;
-            			    	}
-        					}
-        					else{
-            					power += powerUpdateOnline;
-        					}
-        					
-        					
-        					if(power<configData.getDouble("minimum player power"))
-        						power = configData.getDouble("minimum player power");
-        					if(power>configData.getDouble("max player power"))
-        						power = configData.getDouble("max player power");
-        					
-        					long onlineTime = playerData.getLong("time online");
-        					
-        					onlineTime += currentTime - lastTime;
-        					
-        					playerData.put("last online", System.currentTimeMillis());
-        					playerData.put("time online", onlineTime);
-        					playerData.put("power",power);
-        					savePlayer(playerData);
-        				}
-        			}*/
-            	
-
-        		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions]: Finished updating player power.");
-        		lastTime = System.currentTimeMillis();
-            }
-        }, 0L, 1200L);
-	}
 
 }
 
