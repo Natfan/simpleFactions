@@ -118,7 +118,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	static JSONArray inviteData = new JSONArray();
 	
 	//version
-	static String version = "1.86";
+	static String version = "1.87";
 
 	//global thing to pass to async task
 	static TNTPrimed lastCheckedTNT; 
@@ -239,12 +239,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
     public static void saveData(){
     	createDirectories();
     	saveAllPlayersToDisk(); 
-		Bukkit.getServer().getConsoleSender().sendMessage("§a[All player data saved to disk!]");
 		saveAllFactionsToDisk();
-		Bukkit.getServer().getConsoleSender().sendMessage("§a[All faction data saved to disk!]");
 		saveAllWorldsToDisk(); 
-		Bukkit.getServer().getConsoleSender().sendMessage("§a[All world data saved to disk!]");
 		
+		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has finished saving!]");
     }
     
     /**
@@ -294,6 +292,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		}
     		
     		if(!exists){
+    			Bukkit.getServer().getConsoleSender().sendMessage("        §c->§There are no players here, removing faction..");
     			deleteFaction(factionData.getString("name")); 
     		}
     		
@@ -3112,7 +3111,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			
 			if(args[1].contains("/") || args[1].contains("\\") || args[1].contains(".") || args[1].contains("\"") 
 				|| args[1].contains(",") || args[1].contains("?") || args[1].contains("'") || args[1].contains("*") 
-				|| args[1].contains("|") || args[1].contains("<") || args[1].contains(":")){
+				|| args[1].contains("|") || args[1].contains("<") || args[1].contains(":") || args[1].contains("$")){
 				sender.sendMessage("§cName cannot contain special characters!");
 				return true;
 			}
@@ -3244,18 +3243,25 @@ public class simpleFactions extends JavaPlugin implements Listener {
     }
     
     public static void deleteFaction(String factionName){
-    	File file = new File(dataFolder + "/factionData/" + factionName + ".json");
-		file.delete();
+    	
+    	String uuid = ""; 
+    	
+    	for(int i = 0; i < Data.Factions.length(); i++){
+    		if(Data.Factions.getJSONObject(i).getString("name").equals(factionName)){
+    			uuid = Data.Factions.getJSONObject(i).getString("ID"); 
+    			Data.Factions.remove(i); 
+    		}
+    	}
+    	
+    	File file = new File(dataFolder + "/factionData/" + uuid + ".json");
+    	if(file.exists()){
+    		file.delete();
+    	}
+		
     	int k = -1;
     	for(int i = 0; i<factionIndex.size(); i++){
     		if(factionIndex.get(i).equals(factionName)){
     			k = i;
-    		}
-    	}
-    	
-    	for(int i = 0; i < Data.Factions.length(); i++){
-    		if(Data.Factions.getJSONObject(i).getString("name").equals(factionName)){
-    			Data.Factions.remove(i); 
     		}
     	}
     	

@@ -2,7 +2,7 @@
         "## -- SIMPLE FACTIONS CONFIGURATION FILE --##": "",
         "## -- Any entries with ##s are just comments that can be ignored --##": "",
         
-        "version": "1.86",
+        "version": "1.87",
 		
         "## -- FACTION SETTINGS --##": "",
         "only admins can create factions": "false",

@@ -34,7 +34,7 @@ public class Tasks implements Listener {
 				simpleFactions.saveData(); 
 			}
 			
-		}, 1200L, 1200L); 
+		}, 12000L, 12000L); 
 	}
 	
 	/**
