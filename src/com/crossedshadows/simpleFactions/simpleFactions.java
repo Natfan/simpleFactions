@@ -267,13 +267,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	List<String> boardIndexList = Arrays.asList(fileutil.listFiles(dataFolder + "/boardData"));
     	
     	//display loaded factions and players
-    	for(int i=0; i<factionIndexList.size(); i++){
-    		String uuid = factionIndexList.get(i).replaceFirst(".json", "");
-    		Bukkit.getServer().getConsoleSender().sendMessage("    §c->§7Loading " + uuid);
-    		loadFactionDisk(uuid); 
-    		factionIndex.add(factionData.getString("name"));
-    		}
-		Bukkit.getServer().getConsoleSender().sendMessage("§bLoaded all factions.");
+    	
     	for(int i=0; i<playerIndexList.size(); i++){
     		String uuid = playerIndexList.get(i).replaceAll(".json", "");
     		Bukkit.getServer().getConsoleSender().sendMessage("    §c->§7Loading " + uuid); 
@@ -281,6 +275,30 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		playerIndex.add(uuid); 
     		}
 		Bukkit.getServer().getConsoleSender().sendMessage("§bLoaded all players.");
+		for(int i=0; i<factionIndexList.size(); i++){
+    		String uuid = factionIndexList.get(i).replaceFirst(".json", "");
+    		Bukkit.getServer().getConsoleSender().sendMessage("    §c->§7Loading " + uuid);
+    		
+    		
+    		
+    		loadFactionDisk(uuid); 
+    		factionIndex.add(factionData.getString("name"));
+    		
+    		//if nobody is a member of the faction, delete it! 
+    		boolean exists = false; 
+    		for(int k=0; k<Data.Players.length(); k++){
+    			if(Data.Players.getJSONObject(k).getString("faction").equals(factionData.getString("name"))){
+    				exists = true; 
+    				continue;
+    			}
+    		}
+    		
+    		if(!exists){
+    			deleteFaction(factionData.getString("name")); 
+    		}
+    		
+    		}
+		Bukkit.getServer().getConsoleSender().sendMessage("§bLoaded all factions.");
     	for(int i=0; i<boardIndexList.size(); i++){
     		String name = boardIndexList.get(i).replaceFirst(".json", "");
     		Bukkit.getServer().getConsoleSender().sendMessage("    §c->§7Loading " + name); 
@@ -801,12 +819,17 @@ public class simpleFactions extends JavaPlugin implements Listener {
     					else{
     						loadPlayer(((Player) sender).getUniqueId());
     						String factionName = playerData.getString("faction");
-    						if(playerData.getString("faction").equals(args[1]))
-        						return tryDisband(sender,factionName);
-    						else{
-    							sender.sendMessage("You aren't a member of this faction!");
-    							return true;
-    							}
+    						if(args.length>1){
+    							if(playerData.getString("faction").equals(args[1]))
+            						return tryDisband(sender,factionName);
+        						else{
+        							sender.sendMessage("You aren't a member of this faction!");
+        							return true;
+        							}
+    						}else{
+    							return tryDisband(sender,playerData.getString("faction")); 
+    						}
+    						
     					}
     				}
     			}
@@ -2323,6 +2346,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	Block block = loc.getBlock();
     	if(block.getRelative(BlockFace.UP).getType() != Material.AIR){
     		sender.sendMessage("§cMake more empty space above you, and then try setting a home again.");
+    		return true;
     	}
     	
     	loadPlayer(player.getUniqueId());
@@ -3170,35 +3194,47 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	}
     	
     	if(canDisband){
-    		File file = new File(dataFolder + "/factionData/" + factionName + ".json");
-    		file.delete();
-        	int k = -1;
-        	for(int i = 0; i<factionIndex.size(); i++){
-        		if(factionIndex.get(i).equals(factionName)){
-        			k = i;
-        		}
-        	}
-        	
-        	if(k>=0){
-        		factionIndex.remove(k);
-        		Bukkit.getServer().getConsoleSender().sendMessage("removed");
-        	}
-        	
-        	loadWorld(((Player) sender).getWorld().getName());
-        	JSONArray array = boardData.names();
-        	for(int i = 0; i < array.length(); i++){
-        		String name = array.getString(i);
-        		if(boardData.getString(name).equals(factionName)){
-        			boardData.remove(name);
-        		}
-        	}
-    		saveWorld(boardData);
+    		deleteFaction(factionName); 
     	}
     	
 
     	
 		sender.sendMessage("You have left your faction!");
     	return true;
+    }
+    
+    public static void deleteFaction(String factionName){
+    	File file = new File(dataFolder + "/factionData/" + factionName + ".json");
+		file.delete();
+    	int k = -1;
+    	for(int i = 0; i<factionIndex.size(); i++){
+    		if(factionIndex.get(i).equals(factionName)){
+    			k = i;
+    		}
+    	}
+    	
+    	for(int i = 0; i < Data.Factions.length(); i++){
+    		if(Data.Factions.getJSONObject(i).getString("name").equals(factionName)){
+    			Data.Factions.remove(i); 
+    		}
+    	}
+    	
+    	if(k>=0){
+    		factionIndex.remove(k);
+    		Bukkit.getServer().getConsoleSender().sendMessage("removed");
+    	}
+    	
+    	for(int j = 0; j<Data.Worlds.length(); j++){
+    		loadWorld(Data.Worlds.getJSONObject(j).getString("name")); 
+    		JSONArray array = boardData.names();
+        	for(int m = 0; m < array.length(); m++){
+        		String name = array.getString(m);
+        		if(boardData.getString(name).equals(factionName)){
+        			boardData.remove(name);
+        		}
+        	}
+    		saveWorld(boardData);
+    	}
     }
     
     /**
@@ -3217,6 +3253,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		return true; 
     	}
     	
+    	if(factionName.equals("")){
+    		factionName = playerData.getString("faction"); 
+    	}
+    	
     	for(String player : playerIndex){
     		loadPlayer(UUID.fromString(player));
     		if(playerData.getString("faction").equals(factionName)){
@@ -3226,31 +3266,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		}
     	}
     	
-    	File file = new File(dataFolder + "/factionData/" + factionName + ".json");
-    	if(file.exists())
-    		file.delete();
-
-    	int k = -1;
-    	for(int i = 0; i<factionIndex.size(); i++){
-    		if(factionIndex.get(i).equals(factionName)){
-    			k = i;
-    		}
-    	}
-    	
-    	if(k>=0){
-    		factionIndex.remove(k);
-    	}
-    	
-    	
-    	loadWorld(((Player) sender).getWorld().getName()); //
-    	JSONArray array = boardData.names();
-    	for(int i = 0; i < array.length(); i++){
-    		String name = array.getString(i);
-    		if(boardData.getString(name).equals(factionName)){
-    			boardData.remove(name);
-    		}
-    	}
-		saveWorld(boardData);
+    	deleteFaction(factionName); 
     	
 		sender.sendMessage("The faction has been disbanded!");
     	return true;

@@ -265,7 +265,7 @@ public class eventListener implements Listener {
     	String factionRank = simpleFactions.playerData.get("factionRank").toString();
     	String title = simpleFactions.playerData.get("factionTitle").toString();
     	String faction = simpleFactions.playerData.get("faction").toString();
-    	String factionString = simpleFactions.playerData.get("faction").toString();
+    	String factionString = simpleFactions.playerData.get("faction").toString().replaceAll("\\$", "\\\\\\$");
     	factionRank += " ";
     	if(factionRank.contains("leader")) factionRank = "** ";
     	if(factionRank.contains("officer")) factionRank = "* ";
@@ -283,7 +283,7 @@ public class eventListener implements Listener {
     	
 		for(Player player : playerList){
 			simpleFactions.loadPlayer(Bukkit.getPlayer(playerName).getUniqueId());
-	    	factionString = simpleFactions.playerData.getString("faction");
+	    	factionString = simpleFactions.playerData.getString("faction").replaceAll("\\$", "\\\\\\$");
 	    	simpleFactions.loadPlayer(player.getUniqueId());
 	    	faction2 = simpleFactions.playerData.getString("faction");
 	    	String chatChannel_listen = simpleFactions.playerData.getString("chat channel");
@@ -291,7 +291,7 @@ public class eventListener implements Listener {
 	    		factionRelation = simpleFactions.getFactionRelationColor(faction2,faction);
 	    	else
 	    		factionRelation = Config.Rel_Other;
-	    	if(!faction.equals("")) factionString = Config.configData.getString("faction symbol left") + faction + Config.configData.getString("faction symbol right");
+	    	if(!faction.equals("")) factionString = Config.configData.getString("faction symbol left") + faction.replaceAll("\\$", "\\\\\\$") + Config.configData.getString("faction symbol right");
 
 	    	
 	    	if(!faction.equals("") && !faction2.equals(""))
