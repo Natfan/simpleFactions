@@ -308,6 +308,13 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		Bukkit.getServer().getConsoleSender().sendMessage("§bLoaded all worlds.");
     }
     
+    public static void loadPlayer(String name){
+    	for(Player p : Bukkit.getOnlinePlayers()){
+    		if(p.getName().equals(name)){
+    			loadPlayer(p.getUniqueId()); 
+    		}
+    	}
+    }
     
     public static void loadPlayer(UUID uuid){
     	for(int i = 0; i < Data.Players.length(); i++){
@@ -765,6 +772,21 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				if(args[0].toLowerCase().equals("kick")){
     					return tryKick(sender, args);
     				}
+    				if(args[0].toLowerCase().equals("setpower")){
+    					if(args.length>2){
+	    					try{
+	    						double setPower = Double.parseDouble(args[2]);
+	    						return trySetPower(sender,args[1],setPower); 
+    						} catch(NumberFormatException  e){
+    							sender.sendMessage("Please provide a power!"); 
+        						sender.sendMessage("Example usage: /sf setpower player amount");
+        						return true; 
+    						}
+    					}else{
+    						sender.sendMessage("Example usage: /sf setpower player amount");
+    						return true; 
+    					}
+    				}
     				if(args[0].toLowerCase().equals("help")){
     					return showHelp(sender, args);
     				}
@@ -838,6 +860,22 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		}
     	}
              
+    	return true; 
+    }
+    
+    public boolean trySetPower(CommandSender sender, String player, double power){
+    	
+    	if(playerCheck(player)){
+    		loadPlayer(player); 
+        	double playerPower = power; 
+        	playerData.remove("power");
+        	playerData.put("power", playerPower);
+        	savePlayer(playerData);
+    	}else{
+    		sender.sendMessage("Player is not online or does not exist!"); 
+    	}
+    	
+    	
     	return true; 
     }
     
@@ -1643,13 +1681,15 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	if(args.length>1){
     		if(playerCheck(args[1]))
     			player = args[1];
-    		else
+    		else{
     			sender.sendMessage("§cPlayer not found.");
+    			return true; 
+    		}
     	}
     	DecimalFormat df = new DecimalFormat("0.###");
-    	loadPlayer(((Player) sender).getUniqueId());
+    	loadPlayer(((OfflinePlayer) sender).getUniqueId());
     	String faction1 = playerData.getString("faction");
-    	loadPlayer(Bukkit.getPlayer(player).getUniqueId());
+    	loadPlayer(Bukkit.getOfflinePlayer(player).getUniqueId());
     	String faction2 = playerData.getString("faction");
     	String factionRank = playerData.getString("factionRank");
     	sender.sendMessage("§7 ------ [" + getFactionRelationColor(faction1,faction2) + player + "§7] ------ ");
@@ -1660,7 +1700,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				df.format(getFactionPower(faction2)) + "/" + df.format(getFactionPowerMax(faction2)));
     	sender.sendMessage("§6Gaining §f" + df.format(Config.configData.getDouble("power per hour while online")) + "§6 power an hour while online.");
     	sender.sendMessage("§6Losing §f" + df.format(-1*Config.configData.getDouble("power per hour while offline")) + "§6 power an hour while offline.");
-    	loadPlayer(Bukkit.getPlayer(player).getUniqueId());
+    	loadPlayer(Bukkit.getOfflinePlayer(player).getUniqueId());
     	sender.sendMessage("§6Rank: " + factionRank);
     	sender.sendMessage("§6Kills: " + playerData.getInt("kills"));
     	sender.sendMessage("§6Deaths: " + playerData.getInt("deaths"));
