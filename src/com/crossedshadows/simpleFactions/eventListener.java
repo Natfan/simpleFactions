@@ -61,10 +61,10 @@ public class eventListener implements Listener {
 		player.sendMessage("debug, you died");
 		String playerString = player.getName();
 		simpleFactions.loadPlayer(Bukkit.getPlayer(playerString).getUniqueId()); 
-		if(!simpleFactions.playerData.equals("")){
+		if(!simpleFactions.playerData.getString("faction").equals("")){
 			simpleFactions.loadFaction(simpleFactions.playerData.getString("faction"));
 			String home = simpleFactions.factionData.getString("home");
-			if(!home.equals("")){
+			if(!home.equalsIgnoreCase("")){
 				Scanner scan = new Scanner(home);
 		    	String world = scan.next();
 		    	double x = scan.nextDouble();
@@ -122,7 +122,7 @@ public class eventListener implements Listener {
             		simpleFactions.loadPlayer(playerAttacked.getUniqueId());
             		String factionAttacked = simpleFactions.playerData.getString("faction");
             	
-            		if(Config.configData.getString("friendly fire projectile (arrows)").equals("false")){
+            		if(Config.configData.getString("friendly fire projectile (arrows)").equalsIgnoreCase("false")){
         				playerAttacking.sendMessage("§7You cannot shoot members of " + simpleFactions.getFactionRelationColor(factionAttacking,factionAttacked) + 
         						Config.configData.getString("faction symbol left") + factionAttacked + Config.configData.getString("faction symbol right") + "§7!");
             			event.setCancelled(true);
@@ -159,7 +159,7 @@ public class eventListener implements Listener {
 	        	simpleFactions.loadFaction(inFactionLand);
 	        	
 	        	if(simpleFactions.factionData.has("peaceful")){
-	        		if(simpleFactions.factionData.getString("peaceful").equals("true")){
+	        		if(simpleFactions.factionData.getString("peaceful").equalsIgnoreCase("true")){
 	        			playerAttacking.sendMessage("§7You cannot hurt players in peaceful land.");
 	        			event.setCancelled(true);
 	        		}
@@ -169,7 +169,7 @@ public class eventListener implements Listener {
         		}
 	        	
 	        	if(simpleFactions.factionData.has("safezone")){
-	        		if(simpleFactions.factionData.getString("safezone").equals("true")){
+	        		if(simpleFactions.factionData.getString("safezone").equalsIgnoreCase("true")){
 	        			playerAttacking.sendMessage("§7You cannot hurt players in a safezone.");
 	        			event.setCancelled(true);
 	        		}
@@ -182,7 +182,7 @@ public class eventListener implements Listener {
         	//peaceful characters
 	        simpleFactions.loadFaction(factionAttacking);
         	if(simpleFactions.factionData.has("peaceful")){
-        		if(simpleFactions.factionData.getString("peaceful").equals("true")){
+        		if(simpleFactions.factionData.getString("peaceful").equalsIgnoreCase("true")){
         			playerAttacking.sendMessage("§7Peaceful players cannot attack other players.");
         			return;
         		}
@@ -194,7 +194,7 @@ public class eventListener implements Listener {
 
         	simpleFactions.loadFaction(factionAttacked);
         	if(simpleFactions.factionData.has("peaceful")){
-        		if(simpleFactions.factionData.getString("peaceful").equals("true")){
+        		if(simpleFactions.factionData.getString("peaceful").equalsIgnoreCase("true")){
         			playerAttacking.sendMessage("§7You cannot hurt peaceful players.");
         			return;
         		}
@@ -203,15 +203,15 @@ public class eventListener implements Listener {
         		simpleFactions.saveFaction(simpleFactions.factionData);
         	}
         	
-        	if(factionAttacking.equals(factionAttacked)){
+        	if(factionAttacking.equalsIgnoreCase(factionAttacked)){
         		simpleFactions.loadFaction(inFactionLand); 
         		
-        		if(damagedCause == DamageCause.ENTITY_ATTACK && (Config.configData.getString("friendly fire melee").equals("true") || simpleFactions.factionData.getString("warzone").equals("true"))){
+        		if(damagedCause == DamageCause.ENTITY_ATTACK && (Config.configData.getString("friendly fire melee").equalsIgnoreCase("true") || simpleFactions.factionData.getString("warzone").equalsIgnoreCase("true"))){
         			playerAttacking.sendMessage("§7Hit player!");
         			return;
         		}
         		
-        		if(Config.configData.getString("friendly fire other").equals("false")){
+        		if(Config.configData.getString("friendly fire other").equalsIgnoreCase("false")){
         			playerAttacking.sendMessage("§7You cannot hurt members of " + simpleFactions.getFactionRelationColor(factionAttacking,factionAttacked) + 
         					Config.configData.getString("faction symbol left") + factionAttacked + Config.configData.getString("faction symbol right") + "§7!");
             		event.setCancelled(true);
@@ -249,10 +249,10 @@ public class eventListener implements Listener {
 		String playerNickname = ""; 
     	if(hasEssentialsUtils) playerNickname = EssentialsUtils.getNickname(playerName);
     	if(playerNickname == null) playerNickname = playerName; 
-		if(playerNickname.equals("")) playerNickname = playerName; 
+		if(playerNickname.equalsIgnoreCase("")) playerNickname = playerName; 
     			
 		//exit the chat event, if the config says so
-		if(Config.configData.getString("enable simplefaction chat").equals("false")){
+		if(Config.configData.getString("enable simplefaction chat").equalsIgnoreCase("false")){
 			return;
 		}
 		
@@ -270,10 +270,10 @@ public class eventListener implements Listener {
     	if(factionRank.contains("leader")) factionRank = "** ";
     	if(factionRank.contains("officer")) factionRank = "* ";
     	if(factionRank.contains("member")) factionRank = "";
-    	if(factionRank.equals(" ")) factionRank = "";
+    	if(factionRank.equalsIgnoreCase(" ")) factionRank = "";
     	String factionRelation = "";
     	String faction2 = "";
-    	if(!Config.configData.getString("allow player titles").equals("true"))
+    	if(!Config.configData.getString("allow player titles").equalsIgnoreCase("true"))
     		title = "";
     	
     	if(event.getMessage().charAt(0) == '!'){
@@ -287,14 +287,14 @@ public class eventListener implements Listener {
 	    	simpleFactions.loadPlayer(player.getUniqueId());
 	    	faction2 = simpleFactions.playerData.getString("faction");
 	    	String chatChannel_listen = simpleFactions.playerData.getString("chat channel");
-	    	if(!faction.equals("") && !faction2.equals(""))
+	    	if(!faction.equalsIgnoreCase("") && !faction2.equalsIgnoreCase(""))
 	    		factionRelation = simpleFactions.getFactionRelationColor(faction2,faction);
 	    	else
 	    		factionRelation = Config.Rel_Other;
-	    	if(!faction.equals("")) factionString = Config.configData.getString("faction symbol left") + faction.replaceAll("\\$", "\\\\\\$") + Config.configData.getString("faction symbol right");
+	    	if(!faction.equalsIgnoreCase("")) factionString = Config.configData.getString("faction symbol left") + faction.replaceAll("\\$", "\\\\\\$") + Config.configData.getString("faction symbol right");
 
 	    	
-	    	if(!faction.equals("") && !faction2.equals(""))
+	    	if(!faction.equalsIgnoreCase("") && !faction2.equalsIgnoreCase(""))
 	    		simpleFactions.loadFaction(faction);
 
 			/*	
@@ -302,13 +302,13 @@ public class eventListener implements Listener {
 			*/
 	    	
 	    	//global
-	    	if(chatChannel_talk.equals("global")){
+	    	if(chatChannel_talk.equalsIgnoreCase("global")){
 	    		String message = "";
-	    		if(Config.configData.getString("show faction data in global chat").equals("true"))
+	    		if(Config.configData.getString("show faction data in global chat").equalsIgnoreCase("true"))
 	    			message +=  factionRelation + factionRank + "" + factionString;
 	    		message += " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage();
 	    		
-	    		if(Config.configData.getString("inject faction into message instead of replacing whole message").equals("true")){
+	    		if(Config.configData.getString("inject faction into message instead of replacing whole message").equalsIgnoreCase("true")){
 	    			String format = event.getFormat();
 	    			message = format.replaceFirst("%1", factionRelation + factionRank + "" + factionString + " " + playerNickname);
 	    			message = message.replaceFirst("%2", event.getMessage().replaceAll("\\$", "\\\\\\$")); //man don't ask me shit
@@ -320,41 +320,41 @@ public class eventListener implements Listener {
 	    	}
 	    	
 	    	//faction
-	    	if(chatChannel_talk.equals("faction")){
-	    		if(faction.equals(faction2))
+	    	if(chatChannel_talk.equalsIgnoreCase("faction")){
+	    		if(faction.equalsIgnoreCase(faction2))
 	    			player.sendMessage(Config.Rel_Faction + "(faction) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
 	    		continue;
 	    	}
 	    	
 	    	//ally
-	    	if(chatChannel_talk.equals("ally")){
+	    	if(chatChannel_talk.equalsIgnoreCase("ally")){
 	    		simpleFactions.allyData = simpleFactions.factionData.getJSONArray("allies");
 	    		for(int i = 0; i<simpleFactions.allyData.length(); i++)
-	    			if(simpleFactions.allyData.getString(i).equals(faction2))
+	    			if(simpleFactions.allyData.getString(i).equalsIgnoreCase(faction2))
 	    	    		player.sendMessage(Config.Rel_Ally + "(ally) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
-	    		if(faction.equals(faction2))
+	    		if(faction.equalsIgnoreCase(faction2))
     	    		player.sendMessage(Config.Rel_Ally + "(ally) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
 	    		continue;
 	    	}
 	    	
 	    	//truce
-	    	if(chatChannel_talk.equals("truce")){
+	    	if(chatChannel_talk.equalsIgnoreCase("truce")){
 	    		simpleFactions.truceData = simpleFactions.factionData.getJSONArray("truce");
 	    		for(int i = 0; i<simpleFactions.truceData.length(); i++)
-	    			if(simpleFactions.truceData.getString(i).equals(faction2))
+	    			if(simpleFactions.truceData.getString(i).equalsIgnoreCase(faction2))
 	    	    		player.sendMessage(Config.Rel_Truce + "(truce) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
-	    		if(faction.equals(faction2))
+	    		if(faction.equalsIgnoreCase(faction2))
     	    		player.sendMessage(Config.Rel_Truce + "(truce) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
 	    		continue;
 	    	}
 	    	
 	    	//enemy
-	    	if(chatChannel_talk.equals("enemy")){
+	    	if(chatChannel_talk.equalsIgnoreCase("enemy")){
 	    		simpleFactions.enemyData = simpleFactions.factionData.getJSONArray("enemies");
 	    		for(int i = 0; i<simpleFactions.enemyData.length(); i++)
-	    			if(simpleFactions.enemyData.getString(i).equals(faction2))
+	    			if(simpleFactions.enemyData.getString(i).equalsIgnoreCase(faction2))
 	    	    		player.sendMessage(Config.Rel_Enemy + "(enemy) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
-	    		if(faction.equals(faction2))
+	    		if(faction.equalsIgnoreCase(faction2))
     	    		player.sendMessage(Config.Rel_Enemy + "(enemy) " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
 	    		
 	    		continue;
@@ -363,10 +363,10 @@ public class eventListener implements Listener {
 	    	//local
 	    	boolean treatchatlikeradio = false; 
 	    	if(Config.configData.has("treat all chat like a radio"))
-	    		if(Config.configData.getString("treat all chat like a radio").equals("true"))
+	    		if(Config.configData.getString("treat all chat like a radio").equalsIgnoreCase("true"))
 	    			treatchatlikeradio = true;
 	    	
-	    	if(chatChannel_talk.equals("local") || treatchatlikeradio){
+	    	if(chatChannel_talk.equalsIgnoreCase("local") || treatchatlikeradio){
 	    		
 	    		String Direction = "";
 	    		int posX_listen = player.getLocation().getBlockX();
@@ -384,22 +384,22 @@ public class eventListener implements Listener {
 	    		if(direction<106 && direction>75) Direction = "S";
 	    		if(direction<76 && direction>15) Direction = "SE";
 	    		
-	    		if(distance<Config.configData.getInt("local chat distance") && !player.getName().equals(event.getPlayer().getName())){
+	    		if(distance<Config.configData.getInt("local chat distance") && !player.getName().equalsIgnoreCase(event.getPlayer().getName())){
 	    				String message_ = Config.Rel_Neutral + "(" + (distance) + "" + Direction + ") "; 
-	    				if(Config.configData.getString("show faction data in local chat").equals("true")) //only display faction stuff if settings say so
+	    				if(Config.configData.getString("show faction data in local chat").equalsIgnoreCase("true")) //only display faction stuff if settings say so
 	    					message_ += factionRelation + title + " " + factionRank + "" + factionString;
 	    				message_ += " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage();
     	    			player.sendMessage(message_);
     	    		}
 	    		
-	    		if(distance>=Config.configData.getInt("local chat distance") && distance<Config.configData.getInt("local chat distance")*1.5 && !player.getName().equals(event.getPlayer().getName())){ 
+	    		if(distance>=Config.configData.getInt("local chat distance") && distance<Config.configData.getInt("local chat distance")*1.5 && !player.getName().equalsIgnoreCase(event.getPlayer().getName())){ 
     				String message_ = Config.Rel_Neutral + "(you hear something " + distance + " blocks " + Direction + " from you)";
 	    			player.sendMessage(message_);
 	    		}
 	    		
-	    		if(player.getName().equals(event.getPlayer().getName())){
+	    		if(player.getName().equalsIgnoreCase(event.getPlayer().getName())){
 	    	    		String _message = Config.Rel_Neutral + "(local) ";
-	    				if(Config.configData.getString("show faction data in local chat").equals("true")) 
+	    				if(Config.configData.getString("show faction data in local chat").equalsIgnoreCase("true")) 
 	    					_message += factionRelation + title + " " + factionRank + "" + factionString;
 	    	    		_message += " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage();
 	    			player.sendMessage(_message);
@@ -408,7 +408,7 @@ public class eventListener implements Listener {
 	    	}
 	    	
 	    	//custom
-	    	if(chatChannel_talk.equals(chatChannel_listen)){
+	    	if(chatChannel_talk.equalsIgnoreCase(chatChannel_listen)){
 	    		player.sendMessage(Config.Rel_Other + "(" + chatChannel_talk  + ") " + factionRelation + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
 	    		continue;
 	    	}
@@ -457,7 +457,7 @@ public class eventListener implements Listener {
     	//figure out if this is a new place
     	int k = -1;
     	for(int i = 0; i < simpleFactions.playerIsIn_player.size(); i++){
-    		if(simpleFactions.playerIsIn_player.get(i).equals(player.getName())){
+    		if(simpleFactions.playerIsIn_player.get(i).equalsIgnoreCase(player.getName())){
     			k = i;
     		}
     	}
@@ -471,9 +471,9 @@ public class eventListener implements Listener {
     		k = 0;
     	}
     	
-    	if(!simpleFactions.playerIsIn_faction.get(k).equals(inFaction)
-    			&& simpleFactions.playerData.has("autoclaim") && simpleFactions.playerData.getString("autoclaim").equals("false")
-    			&& simpleFactions.playerData.has("autounclaim") && simpleFactions.playerData.getString("autounclaim").equals("false")
+    	if(!simpleFactions.playerIsIn_faction.get(k).equalsIgnoreCase(inFaction)
+    			&& simpleFactions.playerData.has("autoclaim") && simpleFactions.playerData.getString("autoclaim").equalsIgnoreCase("false")
+    			&& simpleFactions.playerData.has("autounclaim") && simpleFactions.playerData.getString("autounclaim").equalsIgnoreCase("false")
     			){
     		player.sendMessage("§7You have traveled from " + simpleFactions.getFactionRelationColor(playerFaction,simpleFactions.playerIsIn_faction.get(k)) + Config.configData.getString("faction symbol left") + 
     				simpleFactions.playerIsIn_faction.get(k) + Config.configData.getString("faction symbol right") + 
@@ -484,18 +484,18 @@ public class eventListener implements Listener {
     	}
 
     	//auto claim land
-    	if(!simpleFactions.playerIsIn_location.get(k).equals(location) && !simpleFactions.playerData.getString("faction").equals(inFaction)){
+    	if(!simpleFactions.playerIsIn_location.get(k).equals(location) && !simpleFactions.playerData.getString("faction").equalsIgnoreCase(inFaction)){
     		simpleFactions.playerIsIn_location.set(k,location);
         	if(simpleFactions.playerData.has("autoclaim"))
-        		if(simpleFactions.playerData.getString("autoclaim").equals("true"))
+        		if(simpleFactions.playerData.getString("autoclaim").equalsIgnoreCase("true"))
         			simpleFactions.tryClaim((CommandSender) player); 
     	}
     	
     	//auto un claim land
-    	if(!simpleFactions.playerIsIn_location.get(k).equals(location) && simpleFactions.playerData.getString("faction").equals(inFaction) 
-    			&& !inFaction.equals("neutral territory") && !inFaction.equals("")){
+    	if(!simpleFactions.playerIsIn_location.get(k).equals(location) && simpleFactions.playerData.getString("faction").equalsIgnoreCase(inFaction) 
+    			&& !inFaction.equalsIgnoreCase("neutral territory") && !inFaction.equalsIgnoreCase("")){
         	if(simpleFactions.playerData.has("autounclaim"))
-        		if(simpleFactions.playerData.getString("autounclaim").equals("true"))
+        		if(simpleFactions.playerData.getString("autounclaim").equalsIgnoreCase("true"))
         			simpleFactions.tryUnClaim((CommandSender) player); 
     	}
     	
@@ -563,12 +563,12 @@ public class eventListener implements Listener {
 	 * */
 	@EventHandler
     public void onEntityExplode(EntityExplodeEvent event) {
-		if(simpleFactions.getScheduledTime().equals("peace")){ //never explode in peacetime
+		if(simpleFactions.getScheduledTime().equalsIgnoreCase("peace")){ //never explode in peacetime
 			event.setCancelled(true);
 			return;
 		}
 		
-		if(!simpleFactions.getScheduledTime().equals("war")){ //always explode things in wartime
+		if(!simpleFactions.getScheduledTime().equalsIgnoreCase("war")){ //always explode things in wartime
 		    List<Block> destroyed = event.blockList();
 		    Iterator<Block> it = destroyed.iterator();
 		    while (it.hasNext()) {
@@ -587,7 +587,7 @@ public class eventListener implements Listener {
 	
 		        	simpleFactions.loadFaction(faction);
 		        	if(simpleFactions.factionData.has("peaceful")){
-		        		if(simpleFactions.factionData.getString("peaceful").equals("true")){
+		        		if(simpleFactions.factionData.getString("peaceful").equalsIgnoreCase("true")){
 		        			event.setCancelled(true);
 				        	break;
 		        		}
@@ -596,7 +596,7 @@ public class eventListener implements Listener {
 		        		simpleFactions.saveFaction(simpleFactions.factionData);
 		        	}
 		        	if(simpleFactions.factionData.has("warzone")){
-		        		if(simpleFactions.factionData.getString("warzone").equals("true")){
+		        		if(simpleFactions.factionData.getString("warzone").equalsIgnoreCase("true")){
 		        			event.setCancelled(true);
 				        	break;
 		        		}
@@ -605,7 +605,7 @@ public class eventListener implements Listener {
 		        		simpleFactions.saveFaction(simpleFactions.factionData);
 		        	}
 		        	if(simpleFactions.factionData.has("safezone")){
-		        		if(simpleFactions.factionData.getString("safezone").equals("true")){
+		        		if(simpleFactions.factionData.getString("safezone").equalsIgnoreCase("true")){
 		        			event.setCancelled(true);
 				        	break;
 		        		}
@@ -614,11 +614,11 @@ public class eventListener implements Listener {
 		        		simpleFactions.saveFaction(simpleFactions.factionData);
 		        	}
 		        	
-		        	if(online && Config.configData.getString("protect claimed land from explosions while faction is online").equals("true")){
+		        	if(online && Config.configData.getString("protect claimed land from explosions while faction is online").equalsIgnoreCase("true")){
 			        	event.setCancelled(true);
 			        	break;
 		        	}
-		        	if(!online && Config.configData.getString("protect claimed land from explosions while faction is offline").equals("true")){
+		        	if(!online && Config.configData.getString("protect claimed land from explosions while faction is offline").equalsIgnoreCase("true")){
 			        	event.setCancelled(true);
 			        	break;
 		        	}
@@ -657,12 +657,12 @@ public class eventListener implements Listener {
 		
 		for(Player p : players){
 			if(deathMessage.contains(p.getName())){
-				if(!p.getName().equals(player))
+				if(!p.getName().equalsIgnoreCase(player))
 					player2 = p.getName(); 
 			}
 		}
 
-		if(!player2.equals("")){
+		if(!player2.equalsIgnoreCase("")){
 			simpleFactions.loadPlayer(Bukkit.getPlayer(player2).getUniqueId());
 			deathMessage = deathMessage.replace(player2, Config.configData.getString("faction symbol left") + 
 					simpleFactions.playerData.getString("faction") + Config.configData.getString("faction symbol right") + " " + player2); 
@@ -676,7 +676,7 @@ public class eventListener implements Listener {
 		event.setDeathMessage(deathMessage); 
 		
 
-		if(player2.equals("")){
+		if(player2.equalsIgnoreCase("")){
 			event.setDeathMessage(null); 
 		}
 		
@@ -761,7 +761,7 @@ public class eventListener implements Listener {
 		        	}
 		        }
 		        
-		        if(!faction.equals(faction2) && allow.contains("false")){
+		        if(!faction.equalsIgnoreCase(faction2) && allow.contains("false")){
 		        	getLogger().info("faction: " + faction);
 		        	getLogger().info("faction2: " + faction2);
 		        	event.setCancelled(true);

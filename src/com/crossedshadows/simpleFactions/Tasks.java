@@ -62,7 +62,7 @@ public class Tasks implements Listener {
         		Collection<? extends Player> on = Bukkit.getOnlinePlayers();
         		
 
-        		if(Config.configData.getString("update power while offline").equals("true"))
+        		if(Config.configData.getString("update power while offline").equalsIgnoreCase("true"))
         			for(int i = 0; i < off.length; i++){ //offline players
         				if(!off[i].isOnline()) {
         					
@@ -81,7 +81,7 @@ public class Tasks implements Listener {
         				}
         			}
         		
-        		if(Config.configData.getString("update power while online").equals("true"))
+        		if(Config.configData.getString("update power while online").equalsIgnoreCase("true"))
         			for(Player player : on){
         				if(player.isOnline()) {
         					
@@ -89,8 +89,8 @@ public class Tasks implements Listener {
         					//Bukkit.getLogger().info(simpleFactions.playerData.toString(4)); //debug
         					power  = simpleFactions.playerData.getDouble("power");
         					
-        					if(Config.configData.getString("update power while enemy in your territory").equals("true")
-        							|| Config.configData.getString("update power while in enemy territory").equals("true")){
+        					if(Config.configData.getString("update power while enemy in your territory").equalsIgnoreCase("true")
+        							|| Config.configData.getString("update power while in enemy territory").equalsIgnoreCase("true")){
         						simpleFactions.loadWorld(Bukkit.getPlayer(player.getName()).getLocation().getWorld().getName());
             					Player p = player.getPlayer();
             			    	int posX = p.getLocation().getBlockX();
@@ -105,23 +105,23 @@ public class Tasks implements Listener {
             			    		String pFaction = simpleFactions.playerData.getString("faction");
             			    		String rel = simpleFactions.getFactionRelationColor(simpleFactions.boardData.getString("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ),pFaction);
             			    		
-            			    		if(rel.equals(Config.Rel_Enemy)){
-            			    			if(Config.configData.getString("update power while in enemy territory").equals("true")){
+            			    		if(rel.equalsIgnoreCase(Config.Rel_Enemy)){
+            			    			if(Config.configData.getString("update power while in enemy territory").equalsIgnoreCase("true")){
             			    				power += powerUpdateWhileInEnemyTerritory;
             			    			}
-            			    			if(Config.configData.getString("update power while enemy in your territory").equals("true")){
+            			    			if(Config.configData.getString("update power while enemy in your territory").equalsIgnoreCase("true")){
             			    				
             			    				for(Player player2 : on){
             			    					simpleFactions.loadPlayer(player2.getPlayer().getUniqueId());
-            			    					if(simpleFactions.getFactionRelationColor(simpleFactions.playerData.getString("faction"),pFaction).equals(Config.Rel_Enemy)){
+            			    					if(simpleFactions.getFactionRelationColor(simpleFactions.playerData.getString("faction"),pFaction).equalsIgnoreCase(Config.Rel_Enemy)){
             			    						power += powerUpdateEnemyInYourTerritory;
             			    					}
             			    				}
             			    			}
             			    		}
             			    		
-            			    		if(rel.equals(Config.Rel_Faction)){
-            			    			if(Config.configData.getString("update power while in own territory").equals("true")){
+            			    		if(rel.equalsIgnoreCase(Config.Rel_Faction)){
+            			    			if(Config.configData.getString("update power while in own territory").equalsIgnoreCase("true")){
             			    				power += powerUpdateWhileInOwnTerritory;
             			    			}
             			    		}

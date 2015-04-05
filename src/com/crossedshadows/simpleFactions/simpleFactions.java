@@ -285,7 +285,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		//if nobody is a member of the faction, delete it! 
     		boolean exists = false; 
     		for(int k=0; k<Data.Players.length(); k++){
-    			if(Data.Players.getJSONObject(k).getString("faction").equals(factionData.getString("name"))){
+    			if(Data.Players.getJSONObject(k).getString("faction").equalsIgnoreCase(factionData.getString("name"))){
     				exists = true; 
     				continue;
     			}
@@ -309,7 +309,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     
     public static void loadPlayer(String name){
     	for(Player p : Bukkit.getOnlinePlayers()){
-    		if(p.getName().equals(name)){
+    		if(p.getName().equalsIgnoreCase(name)){
     			loadPlayer(p.getUniqueId()); 
     		}
     	}
@@ -317,7 +317,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     
     public static void loadPlayer(UUID uuid){
     	for(int i = 0; i < Data.Players.length(); i++){
-    		if(Data.Players.getJSONObject(i).getString("ID").equals(uuid.toString())){
+    		if(Data.Players.getJSONObject(i).getString("ID").equalsIgnoreCase(uuid.toString())){
     			playerData = Data.Players.getJSONObject(i); 
     			//Bukkit.getLogger().info("[LoadPlayer]: Player Found! /n" + playerData.toString(4)); //debug
     		} 
@@ -359,7 +359,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 				JSONObject player = new JSONObject(scan.next());
 				
 				for(int i = 0; i < Data.Players.length(); i++){
-					if(Data.Players.getJSONObject(i).getString("ID").equals(uuid)){
+					if(Data.Players.getJSONObject(i).getString("ID").equalsIgnoreCase(uuid)){
 						Data.Players.remove(i);  
 						//debug
 					}
@@ -391,7 +391,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     
     public static void loadFaction(String name){
     	for(int i = 0; i < Data.Factions.length(); i++){
-    		if(Data.Factions.getJSONObject(i).getString("name").equals(name)){
+    		if(Data.Factions.getJSONObject(i).getString("name").equalsIgnoreCase(name)){
     			factionData = Data.Factions.getJSONObject(i); 
     			//Bukkit.getLogger().info("[LoadPlayer]: Player Found! /n" + playerData.toString(4)); //debug
     		} 
@@ -426,7 +426,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			factionData = new JSONObject(scan.next());
 			
 			for(int i = 0; i < Data.Factions.length(); i++){
-				if(Data.Factions.getJSONObject(i).getString("ID").equals(uuid)){
+				if(Data.Factions.getJSONObject(i).getString("ID").equalsIgnoreCase(uuid)){
 					Data.Factions.remove(i); 
 				}
 			}
@@ -443,7 +443,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     
     public static void loadWorld(String name){
     	for(int i = 0; i < Data.Worlds.length(); i++){
-    		if(Data.Worlds.getJSONObject(i).getString("name").equals(name)){
+    		if(Data.Worlds.getJSONObject(i).getString("name").equalsIgnoreCase(name)){
     			boardData = Data.Worlds.getJSONObject(i); 
     			//Bukkit.getLogger().info("[LoadPlayer]: Player Found! /n" + playerData.toString(4)); //debug
     		} 
@@ -479,7 +479,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			scan.useDelimiter("\\Z");
 			
 			for(int i = 0; i < Data.Worlds.length(); i++){
-				if(Data.Worlds.getJSONObject(i).getString("name").equals(name)){
+				if(Data.Worlds.getJSONObject(i).getString("name").equalsIgnoreCase(name)){
 					Data.Worlds.remove(i); 
 				}
 			}
@@ -551,7 +551,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	String id = player.getString("ID"); 
     	
     	for(int i = 0; i < Data.Players.length(); i++){
-			if(Data.Players.getJSONObject(i).getString("ID").equals(id)){
+			if(Data.Players.getJSONObject(i).getString("ID").equalsIgnoreCase(id)){
 				Data.Players.remove(i); 
 			}
 		}
@@ -603,7 +603,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	String id = faction.getString("ID"); 
     	
     	for(int i = 0; i < Data.Factions.length(); i++){
-			if(Data.Factions.getJSONObject(i).getString("ID").equals(id)){
+			if(Data.Factions.getJSONObject(i).getString("ID").equalsIgnoreCase(id)){
 				Data.Factions.remove(i); 
 			}
 		}
@@ -636,7 +636,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	String name = world.getString("name"); 
     	
     	for(int i = 0; i < Data.Worlds.length(); i++){
-			if(Data.Worlds.getJSONObject(i).getString("name").equals(name)){
+			if(Data.Worlds.getJSONObject(i).getString("name").equalsIgnoreCase(name)){
 				Data.Worlds.remove(i); 
 			}
 		}
@@ -692,86 +692,86 @@ public class simpleFactions extends JavaPlugin implements Listener {
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
     	String command = cmd.getName().toLowerCase();
     	
-    	if(command.equals("sf") || command.equals("f")){ //allow use of /f for legacy/compatibility purposes
+    	if(command.equalsIgnoreCase("sf") || command.equalsIgnoreCase("f")){ //allow use of /f for legacy/compatibility purposes
     		if(sender instanceof Player){
     			if(args.length<1){
     				sender.sendMessage("§6Try using a command! Example: /sf create faction");
     				return true;
     			}else{
-    				if(args[0].toLowerCase().equals("create") && (Config.configData.getString("only admins can create factions").equals("false") 
+    				if(args[0].equalsIgnoreCase("create") && (Config.configData.getString("only admins can create factions").equalsIgnoreCase("false") 
     						|| sender.isOp() ||  sender.hasPermission("simplefactions.admin") )){
     					return tryCreateFaction(sender,args);
     				}
-    				if(args[0].toLowerCase().equals("claim")){
+    				if(args[0].equalsIgnoreCase("claim")){
     					return tryClaim(sender);
     				}
-    				if(args[0].toLowerCase().equals("open")){
+    				if(args[0].equalsIgnoreCase("open")){
     					return tryOpen(sender);
     				}
-    				if(args[0].toLowerCase().equals("schedule")){
+    				if(args[0].equalsIgnoreCase("schedule")){
     					return trySchedule(sender,args);
     				}
-    				if(args[0].toLowerCase().equals("unclaim")){
+    				if(args[0].equalsIgnoreCase("unclaim")){
     					return tryUnClaim(sender);
     				}
-    				if(args[0].toLowerCase().equals("unclaimall")){
+    				if(args[0].equalsIgnoreCase("unclaimall")){
     					return tryUnClaimAll(sender);
     				}
-    				if(args[0].toLowerCase().equals("autoclaim")){
+    				if(args[0].equalsIgnoreCase("autoclaim")){
     					return toggleAutoclaim(sender);
     				}
-    				if(args[0].toLowerCase().equals("autounclaim")){
+    				if(args[0].equalsIgnoreCase("autounclaim")){
     					return toggleAutounclaim(sender);
     				}
-    				if(args[0].toLowerCase().equals("map")){
+    				if(args[0].equalsIgnoreCase("map")){
     					return drawMap(sender);
     				}
-    				if(args[0].toLowerCase().equals("power") || args[0].toLowerCase().equals("p") || args[0].toLowerCase().equals("player")){
+    				if(args[0].equalsIgnoreCase("power") || args[0].equalsIgnoreCase("p") || args[0].equalsIgnoreCase("player")){
     					return showPlayerPower(sender, args);
     				}
-    				if(args[0].toLowerCase().equals("list")){
+    				if(args[0].equalsIgnoreCase("list")){
     					return listFactions(sender, args);
     				}
-    				if(args[0].toLowerCase().equals("sethome")){
+    				if(args[0].equalsIgnoreCase("sethome")){
     					return trySetHome(sender);
     				}
-    				if(args[0].toLowerCase().equals("access")){
+    				if(args[0].equalsIgnoreCase("access")){
     					return setAccess(sender,args);
     				}
-    				if(args[0].toLowerCase().equals("enemy")){
+    				if(args[0].equalsIgnoreCase("enemy")){
     					return setRelation(sender, args, "enemies"); 
     				}
-    				if(args[0].toLowerCase().equals("ally")){
+    				if(args[0].equalsIgnoreCase("ally")){
     					return setRelation(sender, args, "allies"); 
     				}
-    				if(args[0].toLowerCase().equals("truce")){
+    				if(args[0].equalsIgnoreCase("truce")){
     					return setRelation(sender, args, "truce"); 
     				}
-    				if(args[0].toLowerCase().equals("neutral")){
+    				if(args[0].equalsIgnoreCase("neutral")){
     					return setRelation(sender, args, "neutral"); 
     				}
-    				if(args[0].toLowerCase().equals("home")){
+    				if(args[0].equalsIgnoreCase("home")){
     					return tryHome(sender);
     				}
-    				if(args[0].toLowerCase().equals("desc")){
+    				if(args[0].equalsIgnoreCase("desc")){
     					return setDesc(sender,args);
     				}
-    				if(args[0].toLowerCase().equals("promote")){
+    				if(args[0].equalsIgnoreCase("promote")){
     					return setRank(sender,args);
     				}
-    				if(args[0].toLowerCase().equals("setrank")){
+    				if(args[0].equalsIgnoreCase("setrank")){
     					return setRank(sender,args);
     				}
-    				if(args[0].toLowerCase().equals("demote")){
+    				if(args[0].equalsIgnoreCase("demote")){
     					return setRank(sender,args);
     				}
-    				if(args[0].toLowerCase().equals("leader")){
+    				if(args[0].equalsIgnoreCase("leader")){
     					return setRank(sender,args);
     				}
-    				if(args[0].toLowerCase().equals("kick")){
+    				if(args[0].equalsIgnoreCase("kick")){
     					return tryKick(sender, args);
     				}
-    				if(args[0].toLowerCase().equals("setpower")){
+    				if(args[0].equalsIgnoreCase("setpower")){
     					if(args.length>2){
 	    					try{
 	    						double setPower = Double.parseDouble(args[2]);
@@ -786,46 +786,46 @@ public class simpleFactions extends JavaPlugin implements Listener {
     						return true; 
     					}
     				}
-    				if(args[0].toLowerCase().equals("help")){
+    				if(args[0].equalsIgnoreCase("help")){
     					return showHelp(sender, args);
     				}
-    				if(args[0].toLowerCase().equals("top")){
+    				if(args[0].equalsIgnoreCase("top")){
     					return showTop(sender, args);
     				}
-    				if(args[0].toLowerCase().equals("chat") || args[0].toLowerCase().equals("c") || args[0].toLowerCase().equals("channel")){
+    				if(args[0].equalsIgnoreCase("chat") || args[0].equalsIgnoreCase("c") || args[0].equalsIgnoreCase("channel")){
     					return setChatChannel(sender, args);
     				}
-    				if(args[0].toLowerCase().equals("invite")){
+    				if(args[0].equalsIgnoreCase("invite")){
     					if(args.length>1)
     						return invitePlayer(sender, args[1]);
     					else
     						sender.sendMessage("§cYou must provide the name of the person you wish to invite to your faction!");
     				}
-    				if(args[0].toLowerCase().equals("set")){
+    				if(args[0].equalsIgnoreCase("set")){
     					if(args.length>3)
     						return setFactionFlag(sender, args[1],args[2],args[3]);
     					else
     						sender.sendMessage("§cYou must provide the name of the faction and flag! Example, /sf set factionname peaceful true");
     				}
-    				if(args[0].toLowerCase().equals("join")){
+    				if(args[0].equalsIgnoreCase("join")){
     					if(args.length>1)
     						return tryJoin(sender, args[1]);
     					else
     						sender.sendMessage("§cYou must provide the name of the faction you want to join!");
     				}
-    				if(args[0].toLowerCase().equals("info") || args[0].toLowerCase().equals("f")){
+    				if(args[0].equalsIgnoreCase("info") || args[0].equalsIgnoreCase("f")){
     					if(args.length>1)
     						return displayInfo(sender, args[1]);
     					else
     						return displayInfo(sender, sender.getName());
     				}
-    				if(args[0].toLowerCase().equals("leave")){
+    				if(args[0].equalsIgnoreCase("leave")){
     					return tryLeave(sender);
     				}
-    				if(args[0].toLowerCase().equals("disband")){
+    				if(args[0].equalsIgnoreCase("disband")){
     					if(args.length>1){
     						loadPlayer(((Player) sender).getUniqueId());
-    						if(playerData.getString("faction").equals(args[1]))
+    						if(playerData.getString("faction").equalsIgnoreCase(args[1]))
     							return tryDisband(sender,args[1]);
     						else{
     							if(sender.isOp() || sender.hasPermission("simplefactions.admin")){
@@ -841,7 +841,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     						loadPlayer(((Player) sender).getUniqueId());
     						String factionName = playerData.getString("faction");
     						if(args.length>1){
-    							if(playerData.getString("faction").equals(args[1]))
+    							if(playerData.getString("faction").equalsIgnoreCase(args[1]))
             						return tryDisband(sender,factionName);
         						else{
         							sender.sendMessage("You aren't a member of this faction!");
@@ -983,27 +983,27 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			final long lastRan = scheduled.getLong("lastRan"); 
 			
 			long lengthValue = 0L;
-			if(lengthType.equals("seconds"))
+			if(lengthType.equalsIgnoreCase("seconds"))
 				lengthValue = 20L; 
-			if(lengthType.equals("minutes"))
+			if(lengthType.equalsIgnoreCase("minutes"))
 				lengthValue = 1200L; 
-			if(lengthType.equals("hours"))
+			if(lengthType.equalsIgnoreCase("hours"))
 				lengthValue = 72000L; 
-			if(lengthType.equals("days"))
+			if(lengthType.equalsIgnoreCase("days"))
 				lengthValue = 1728000L; 
-			if(lengthType.equals("weeks"))
+			if(lengthType.equalsIgnoreCase("weeks"))
 				lengthValue = 12096000L; 
 			
 			long lengthValue2 = 0L;
-			if(lengthType2.equals("seconds"))
+			if(lengthType2.equalsIgnoreCase("seconds"))
 				lengthValue2 = 20L; 
-			if(lengthType2.equals("minutes"))
+			if(lengthType2.equalsIgnoreCase("minutes"))
 				lengthValue2 = 1200L; 
-			if(lengthType2.equals("hours"))
+			if(lengthType2.equalsIgnoreCase("hours"))
 				lengthValue2 = 72000L; 
-			if(lengthType2.equals("days"))
+			if(lengthType2.equalsIgnoreCase("days"))
 				lengthValue2 = 1728000L; 
-			if(lengthType2.equals("weeks"))
+			if(lengthType2.equalsIgnoreCase("weeks"))
 				lengthValue2 = 12096000L; 
 			
 			long runIn = (System.currentTimeMillis() / 1000L / 20L) - ((lastRan / 1000L) / 20L) + lengthValue; 
@@ -1027,16 +1027,16 @@ public class simpleFactions extends JavaPlugin implements Listener {
 							scheduleData.remove(j);
 							scheduleData.put(j,scheduled); 
 							
-							if(type.equals("wartime") || type.equals("war")){
-								if(getScheduledTime().equals("war")){
+							if(type.equalsIgnoreCase("wartime") || type.equalsIgnoreCase("war")){
+								if(getScheduledTime().equalsIgnoreCase("war")){
 									setScheduledTime(""); 
 								}else{
 									setScheduledTime("war"); 
 								}
 							}
 							
-							if(type.equals("peacetime") || type.equals("peace")){
-								if(getScheduledTime().equals("peace")){
+							if(type.equalsIgnoreCase("peacetime") || type.equalsIgnoreCase("peace")){
+								if(getScheduledTime().equalsIgnoreCase("peace")){
 									setScheduledTime(""); 
 								}else{
 									setScheduledTime("peace"); 
@@ -1046,16 +1046,16 @@ public class simpleFactions extends JavaPlugin implements Listener {
 							String weAre = getScheduledTime(); 
 							weAre = weAre.toUpperCase();
 							String rel = Config.Rel_Truce; 
-							if(weAre.equals("WAR")) rel = Config.Rel_Enemy;
+							if(weAre.equalsIgnoreCase("WAR")) rel = Config.Rel_Enemy;
 							String _message = rel + "IT IS NOW TIME FOR " + weAre + "! " 
 									+ weAre + " WILL LAST FOR " + length + " " +
 									lengthType2.toUpperCase() + "!"; 
 							
-							if(weAre.equals("")){
+							if(weAre.equalsIgnoreCase("")){
 								rel = Config.Rel_Other; 
-								if(type.equals("wartime") || type.equals("war"))
+								if(type.equalsIgnoreCase("wartime") || type.equalsIgnoreCase("war"))
 									_message = rel + "Wartime is now over.";
-								if(type.equals("peacetime") || type.equals("peace"))
+								if(type.equalsIgnoreCase("peacetime") || type.equalsIgnoreCase("peace"))
 									_message = rel + "Peacetime is now over.";
 							}
 							
@@ -1081,7 +1081,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	
     	loadPlayer(((Player) sender).getUniqueId());
     	
-    	if(!playerData.getString("factionRank").equals("officer") && !playerData.getString("factionRank").equals("leader")){
+    	if(!playerData.getString("factionRank").equalsIgnoreCase("officer") && !playerData.getString("factionRank").equalsIgnoreCase("leader")){
     		sender.sendMessage("§cYou aren't a high enough rank to do this.");
     		return true; 
     	}
@@ -1089,7 +1089,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	loadFaction(playerData.getString("faction"));
     	
     	String open = factionData.getString("open");
-    	if(open.equals("true")){
+    	if(open.equalsIgnoreCase("true")){
     		open = "false";
     		factionData.put("open", "false");
     	}else{
@@ -1106,18 +1106,18 @@ public class simpleFactions extends JavaPlugin implements Listener {
     public boolean setFactionFlag(CommandSender sender, String faction, String flag, String tr){
     	if(sender.isOp() || sender.hasPermission("simplefactions.admin")){
     		loadFaction(faction);
-    		if(flag.equals("peaceful") || flag.equals("warzone") || flag.equals("safezone")){
-    			if(tr.equals("true") || tr.equals("false")){
+    		if(flag.equalsIgnoreCase("peaceful") || flag.equalsIgnoreCase("warzone") || flag.equalsIgnoreCase("safezone")){
+    			if(tr.equalsIgnoreCase("true") || tr.equalsIgnoreCase("false")){
     				String ntr = "false";
-    				if(tr.equals("false")) ntr = "true";
+    				if(tr.equalsIgnoreCase("false")) ntr = "true";
 					factionData.put("peaceful", ntr);
 					factionData.put("warzone",  ntr);
 					factionData.put("safezone", ntr);
 					factionData.put(flag, tr);
 					saveFaction(factionData);
-					if(tr.equals("true"))
+					if(tr.equalsIgnoreCase("true"))
 						sender.sendMessage("§aThe faction " + faction + " is now a " + flag + " faction.");
-					if(tr.equals("false"))
+					if(tr.equalsIgnoreCase("false"))
 						sender.sendMessage("§aThe faction " + faction + " is no longer a " + flag + " faction.");
     			}else{
     				sender.sendMessage("§cPlease specify whether you want " + faction + " to be " + flag + " with true or false at the end.");
@@ -1145,7 +1145,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		String[] playerTop = new String[offline.length + online.size() + 1];
     		int count = 0;
     		
-    		if(arg.equals("kills") || arg.equals("deaths")){
+    		if(arg.equalsIgnoreCase("kills") || arg.equalsIgnoreCase("deaths")){
     			int[] value = new int[offline.length + online.size() + 1];
     			value[0] = 0;
     			for(int i = 0; i < offline.length; i++){
@@ -1214,7 +1214,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			
     		}
     		
-    		if(arg.equals("time")){
+    		if(arg.equalsIgnoreCase("time")){
     			arg = "time online";
     			long[] value = new long[offline.length + online.size() + 1];
     			value[0] = 0l;
@@ -1317,14 +1317,14 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				JSONArray allowed = new JSONArray();
     				JSONArray notAllowed = new JSONArray();
     		
-    		if(args[1].equals("p") || args[1].equals("r") || args[1].equals("f")){
+    		if(args[1].equalsIgnoreCase("p") || args[1].equalsIgnoreCase("r") || args[1].equalsIgnoreCase("f")){
     			
-    			if(args[1].equals("p") && !playerCheck(args[2])){
+    			if(args[1].equalsIgnoreCase("p") && !playerCheck(args[2])){
     				sender.sendMessage("Player not found!");
     				return true;
     			}
     			
-    			if(args[1].equals("f") && !factionCheck(args[2])){
+    			if(args[1].equalsIgnoreCase("f") && !factionCheck(args[2])){
     				sender.sendMessage("Faction not found!");
     				return true;
     			}
@@ -1346,16 +1346,16 @@ public class simpleFactions extends JavaPlugin implements Listener {
         			}
         		}
         		
-        		if(args[4].equals("true") || args[4].equals("yes")){
+        		if(args[4].equalsIgnoreCase("true") || args[4].equalsIgnoreCase("yes")){
         			allowed.put(args[3].toUpperCase());
         			for(int i = 0; i < notAllowed.length(); i++) 
-        				if(notAllowed.get(i).equals(args[3].toUpperCase())) 
+        				if(notAllowed.getString(i).equalsIgnoreCase(args[3].toUpperCase())) 
         					notAllowed.remove(i);
         		}
-        		if(args[4].equals("false") || args[4].equals("no")){
+        		if(args[4].equalsIgnoreCase("false") || args[4].equalsIgnoreCase("no")){
         			notAllowed.put(args[3].toUpperCase());
         			for(int i = 0; i < allowed.length(); i++) 
-        				if(allowed.get(i).equals(args[3].toUpperCase())) 
+        				if(allowed.getString(i).equalsIgnoreCase(args[3].toUpperCase())) 
         					allowed.remove(i);
         		}
 
@@ -1372,16 +1372,16 @@ public class simpleFactions extends JavaPlugin implements Listener {
         		saveFaction(factionData);
         		
         		String stype = ""; 
-        			if(args[1].equals("p")) stype = "§7The player " + Config.Rel_Faction;
-        			if(args[1].equals("r")) stype = "§7Members ranked as " + Config.Rel_Faction;
-        			if(args[1].equals("f")) stype = "§7The faction " + getFactionRelationColor(factionData.getString("name"),args[2]);
+        			if(args[1].equalsIgnoreCase("p")) stype = "§7The player " + Config.Rel_Faction;
+        			if(args[1].equalsIgnoreCase("r")) stype = "§7Members ranked as " + Config.Rel_Faction;
+        			if(args[1].equalsIgnoreCase("f")) stype = "§7The faction " + getFactionRelationColor(factionData.getString("name"),args[2]);
         		String sSubType = args[2];
         		String access = "";
-        			if(args[4].equals("true")) access = " §7can now access §a";
-        			if(args[4].equals("false")) access = " §7can no longer access §c";
+        			if(args[4].equalsIgnoreCase("true")) access = " §7can now access §a";
+        			if(args[4].equalsIgnoreCase("false")) access = " §7can no longer access §c";
         		String block = args[3].toLowerCase() + "§7";
         		String area = "";
-        		if(args.length>5 && !board.equals("")) area = " §7at§6 " + board;
+        		if(args.length>5 && !board.equalsIgnoreCase("")) area = " §7at§6 " + board;
         		messageFaction(factionData.getString("name"),stype + sSubType + access + block + area + "§7.");
         		return true;
     		}else{
@@ -1407,14 +1407,14 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		String factionRank = playerData.getString("factionRank");
 		String faction = playerData.getString("faction");
 		
-		if(factionRank.equals("leader")){
-			if(args[1].equals(sender.getName())){
+		if(factionRank.equalsIgnoreCase("leader")){
+			if(args[1].equalsIgnoreCase(sender.getName())){
 				int otherleaders = 0; 
 		    	for(String player : playerIndex){
 		    		loadPlayer(UUID.fromString(player)); 
-		    		if(playerData.getString("faction").equals(faction)){
-		    			if(!player.equals(sender.getName())){
-		    				if(playerData.getString("factionRank").equals("leader")){
+		    		if(playerData.getString("faction").equalsIgnoreCase(faction)){
+		    			if(!player.equalsIgnoreCase(sender.getName())){
+		    				if(playerData.getString("factionRank").equalsIgnoreCase("leader")){
 		    					otherleaders++;
 		    				}
 		    			}
@@ -1428,17 +1428,17 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			}
 		}
 		
-		if(factionRank.equals("officer") || factionRank.equals("leader")){
+		if(factionRank.equalsIgnoreCase("officer") || factionRank.equalsIgnoreCase("leader")){
     	if(args.length>1){
     		
-    		if(sender.getName().equals(args[1])){
+    		if(sender.getName().equalsIgnoreCase(args[1])){
     			sender.sendMessage("§cYou cannot set your own factionRank!");
     			return true;
     		}
     		
     		if(playerCheck(args[1])){
     			loadPlayer(Bukkit.getPlayer(args[1]).getUniqueId());
-    			if(!playerData.getString("faction").equals(faction)){
+    			if(!playerData.getString("faction").equalsIgnoreCase(faction)){
     				sender.sendMessage("§cThis player is not in your faction!");
     				return true;
     			}
@@ -1447,8 +1447,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			sender.sendMessage("§cPlayer not found!");
     			return true;
     		}
-    		if(args[0].equals("leader")){
-    			if(factionRank.equals("leader")){
+    		if(args[0].equalsIgnoreCase("leader")){
+    			if(factionRank.equalsIgnoreCase("leader")){
         			loadPlayer(Bukkit.getPlayer(args[1]).getUniqueId());
     				playerData.put("factionRank", "leader");
         			savePlayer(playerData);
@@ -1460,15 +1460,15 @@ public class simpleFactions extends JavaPlugin implements Listener {
             		return true;
     			}
     		}
-    		if(factionRank.equals("leader")){
-	    		if(args[0].equals("promote")){
+    		if(factionRank.equalsIgnoreCase("leader")){
+	    		if(args[0].equalsIgnoreCase("promote")){
 	    			loadPlayer(Bukkit.getPlayer(args[1]).getUniqueId());
 	    			playerData.put("factionRank", "officer");
 	        		savePlayer(playerData);
 	    			messageFaction(faction,Config.Rel_Faction + args[1] + "§a has been promoted to officer.");
 	        		return true;
 	    		}
-	    		if(args[0].equals("demote")){
+	    		if(args[0].equalsIgnoreCase("demote")){
 	    			loadPlayer(Bukkit.getPlayer(args[1]).getUniqueId());
 	    			playerData.put("factionRank", "member");
 	        		savePlayer(playerData);
@@ -1476,17 +1476,17 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	        		return true;
 	    		}
     		}else{
-	    		if(args[0].equals("promote")){
+	    		if(args[0].equalsIgnoreCase("promote")){
 	    			sender.sendMessage("You are not a high enough rank to do this.");
 	        		return true;
 	    		}
-	    		if(args[0].equals("demote")){
+	    		if(args[0].equalsIgnoreCase("demote")){
 	    			sender.sendMessage("You are not a high enough rank to do this.");
 	        		return true;
 	    		}
     		}
     		
-			if(factionRank.equals("leader")){
+			if(factionRank.equalsIgnoreCase("leader")){
     			loadPlayer(Bukkit.getPlayer(args[1]).getUniqueId());
 				playerData.put("factionRank", args[2]);
     			savePlayer(playerData);
@@ -1499,7 +1499,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			}
     	}
     	else{
-    		if(args[0].equals("setrank"))
+    		if(args[0].equalsIgnoreCase("setrank"))
         		sender.sendMessage("§cInvalid!§7 Correct usage: §b/sf setrank name factionRank");
     		else
     			sender.sendMessage("§cInvalid!§7 Correct usage: §b/sf promote§6/§bdemote§6/§bleader name");
@@ -1521,7 +1521,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	
     	for(Player player : on){
     		loadPlayer(player.getUniqueId()); 
-    		if(playerData.getString("faction").equals(faction)){
+    		if(playerData.getString("faction").equalsIgnoreCase(faction)){
     			player.getPlayer().sendMessage(message);
     		}
     	}
@@ -1530,7 +1530,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	 * This is code from 1.7.9
     	for(int i = 0; i<on.length; i++){
     		loadPlayer(on[i].getPlayer().getName());
-    		if(playerData.getString("faction").equals(faction)){
+    		if(playerData.getString("faction").equalsIgnoreCase(faction)){
     			on[i].getPlayer().sendMessage(message);
     		}
     	}
@@ -1559,7 +1559,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     public boolean setDesc(CommandSender sender, String[] args){
     	loadPlayer(((Player) sender).getUniqueId());
     	String faction = playerData.getString("faction");
-    	if(faction.equals("")){
+    	if(faction.equalsIgnoreCase("")){
     		sender.sendMessage("§cYou are not in a faction!");
     		return true;
     	}
@@ -1583,7 +1583,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * */
     public boolean setChatChannel(CommandSender sender, String[] args){
     	
-    	if(Config.configData.getString("allow simplefactions chat channels").equals("false")){
+    	if(Config.configData.getString("allow simplefactions chat channels").equalsIgnoreCase("false")){
     		sender.sendMessage("§cSimpleFactions chat channels are §6disabled §con this server. Sorry! " +
     				"Contact an admin if you believe this message is in error."); 
     		return true; 
@@ -1592,21 +1592,21 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	if(args.length>1){
     		String rel = Config.Rel_Other;
     		
-    		if(args[1].equals("f")) args[1] = "faction";
-    		if(args[1].equals("a")) args[1] = "ally";
-    		if(args[1].equals("t")) args[1] = "truce";
-    		if(args[1].equals("e")) args[1] = "enemy";
-    		if(args[1].equals("l")) args[1] = "local";
-    		if(args[1].equals("g")) args[1] = "global";
-    		if(args[1].equals("p") || args[1].equals("all") || args[1].equals("public")) args[1] = "global";
+    		if(args[1].equalsIgnoreCase("f")) args[1] = "faction";
+    		if(args[1].equalsIgnoreCase("a")) args[1] = "ally";
+    		if(args[1].equalsIgnoreCase("t")) args[1] = "truce";
+    		if(args[1].equalsIgnoreCase("e")) args[1] = "enemy";
+    		if(args[1].equalsIgnoreCase("l")) args[1] = "local";
+    		if(args[1].equalsIgnoreCase("g")) args[1] = "global";
+    		if(args[1].equalsIgnoreCase("p") || args[1].equalsIgnoreCase("all") || args[1].equalsIgnoreCase("public")) args[1] = "global";
     		
-    		if(args[1].equals("faction")) rel = Config.Rel_Faction;
-    		if(args[1].equals("ally")) rel = Config.Rel_Ally;
-    		if(args[1].equals("truce")) rel = Config.Rel_Truce;
-    		if(args[1].equals("enemy")) rel = Config.Rel_Enemy;
-    		if(args[1].equals("local")) rel = Config.Rel_Neutral;
+    		if(args[1].equalsIgnoreCase("faction")) rel = Config.Rel_Faction;
+    		if(args[1].equalsIgnoreCase("ally")) rel = Config.Rel_Ally;
+    		if(args[1].equalsIgnoreCase("truce")) rel = Config.Rel_Truce;
+    		if(args[1].equalsIgnoreCase("enemy")) rel = Config.Rel_Enemy;
+    		if(args[1].equalsIgnoreCase("local")) rel = Config.Rel_Neutral;
     		
-    		//if(args[1].equals("faction") || args[1].equals("ally") || args[1].equals("truce") || args[1].equals("enemy") || args[1].equals("local") || args[1].equals("global")){
+    		//if(args[1].equalsIgnoreCase("faction") || args[1].equalsIgnoreCase("ally") || args[1].equalsIgnoreCase("truce") || args[1].equalsIgnoreCase("enemy") || args[1].equalsIgnoreCase("local") || args[1].equalsIgnoreCase("global")){
     			loadPlayer(((Player) sender).getUniqueId());
     			playerData.put("chat channel", args[1]);
     			savePlayer(playerData);
@@ -1630,24 +1630,24 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		loadPlayer(((Player) sender).getUniqueId());
     		String faction = playerData.getString("faction");
     		String factionRank = playerData.getString("factionRank");
-    		if(faction.equals("")){
+    		if(faction.equalsIgnoreCase("")){
     			sender.sendMessage("You are not in a faction!");
     			return true;
     		}
     		else{
     			if(playerCheck(args[1])){
     				loadPlayer(Bukkit.getPlayer(args[1]).getUniqueId());
-    				if(!playerData.getString("faction").equals(faction)){
+    				if(!playerData.getString("faction").equalsIgnoreCase(faction)){
     					sender.sendMessage("Player not in your faction!");
     					return true;
     				}
     				else{
-    					if(!factionRank.equals("leader") && !factionRank.equals("officer")){
+    					if(!factionRank.equalsIgnoreCase("leader") && !factionRank.equalsIgnoreCase("officer")){
     						sender.sendMessage("You are not a high enough factionRank to kick players!");
     						return true;
     					}
     					else{
-    						if(playerData.getString("factionRank").equals("leader")){
+    						if(playerData.getString("factionRank").equalsIgnoreCase("leader")){
     							sender.sendMessage("You must demote leaders before kicking them!");
     							return true; 
     						}
@@ -1693,7 +1693,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	String factionRank = playerData.getString("factionRank");
     	sender.sendMessage("§7 ------ [" + getFactionRelationColor(faction1,faction2) + player + "§7] ------ ");
     	sender.sendMessage("§6Power: §f" + df.format(playerData.getDouble("power")));
-    	if(!playerData.getString("faction").equals("")) 
+    	if(!playerData.getString("faction").equalsIgnoreCase("")) 
     		sender.sendMessage(getFactionRelationColor(faction1,faction2) + Config.configData.getString("faction symbol left") + faction2 + 
     				Config.configData.getString("faction symbol right") + "'s §6power: " + getFactionClaimedLand(faction2) + "/" + 
     				df.format(getFactionPower(faction2)) + "/" + df.format(getFactionPowerMax(faction2)));
@@ -1721,7 +1721,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     
     public boolean playerCheck(String name){
     	for(int i = 0; i < Data.Players.length(); i++){
-    		if(Data.Players.getJSONObject(i).getString("name").equals(name)){
+    		if(Data.Players.getJSONObject(i).getString("name").equalsIgnoreCase(name)){
     			return true;
     		}
     	}
@@ -1731,7 +1731,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     
     public boolean factionCheck(String name){
     	for(int i = 0; i < Data.Factions.length(); i++){
-    		if(Data.Factions.getJSONObject(i).getString("name").equals(name)){
+    		if(Data.Factions.getJSONObject(i).getString("name").equalsIgnoreCase(name)){
     			return true;
     		}
     	}
@@ -1781,19 +1781,19 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		if(factionCheck(otherFaction)){
 
 				String relString = "";
-				if(relation.equals("enemies")) relString = Config.Rel_Enemy;
-				if(relation.equals("allies")) relString = Config.Rel_Ally;
-				if(relation.equals("truce")) relString = Config.Rel_Truce;
-				if(relation.equals("neutral")) relString = Config.Rel_Other;
+				if(relation.equalsIgnoreCase("enemies")) relString = Config.Rel_Enemy;
+				if(relation.equalsIgnoreCase("allies")) relString = Config.Rel_Ally;
+				if(relation.equalsIgnoreCase("truce")) relString = Config.Rel_Truce;
+				if(relation.equalsIgnoreCase("neutral")) relString = Config.Rel_Other;
 				
-    			if(!relation.equals("neutral")){
+    			if(!relation.equalsIgnoreCase("neutral")){
     				
     				loadPlayer(((Player) sender).getUniqueId());
     				loadFaction(senderFaction);
     				enemyData = factionData.getJSONArray(relation); //says enemy data; but it can be any of them. Just a free array
     				int k = 0;
     				for(int i = 0; i < enemyData.length(); i++){ //make sure we don't already have this relation set
-    					if(enemyData.getString(i).equals(otherFaction))
+    					if(enemyData.getString(i).equalsIgnoreCase(otherFaction))
     						k++;
     				}
     				if(k<1){
@@ -1805,21 +1805,21 @@ public class simpleFactions extends JavaPlugin implements Listener {
         				enemyData = factionData.getJSONArray("enemies");
         				allyData = factionData.getJSONArray("allies");
         				truceData = factionData.getJSONArray("truce");
-    					if(!relation.equals("enemies")){
+    					if(!relation.equalsIgnoreCase("enemies")){
         					for(int i = 0; i < enemyData.length(); i++){
-        						if(enemyData.getString(i).equals(otherFaction))
+        						if(enemyData.getString(i).equalsIgnoreCase(otherFaction))
         							enemyData.remove(i);
         					}
         				}
-        				if(!relation.equals("allies")){
+        				if(!relation.equalsIgnoreCase("allies")){
         					for(int i = 0; i < allyData.length(); i++){
-        						if(allyData.getString(i).equals(otherFaction))
+        						if(allyData.getString(i).equalsIgnoreCase(otherFaction))
         							allyData.remove(i);
         					}
         				}
-        				if(!relation.equals("truce")){
+        				if(!relation.equalsIgnoreCase("truce")){
         					for(int i = 0; i < truceData.length(); i++){
-        						if(truceData.getString(i).equals(otherFaction))
+        						if(truceData.getString(i).equalsIgnoreCase(otherFaction))
         							truceData.remove(i);
         					}
         				}
@@ -1841,24 +1841,24 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				allyData = factionData.getJSONArray("allies");
     				truceData = factionData.getJSONArray("truce");
     				
-    				if(!relation.equals("allies")){
+    				if(!relation.equalsIgnoreCase("allies")){
     					for(int i = 0; i < allyData.length(); i++){
-    						if(allyData.getString(i).equals(senderFaction))
+    						if(allyData.getString(i).equalsIgnoreCase(senderFaction))
     							allyData.remove(i);
     					}
     				}
-    				if(!relation.equals("truce")){
+    				if(!relation.equalsIgnoreCase("truce")){
     					for(int i = 0; i < truceData.length(); i++){
-    						if(truceData.getString(i).equals(senderFaction))
+    						if(truceData.getString(i).equalsIgnoreCase(senderFaction))
     							truceData.remove(i);
     					}
     				}
     				
     				
-					if(relation.equals("enemies")){
+					if(relation.equalsIgnoreCase("enemies")){
 	    				int m = 0;
 	    				for(int i = 0; i < enemyData.length(); i++){ //make sure we don't already have this relation set
-	    					if(enemyData.getString(i).equals(senderFaction))
+	    					if(enemyData.getString(i).equalsIgnoreCase(senderFaction))
 	    						m++;
 	    				}
 	    				
@@ -1876,22 +1876,22 @@ public class simpleFactions extends JavaPlugin implements Listener {
 					
     				int j = 0;
     				
-    				if(relation.equals("enemies"))
+    				if(relation.equalsIgnoreCase("enemies"))
     					for(int i = 0; i < enemyData.length(); i++)
-    						if(enemyData.getString(i).equals(senderFaction))
+    						if(enemyData.getString(i).equalsIgnoreCase(senderFaction))
     							j++;
     				
-    				if(relation.equals("allies"))	
+    				if(relation.equalsIgnoreCase("allies"))	
     					for(int i = 0; i < allyData.length(); i++)
-    						if(allyData.getString(i).equals(senderFaction))
+    						if(allyData.getString(i).equalsIgnoreCase(senderFaction))
     							j++;
     				
-    				if(relation.equals("truce"))		
+    				if(relation.equalsIgnoreCase("truce"))		
     					for(int i = 0; i < truceData.length(); i++)
-    						if(truceData.getString(i).equals(senderFaction))
+    						if(truceData.getString(i).equalsIgnoreCase(senderFaction))
     							j++;
     				
-    				if(j>0 || (j==0 && relation.equals("neutral"))){
+    				if(j>0 || (j==0 && relation.equalsIgnoreCase("neutral"))){
     					
     					
     					
@@ -1931,17 +1931,17 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				int k = 0;
     				
     				for(int i = 0; i < enemyData.length(); i++)
-    					if(enemyData.getString(i).equals(otherFaction)){
+    					if(enemyData.getString(i).equalsIgnoreCase(otherFaction)){
     						enemyData.remove(i);
     						k++;
     						}
     				for(int i = 0; i < allyData.length(); i++)
-    					if(allyData.getString(i).equals(otherFaction)){
+    					if(allyData.getString(i).equalsIgnoreCase(otherFaction)){
     						allyData.remove(i);
     						k++;
     						}
     				for(int i = 0; i < truceData.length(); i++)
-    					if(truceData.getString(i).equals(otherFaction)){
+    					if(truceData.getString(i).equalsIgnoreCase(otherFaction)){
     						truceData.remove(i);
     						k++;
     						}
@@ -1965,15 +1965,15 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				int j = 0;
     				
     				for(int i = 0; i < enemyData.length(); i++)
-    					if(enemyData.getString(i).equals(senderFaction)){
+    					if(enemyData.getString(i).equalsIgnoreCase(senderFaction)){
     						j++;
     						}
     				for(int i = 0; i < allyData.length(); i++)
-    					if(allyData.getString(i).equals(senderFaction)){
+    					if(allyData.getString(i).equalsIgnoreCase(senderFaction)){
     						j++;
     						}
     				for(int i = 0; i < truceData.length(); i++)
-    					if(truceData.getString(i).equals(senderFaction)){
+    					if(truceData.getString(i).equalsIgnoreCase(senderFaction)){
     						j++;
     						}
     				
@@ -2011,7 +2011,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
                JSONArray array = boardData.names();
                for(int i = 0; i < array.length(); i++){
                        String name = array.getString(i);
-                       if(boardData.getString(name).equals(faction)){
+                       if(boardData.getString(name).equalsIgnoreCase(faction)){
                                claimedLand++;
                        }
                }
@@ -2026,7 +2026,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	JSONArray array = boardData.names();
     	for(int i = 0; i < array.length(); i++){
     		String name = array.getString(i);
-    		if(boardData.getString(name).equals(faction)){
+    		if(boardData.getString(name).equalsIgnoreCase(faction)){
     			claimedLand++;
     		}
     	}
@@ -2047,10 +2047,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		for(int i = 0; i < off.length; i++){
 			if(!off[i].isOnline()) {
 				loadPlayer(off[i].getUniqueId());
-				if(playerData.getString("faction").equals(faction)){
+				if(playerData.getString("faction").equalsIgnoreCase(faction)){
 
 					if(off.length + on.size() >= 30){
-						if(Config.configData.getString("power cap type").equals("soft")){
+						if(Config.configData.getString("power cap type").equalsIgnoreCase("soft")){
 							factionPower += (3 * Config.configData.getInt("power cap max power") * 
 								Math.exp(-(off.length + on.size())))/(2 * Math.pow((10 * Math.exp(-(off.length + on.size()))+1),2)); 
 							continue;
@@ -2065,10 +2065,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		for (Player player : on){
 			if(player.isOnline()) {
 				loadPlayer(player.getUniqueId());
-				if(playerData.getString("faction").equals(faction)){
+				if(playerData.getString("faction").equalsIgnoreCase(faction)){
 
 					if(off.length + on.size() >= 30){
-						if(Config.configData.getString("power cap type").equals("soft")){
+						if(Config.configData.getString("power cap type").equalsIgnoreCase("soft")){
 							factionPower += (3 * Config.configData.getInt("power cap max power") * 
 								Math.exp(-(off.length + on.size())))/(2 * Math.pow((10 * Math.exp(-(off.length + on.size()))+1),2)); 
 							continue;
@@ -2085,10 +2085,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		for(int i = 0; i < on.length; i++){
 			if(on[i].isOnline()) {
 				loadPlayer(on[i].getName());
-				if(playerData.getString("faction").equals(faction)){
+				if(playerData.getString("faction").equalsIgnoreCase(faction)){
 
 					if(off.length + on.length >= 30){
-						if(configData.getString("power cap type").equals("soft")){
+						if(configData.getString("power cap type").equalsIgnoreCase("soft")){
 							factionPower += (3 * configData.getInt("power cap max power") * 
 								Math.exp(-(off.length + on.length)))/(2 * Math.pow((10 * Math.exp(-(off.length + on.length))+1),2)); 
 							continue;
@@ -2111,9 +2111,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		for(int i = 0; i < off.length; i++){
 			if(!off[i].isOnline()) {
 				loadPlayer(off[i].getUniqueId());
-				if(playerData.getString("faction").equals(faction)){
+				if(playerData.getString("faction").equalsIgnoreCase(faction)){
 					if(off.length + on.size() >= 30){
-						if(Config.configData.getString("power cap type").equals("soft")){
+						if(Config.configData.getString("power cap type").equalsIgnoreCase("soft")){
 							factionPower += ((3 * Config.configData.getInt("power cap max power") * 
 								Math.exp(-(off.length + on.size())))/(2 * 
 								Math.pow((10 * Math.exp(-(off.length + on.size()))+1),2))) *
@@ -2131,9 +2131,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		for(Player player : on){
 			if(player.isOnline()) {
 				loadPlayer(player.getUniqueId());
-				if(playerData.getString("faction").equals(faction)){
+				if(playerData.getString("faction").equalsIgnoreCase(faction)){
 					if(off.length + on.size() >= 30){
-						if(Config.configData.getString("power cap type").equals("soft")){
+						if(Config.configData.getString("power cap type").equalsIgnoreCase("soft")){
 							factionPower += ((3 * Config.configData.getInt("power cap max power") * 
 								Math.exp(-(off.length + on.size())))/(2 * 
 								Math.pow((10 * Math.exp(-(off.length + on.size()))+1),2))) *
@@ -2153,9 +2153,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		for(int i = 0; i < on.length; i++){
 			if(on[i].isOnline()) {
 				loadPlayer(on[i].getName());
-				if(playerData.getString("faction").equals(faction)){
+				if(playerData.getString("faction").equalsIgnoreCase(faction)){
 					if(off.length + on.length >= 30){
-						if(configData.getString("power cap type").equals("soft")){
+						if(configData.getString("power cap type").equalsIgnoreCase("soft")){
 							factionPower += ((3 * configData.getInt("power cap max power") * 
 								Math.exp(-(off.length + on.length)))/(2 * 
 								Math.pow((10 * Math.exp(-(off.length + on.length))+1),2))) *
@@ -2174,10 +2174,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		
 		loadFaction(faction);
 		
-		if(factionData.getString("safezone").equals("true"))
+		if(factionData.getString("safezone").equalsIgnoreCase("true"))
 			factionPower = 9999999; 
 		
-		if(factionData.getString("warzone").equals("true"))
+		if(factionData.getString("warzone").equalsIgnoreCase("true"))
 			factionPower = 9999999; 
 		
 		loadFaction(temp); 
@@ -2192,7 +2192,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	String currentclaim = "true"; 
     	if(playerData.has("autoclaim")){
     		String claim = playerData.getString("autoclaim");
-    		if(claim.equals("true"))
+    		if(claim.equalsIgnoreCase("true"))
     			playerData.put("autoclaim", "false");
     		else{
     			playerData.put("autoclaim", "true");
@@ -2203,10 +2203,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		playerData.put("autoclaim", "true");
     	}
 
-    	if(currentclaim.equals("false")){
+    	if(currentclaim.equalsIgnoreCase("false")){
         	sender.sendMessage("§aAuto claim enabled.");
 
-        	if(playerData.getString("autounclaim").equals("true"))
+        	if(playerData.getString("autounclaim").equalsIgnoreCase("true"))
         		playerData.put("autounclaim","false"); 
     	}
     	else
@@ -2223,7 +2223,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	String currentclaim = "true"; 
     	if(playerData.has("autounclaim")){
     		String claim = playerData.getString("autounclaim");
-    		if(claim.equals("true"))
+    		if(claim.equalsIgnoreCase("true"))
     			playerData.put("autounclaim", "false");
     		else{
     			playerData.put("autounclaim", "true");
@@ -2235,9 +2235,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	}
     	
     	
-    	if(currentclaim.equals("false")){
+    	if(currentclaim.equalsIgnoreCase("false")){
         	sender.sendMessage("§aAuto unclaim enabled.");
-        	if(playerData.getString("autoclaim").equals("true"))
+        	if(playerData.getString("autoclaim").equalsIgnoreCase("true"))
         		playerData.put("autoclaim","false"); 
         }
     	else
@@ -2331,7 +2331,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	
     	for(int i = 1; i < helpMessage.length(); i++){
     		if(pageCount == page) pageToDisplay+= helpMessage.charAt(i);
-    		if(helpMessage.substring(i-1, i).equals("\n")){
+    		if(helpMessage.substring(i-1, i).equalsIgnoreCase("\n")){
     			lineCount++;
     			if(lineCount>7){
     				lineCount = 0;
@@ -2356,12 +2356,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	Player player = ((Player) sender);
     	String factionName = playerData.getString("faction");
     	
-    	if(factionName.equals("")){
+    	if(factionName.equalsIgnoreCase("")){
     		sender.sendMessage("§cYou aren't in a faction.");
     		return true;
     	}
     	
-    	if(!playerData.getString("factionRank").equals("officer") && !playerData.getString("factionRank").equals("leader")){
+    	if(!playerData.getString("factionRank").equalsIgnoreCase("officer") && !playerData.getString("factionRank").equalsIgnoreCase("leader")){
     		sender.sendMessage("§cYou aren't a high enough rank to do this.");
     		return true; 
     	}
@@ -2369,7 +2369,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	Config.loadConfig(); 
     	for(int i = 0; i<Config.claimsDisabledInTheseWorlds.length(); i++){
     		String worldDisabled = Config.claimsDisabledInTheseWorlds.optString(i);
-    		if(worldDisabled.equals(player.getWorld().getName())){
+    		if(worldDisabled.equalsIgnoreCase(player.getWorld().getName())){
         		sender.sendMessage("§cHomes are disabled in §f" + player.getWorld().getName() + "§c.");
         		return true;
     		}
@@ -2404,7 +2404,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	loadFaction(faction);
     	String home = factionData.getString("home");
     	
-    	if(home.equals(""))
+    	if(home.equalsIgnoreCase(""))
     		return null;
     	
     	Scanner scan = new Scanner(home);
@@ -2424,7 +2424,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	loadPlayer(((Player) sender).getUniqueId());
     	Player player = ((Player) sender);
     	String factionName = playerData.getString("faction");
-    	if(factionName.equals("")){
+    	if(factionName.equalsIgnoreCase("")){
     		sender.sendMessage("§cYou aren't in a faction.");
     		return true;
     	}
@@ -2470,7 +2470,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * */
     public boolean invitePlayer(CommandSender sender, String invitedPlayer){
     	
-    	if(sender.getName().equals(invitedPlayer)){
+    	if(sender.getName().equalsIgnoreCase(invitedPlayer)){
     		sender.sendMessage("§cepic.");
     		return true;
     	}
@@ -2480,7 +2480,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	loadFaction(faction);
     	
     	String factionRank = playerData.getString("factionRank");
-    	if(factionRank.equals("officer") || factionRank.equals("leader")){
+    	if(factionRank.equalsIgnoreCase("officer") || factionRank.equalsIgnoreCase("leader")){
         	inviteData = factionData.getJSONArray("invited");
         	inviteData.put(invitedPlayer.toLowerCase());
         	factionData.put("invited", inviteData);
@@ -2490,7 +2490,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
         	
         	boolean invitedSomebody = false; 
         	for(Player on : Bukkit.getOnlinePlayers()){
-        		if(on.getName().equals(invitedPlayer)){
+        		if(on.getName().equalsIgnoreCase(invitedPlayer)){
         			invitedSomebody = true; 
         			loadPlayer(on.getUniqueId()); 
         			String factionString = getFactionRelationColor(playerData.getString("faction"),faction) + 
@@ -2531,7 +2531,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	
     	if(playerCheck(name)){
     		loadPlayer(Bukkit.getPlayer(name).getUniqueId());
-    		if(!playerData.getString("faction").equals(""))
+    		if(!playerData.getString("faction").equalsIgnoreCase(""))
     			sender.sendMessage(factionInformationString(sender,playerData.getString("faction")));
     		else
     			sender.sendMessage(name + " is not in a faction!");
@@ -2547,7 +2547,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		Collection<? extends Player> on = Bukkit.getOnlinePlayers();
 		for(Player player : on){
 			loadPlayer(player.getUniqueId());
-			if(playerData.getString("faction").equals(faction) && player.isOnline()) {
+			if(playerData.getString("faction").equalsIgnoreCase(faction) && player.isOnline()) {
 				factionData.put("lastOnline", System.currentTimeMillis());
 				saveFaction(factionData);
 				return true; //if anyone from faction is online, break from loop and return true; update last online time
@@ -2558,7 +2558,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		 * Code from 1.7.9
 		for(int i = 0; i < on.length; i++){
 			loadPlayer(on[i].getName());
-			if(playerData.getString("faction").equals(faction) && on[i].isOnline()) {
+			if(playerData.getString("faction").equalsIgnoreCase(faction) && on[i].isOnline()) {
 				factionData.put("lastOnline", System.currentTimeMillis());
 				saveFaction(factionData);
 				return true; //if anyone from faction is online, break from loop and return true; update last online time
@@ -2604,7 +2604,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	
     	for(int i = 0; i<enemyData.length(); i++){
     		String rel = getFactionRelationColor(faction, enemyData.getString(i));
-    		if(rel.equals(Config.Rel_Enemy)){
+    		if(rel.equalsIgnoreCase(Config.Rel_Enemy)){
     			enemy += ", " + Config.configData.getString("faction symbol left") + enemyData.getString(i) + Config.configData.getString("faction symbol right");// enemyData.getString(i);
     		}
     	}
@@ -2615,7 +2615,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			loadFaction(factionIndex.get(i));
     			enemyData = factionData.getJSONArray("enemies");
     			for(int l = 0; l<enemyData.length(); l++) 
-    				if(enemyData.getString(l).equals(faction)) 
+    				if(enemyData.getString(l).equalsIgnoreCase(faction)) 
     					enemy += ", " + Config.configData.getString("faction symbol left") + factionIndex.get(i) + Config.configData.getString("faction symbol right");
     		}
     	}
@@ -2626,7 +2626,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	
     	for(int i = 0; i<truceData.length(); i++){
     		String rel = getFactionRelationColor(faction, truceData.getString(i));
-    		if(rel.equals(Config.Rel_Truce)){
+    		if(rel.equalsIgnoreCase(Config.Rel_Truce)){
     			truce += ", " + Config.configData.getString("faction symbol left") + truceData.getString(i) + Config.configData.getString("faction symbol right"); //truceData.getString(i);
     		}
     	}
@@ -2634,7 +2634,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 
     	for(int i = 0; i<allyData.length(); i++){
     		String rel = getFactionRelationColor(faction, allyData.getString(i));
-    		if(rel.equals(Config.Rel_Ally)){
+    		if(rel.equalsIgnoreCase(Config.Rel_Ally)){
     			ally += ", " + Config.configData.getString("faction symbol left") + allyData.getString(i) + Config.configData.getString("faction symbol right");// + allyData.getString(i);
     		}
     	}
@@ -2646,14 +2646,14 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			Config.configData.getString("faction symbol left") + faction + Config.configData.getString("faction symbol right") + "§6 ---- \n";
     	factionInfo += "§6" + factionData.getString("desc") + "\n§6";
     	
-    	if(factionData.getString("safezone").equals("true"))
+    	if(factionData.getString("safezone").equalsIgnoreCase("true"))
     		factionInfo += "§6This faction is a safezone.\n"; 
-    	if(factionData.getString("warzone").equals("true"))
+    	if(factionData.getString("warzone").equalsIgnoreCase("true"))
     		factionInfo += "§cThis faction is a warzone.\n"; 
-    	if(factionData.getString("peaceful").equals("true"))
+    	if(factionData.getString("peaceful").equalsIgnoreCase("true"))
     		factionInfo += "§6This faction is peaceful.\n"; 
     	
-    	if(factionHome != null && viewingFaction.equals(faction))
+    	if(factionHome != null && viewingFaction.equalsIgnoreCase(faction))
     		factionInfo += "Home in " + factionHome.getWorld().getName() + " at x" + 
     			Math.round(factionHome.getX()) + " z" + Math.round(factionHome.getZ()) + " y" + Math.round(factionHome.getY());
     	
@@ -2666,7 +2666,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	
     	factionInfo += "§6This faction is " + isOnline + "§6.\n";
     	
-    	if(isOnline.equals("§coffline")){
+    	if(isOnline.equalsIgnoreCase("§coffline")){
     		long time = factionData.getLong("lastOnline") - System.currentTimeMillis() - (Config.configData.getInt("seconds before faction is considered really offline") * 1000);
     		int seconds = (int) (-time/1000);
     		factionInfo += "§6Has been offline for " + (seconds) + " seconds. \n";
@@ -2679,9 +2679,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		}
     	}
     	
-    	if(!ally.equals("")) factionInfo += "§dAlly: " + ally.replace("]", "").replace("[", "").replace("\"", "") + "\n§6";
-    	if(!truce.equals("")) factionInfo += "§6Truce: " + truce.replace("]", "").replace("[", "").replace("\"", "") + "\n§6";
-    	if(!enemy.equals("")) factionInfo += "§cEnemy: " + enemy.replace("]", "").replace("[", "").replace("\"", "") + "\n§6";
+    	if(!ally.equalsIgnoreCase("")) factionInfo += "§dAlly: " + ally.replace("]", "").replace("[", "").replace("\"", "") + "\n§6";
+    	if(!truce.equalsIgnoreCase("")) factionInfo += "§6Truce: " + truce.replace("]", "").replace("[", "").replace("\"", "") + "\n§6";
+    	if(!enemy.equalsIgnoreCase("")) factionInfo += "§cEnemy: " + enemy.replace("]", "").replace("[", "").replace("\"", "") + "\n§6";
     	
     	String members = "";
     	String offMembers = "";
@@ -2691,8 +2691,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		
 		for(Player player : on){
 			loadPlayer(player.getUniqueId());
-			if(playerData.getString("faction").equals(faction) && player.isOnline()) {
-				if(!members.equals("")) 
+			if(playerData.getString("faction").equalsIgnoreCase(faction) && player.isOnline()) {
+				if(!members.equalsIgnoreCase("")) 
 					members+= ", ";
 				members+="(" + playerData.getString("factionRank") + ") " + player.getName();
 			}
@@ -2700,9 +2700,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		
 		for(int i = 0; i < off.length; i++){
 			loadPlayer(off[i].getUniqueId());
-			if(playerData.getString("faction").equals(faction) && !off[i].isOnline()) {
+			if(playerData.getString("faction").equalsIgnoreCase(faction) && !off[i].isOnline()) {
 				if(!members.contains(off[i].getName())){
-					if(!offMembers.equals("")) 
+					if(!offMembers.equalsIgnoreCase("")) 
 						offMembers+= ", ";
 					offMembers+="(" + playerData.getString("factionRank") + ") " + off[i].getName();
 				}
@@ -2713,15 +2713,15 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		 * Code from 1.7.9
 		for(int i = 0; i < on.length; i++){
 			loadPlayer(on[i].getName());
-			if(playerData.getString("faction").equals(faction) && on[i].isOnline()) {
-				if(!members.equals("")) 
+			if(playerData.getString("faction").equalsIgnoreCase(faction) && on[i].isOnline()) {
+				if(!members.equalsIgnoreCase("")) 
 					members+= ", ";
 				members+="(" + playerData.getString("factionRank") + ") " + on[i].getName();
 			}
 		}*/
     	
-    	if(!members.equals("")) factionInfo += "§6Online: " + members + "\n";
-    	if(!offMembers.equals("")) factionInfo += "§6Offline: " + offMembers + "\n";
+    	if(!members.equalsIgnoreCase("")) factionInfo += "§6Online: " + members + "\n";
+    	if(!offMembers.equalsIgnoreCase("")) factionInfo += "§6Offline: " + offMembers + "\n";
     	
     	return factionInfo;
     }
@@ -2732,11 +2732,11 @@ public class simpleFactions extends JavaPlugin implements Listener {
     public boolean tryJoin(CommandSender sender, String faction){
     	if(factionIndex.contains(faction)){
     		loadPlayer(((Player) sender).getUniqueId());
-    		if(playerData.getString("faction").equals("")){
+    		if(playerData.getString("faction").equalsIgnoreCase("")){
     			loadFaction(faction);
     			inviteData = factionData.getJSONArray("invited");
     			
-    			if(inviteData.toString().contains(sender.getName().toLowerCase()) || factionData.getString("open").equals("true") || 
+    			if(inviteData.toString().contains(sender.getName().toLowerCase()) || factionData.getString("open").equalsIgnoreCase("true") || 
     					sender.isOp() || sender.hasPermission("simplefactions.admin")){
         			playerData.put("faction", faction);
         			playerData.put("factionRank", Config.configData.getString("default player factionRank"));
@@ -2772,7 +2772,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		if(scan.hasNext() && !scan.hasNextInt()){
     			filter = scan.next();
     			filter = filter.toLowerCase();
-    			if(!filter.equals("ally") && !filter.equals("enemy") && !filter.equals("truce")){
+    			if(!filter.equalsIgnoreCase("ally") && !filter.equalsIgnoreCase("enemy") && !filter.equalsIgnoreCase("truce")){
     				sender.sendMessage("§cInvalid filter!§7 Example: §b/sf list ally");
     				scan.close();
     				return true;
@@ -2784,7 +2784,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			if(page<0) page = 0;
     		}
     		else{
-    			if(filter.equals("")){
+    			if(filter.equalsIgnoreCase("")){
     				sender.sendMessage("§cPlease provide a page number.§7 Example: §b/sf list 2");
         			scan.close();
     				return true;
@@ -2811,12 +2811,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	for(int i=0; i<factionIndex.size(); i++){
     		String name = factionIndex.get(i);
         	String Rel = "";
-        	if(filter.equals("ally")) Rel = Config.Rel_Ally;
-        	if(filter.equals("enemy")) Rel = Config.Rel_Enemy;
-        	if(filter.equals("truce")) Rel = Config.Rel_Truce;
-        	if(filter.equals("")) Rel = getFactionRelationColor(factionName,name);
+        	if(filter.equalsIgnoreCase("ally")) Rel = Config.Rel_Ally;
+        	if(filter.equalsIgnoreCase("enemy")) Rel = Config.Rel_Enemy;
+        	if(filter.equalsIgnoreCase("truce")) Rel = Config.Rel_Truce;
+        	if(filter.equalsIgnoreCase("")) Rel = getFactionRelationColor(factionName,name);
         		
-        	if(!factionIndex.get(i).equals(factionName) && Rel.equals(getFactionRelationColor(factionName,name)))
+        	if(!factionIndex.get(i).equalsIgnoreCase(factionName) && Rel.equalsIgnoreCase(getFactionRelationColor(factionName,name)))
         		factionList += "  " + getFactionRelationColor(factionName,name) + "" + Config.configData.getString("faction symbol left") + name + Config.configData.getString("faction symbol right")
         			+ " " + getFactionClaimedLand(name) + "/" + df.format(getFactionPower(name)) + "/" + df.format(getFactionPowerMax(name))   + "\n";
         }
@@ -2827,7 +2827,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	
     	for(int i = 1; i < factionList.length(); i++){
     		if(pageCount == page) pageToDisplay+= factionList.charAt(i);
-    		if(factionList.substring(i-1, i).equals("\n")){
+    		if(factionList.substring(i-1, i).equalsIgnoreCase("\n")){
     			lineCount++;
     			if(lineCount>7){
     				lineCount = 0;
@@ -2841,9 +2841,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		sender.sendMessage("§cThere are only " + (pageCount+1) + " faction list pages!");
     	}
     	
-    	if(filter.equals("ally")) sender.sendMessage("§6Filter: " + Config.Rel_Ally + "Ally");
-    	if(filter.equals("truce")) sender.sendMessage("§6Filter: " + Config.Rel_Truce + "Truce");
-    	if(filter.equals("enemy")) sender.sendMessage("§6Filter: " + Config.Rel_Enemy + "Enemy");
+    	if(filter.equalsIgnoreCase("ally")) sender.sendMessage("§6Filter: " + Config.Rel_Ally + "Ally");
+    	if(filter.equalsIgnoreCase("truce")) sender.sendMessage("§6Filter: " + Config.Rel_Truce + "Truce");
+    	if(filter.equalsIgnoreCase("enemy")) sender.sendMessage("§6Filter: " + Config.Rel_Enemy + "Enemy");
     	sender.sendMessage("§6Faction List - page " + (page+1) + "/ " + (pageCount+1) + " \n" + pageToDisplay);
     	return true;
     }
@@ -2883,7 +2883,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			if(i == posZ && j == posX){
     				map += "§a+§7";
     				if(boardData.has("chunkX" + j + " chunkY" + posY + " chunkZ" + i)){
-    					if(!boardData.get("chunkX" + j + " chunkY" + posY + " chunkZ" + i).equals("")){
+    					if(!boardData.getString("chunkX" + j + " chunkY" + posY + " chunkZ" + i).equalsIgnoreCase("")){
     						factionStandingOn = boardData.get("chunkX" + j + " chunkY" + posY + " chunkZ" + i).toString();
     						//mapkey += "," + getFactionRelationColor(factionName,factionStandingOn) + factionStandingOn + " = " + mapSymbols[factionsFound];
     					}
@@ -2896,7 +2896,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     						boolean newOne = true;
     						int usekey = factionsFound+1;
     						for(int k = 0; k <= factionsFound; k++){
-    							if(factionsFoundArray[k].equals(mapFaction)){
+    							if(factionsFoundArray[k].equalsIgnoreCase(mapFaction)){
     								newOne = false;
     								usekey = k;
     							}
@@ -2938,12 +2938,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	loadPlayer(((Player) sender).getUniqueId());
     	String factionName = playerData.getString("faction");
     	
-    	if(factionName.equals("")){
+    	if(factionName.equalsIgnoreCase("")){
     		sender.sendMessage("§cYou aren't in a faction.");
     		return true;
     	}
     	
-    	if(!playerData.getString("factionRank").equals("leader") && !playerData.getString("factionRank").equals("officer")){
+    	if(!playerData.getString("factionRank").equalsIgnoreCase("leader") && !playerData.getString("factionRank").equalsIgnoreCase("officer")){
     		sender.sendMessage("§cYou aren't a high enough factionRank to do this.");
     		return true;
     	}
@@ -2958,7 +2958,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	Config.loadConfig(); 
     	for(int i = 0; i<Config.claimsDisabledInTheseWorlds.length(); i++){
     		String worldDisabled = Config.claimsDisabledInTheseWorlds.optString(i);
-    		if(worldDisabled.equals(player.getWorld().getName())){
+    		if(worldDisabled.equalsIgnoreCase(player.getWorld().getName())){
     			sender.sendMessage("§cClaims are disabled in §f" + player.getWorld().getName() + "§c.");
         		return true;
     		}
@@ -2973,7 +2973,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	posZ = Math.round(posZ / chunkSizeZ) * chunkSizeZ;
 
     	if(boardData.has("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ)){
-    		if(boardData.getString("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ).equals(factionName)){
+    		if(boardData.getString("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ).equalsIgnoreCase(factionName)){
     			sender.sendMessage("§cYou already own this land!");
     			return true;
     		}
@@ -2981,16 +2981,16 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		String faction2 = boardData.getString("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ);
     		
     		loadFaction(faction2); 
-    		if(factionData.getString("safezone").equals("true")){
+    		if(factionData.getString("safezone").equalsIgnoreCase("true")){
     			sender.sendMessage("You cannot claim over a safezone!");
     			return true; 
     		}
-    		if(factionData.getString("warzone").equals("true")){
+    		if(factionData.getString("warzone").equalsIgnoreCase("true")){
     			sender.sendMessage("You cannot claim over a warzone!");
     			return true; 
     		}
     		
-    		if(!faction2.equals("")){
+    		if(!faction2.equalsIgnoreCase("")){
     			if(getFactionPower(faction2)>=getFactionClaimedLand(faction2)){
     				sender.sendMessage(getFactionRelationColor(factionName,faction2) + Config.configData.getString("faction symbol left") + faction2 + Config.configData.getString("faction symbol right") + "§cowns this chunk.§7 If you want it, you need to lower their power before claiming it.");
     				return true;
@@ -3018,7 +3018,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	String factionName = playerData.getString("faction");
     	Config.loadConfig(); 
     	
-    	if(factionName.equals("")){
+    	if(factionName.equalsIgnoreCase("")){
     		sender.sendMessage("§cYou aren't in a faction.");
     		return true;
     	}
@@ -3034,12 +3034,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	//sender.sendMessage("x:" + posX + " y:" + posY + 
     	//		" z:" + posZ + " for the faction " + factionName + "!");
     	if(boardData.has("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ)){
-    		if(boardData.get("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ).equals("")){
+    		if(boardData.getString("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ).equalsIgnoreCase("")){
     			sender.sendMessage("§cThis area is not already claimed!");
     			return true;
     		}
     		else{
-        		if(boardData.get("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ).equals(factionName)){
+        		if(boardData.getString("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ).equalsIgnoreCase(factionName)){
         			boardData.remove("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ);
         			//sender.sendMessage("§6Chunk has been unclaimed.");
         			messageFaction(factionName,Config.Rel_Faction + sender.getName() + "§6 unclaimed " + "chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ);
@@ -3068,7 +3068,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		}
     	}
 
-		if(playerData.has("autounclaim") && playerData.getString("autounclaim").equals("false"))
+		if(playerData.has("autounclaim") && playerData.getString("autounclaim").equalsIgnoreCase("false"))
 			sender.sendMessage("§cCould not unclaim chunk!");
     	return true;
     }
@@ -3082,7 +3082,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	loadPlayer(((Player) sender).getUniqueId());
     	String factionName = playerData.getString("faction");
     	
-    	if(factionName.equals("")){
+    	if(factionName.equalsIgnoreCase("")){
     		sender.sendMessage("§cYou aren't in a faction.");
     		return true;
     	}
@@ -3090,7 +3090,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	JSONArray array = boardData.names();
     	for(int i = 0; i < array.length(); i++){
     		String name = array.getString(i);
-    		if(boardData.getString(name).equals(factionName)){
+    		if(boardData.getString(name).equalsIgnoreCase(factionName)){
     			boardData.remove(name);
     		}
     	}
@@ -3117,7 +3117,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			}
 			
 			for(int i = 0; i<factionIndex.size(); i++){
-				if(factionIndex.get(i).equals(args[1].toString())){
+				if(factionIndex.get(i).equalsIgnoreCase(args[1].toString())){
 					sender.sendMessage("§cThe faction name §f" + args[1].toString() + "§c is already taken!");
 					return false;
 				}
@@ -3126,7 +3126,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			loadPlayer(((Player) sender).getUniqueId()); //load up playerData jsonobject
 			
 			String factionName = playerData.getString("faction");
-			if(!factionName.equals("")){
+			if(!factionName.equalsIgnoreCase("")){
 				sender.sendMessage("§cYou are already in a faction!");
 				sender.sendMessage("§ccurrent faction: §b" + Config.configData.getString("faction symbol left") + factionName + Config.configData.getString("faction symbol right"));
 				sender.sendMessage("§cPlease do /sf leave in order to create a new faction!");
@@ -3196,7 +3196,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	loadPlayer(((Player) sender).getUniqueId());
     	String factionName = playerData.getString("faction");
     	
-    	if(factionName.equals("")){
+    	if(factionName.equalsIgnoreCase("")){
     		sender.sendMessage("You are not currently in a faction, silly.");
     		return true;
     	}
@@ -3204,9 +3204,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	int otherleaders = 0; 
     	for(String player : playerIndex){
     		loadPlayer(UUID.fromString(player));
-    		if(playerData.getString("faction").equals(factionName)){
-    			if(!player.equals(sender.getName())){
-    				if(playerData.getString("factionRank").equals("leader")){
+    		if(playerData.getString("faction").equalsIgnoreCase(factionName)){
+    			if(!player.equalsIgnoreCase(sender.getName())){
+    				if(playerData.getString("factionRank").equalsIgnoreCase("leader")){
     					otherleaders++;
     				}
     			}
@@ -3227,7 +3227,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	boolean canDisband = true;
     	for(String player : playerIndex){
     		loadPlayer(UUID.fromString(player));
-    		if(playerData.getString("faction").equals(factionName)){
+    		if(playerData.getString("faction").equalsIgnoreCase(factionName)){
     			canDisband = false;
     		}
     	}
@@ -3247,7 +3247,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	String uuid = ""; 
     	
     	for(int i = 0; i < Data.Factions.length(); i++){
-    		if(Data.Factions.getJSONObject(i).getString("name").equals(factionName)){
+    		if(Data.Factions.getJSONObject(i).getString("name").equalsIgnoreCase(factionName)){
     			uuid = Data.Factions.getJSONObject(i).getString("ID"); 
     			Data.Factions.remove(i); 
     		}
@@ -3260,7 +3260,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		
     	int k = -1;
     	for(int i = 0; i<factionIndex.size(); i++){
-    		if(factionIndex.get(i).equals(factionName)){
+    		if(factionIndex.get(i).equalsIgnoreCase(factionName)){
     			k = i;
     		}
     	}
@@ -3275,7 +3275,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		JSONArray array = boardData.names();
         	for(int m = 0; m < array.length(); m++){
         		String name = array.getString(m);
-        		if(boardData.getString(name).equals(factionName)){
+        		if(boardData.getString(name).equalsIgnoreCase(factionName)){
         			boardData.remove(name);
         		}
         	}
@@ -3289,23 +3289,23 @@ public class simpleFactions extends JavaPlugin implements Listener {
     public boolean tryDisband(CommandSender sender,String factionName){
     	
     	loadPlayer(((Player) sender).getUniqueId());
-    	if(playerData.getString("faction").equals("")){
+    	if(playerData.getString("faction").equalsIgnoreCase("")){
     		sender.sendMessage("You must be in a faction to do this!");
     		return true;
     	}
     	
-    	if(!playerData.getString("factionRank").equals("leader") && !sender.isOp()){
+    	if(!playerData.getString("factionRank").equalsIgnoreCase("leader") && !sender.isOp()){
     		sender.sendMessage("You cannot do this unless you are the leader of your faction!");
     		return true; 
     	}
     	
-    	if(factionName.equals("")){
+    	if(factionName.equalsIgnoreCase("")){
     		factionName = playerData.getString("faction"); 
     	}
     	
     	for(String player : playerIndex){
     		loadPlayer(UUID.fromString(player));
-    		if(playerData.getString("faction").equals(factionName)){
+    		if(playerData.getString("faction").equalsIgnoreCase(factionName)){
     			playerData.put("faction", "");
     			playerData.put("factionRank", "member");
     			savePlayer(playerData);
@@ -3378,38 +3378,38 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	String relation = Config.Rel_Other;
     	String relation2 = "";
     	
-    	if(!Config.configData.getString("enforce relations").equals("")){
+    	if(!Config.configData.getString("enforce relations").equalsIgnoreCase("")){
     		String rel = Config.configData.getString("enforce relations");
-    		if(rel.equals("enemies")) return Config.Rel_Enemy;
-    		if(rel.equals("ally")) return Config.Rel_Ally;
-    		if(rel.equals("truce")) return Config.Rel_Truce;
-    		if(rel.equals("neutral")) return Config.Rel_Other;
-    		if(rel.equals("other")) return Config.Rel_Other;
+    		if(rel.equalsIgnoreCase("enemies")) return Config.Rel_Enemy;
+    		if(rel.equalsIgnoreCase("ally")) return Config.Rel_Ally;
+    		if(rel.equalsIgnoreCase("truce")) return Config.Rel_Truce;
+    		if(rel.equalsIgnoreCase("neutral")) return Config.Rel_Other;
+    		if(rel.equalsIgnoreCase("other")) return Config.Rel_Other;
     	}
     	
-    	if(getScheduledTime().equals("war")){
+    	if(getScheduledTime().equalsIgnoreCase("war")){
 			relation="enemy";
 			relation2="enemy";
-			if(senderFaction.equals("neutral territory"))
+			if(senderFaction.equalsIgnoreCase("neutral territory"))
 				return Config.Rel_Enemy; 
     	}
     	
-    	if(getScheduledTime().equals("peace")){
+    	if(getScheduledTime().equalsIgnoreCase("peace")){
 			relation="truce";
 			relation2="truce";
-			if(senderFaction.equals("neutral territory"))
+			if(senderFaction.equalsIgnoreCase("neutral territory"))
 				return Config.Rel_Truce; 
     	}
     	
-    	if(senderFaction.equals("")){
-    		if(relation.equals("enemy")) return Config.Rel_Enemy;
-    		if(relation.equals("truce")) return Config.Rel_Truce;
+    	if(senderFaction.equalsIgnoreCase("")){
+    		if(relation.equalsIgnoreCase("enemy")) return Config.Rel_Enemy;
+    		if(relation.equalsIgnoreCase("truce")) return Config.Rel_Truce;
     	}
     	
-    	if(senderFaction.equals(reviewedFaction)) return Config.Rel_Faction;
+    	if(senderFaction.equalsIgnoreCase(reviewedFaction)) return Config.Rel_Faction;
     	
-    	if(!senderFaction.equals("") && !reviewedFaction.equals("") && !reviewedFaction.equals("neutral territory")
-    			&& !senderFaction.equals("neutral territory")) {
+    	if(!senderFaction.equalsIgnoreCase("") && !reviewedFaction.equalsIgnoreCase("") && !reviewedFaction.equalsIgnoreCase("neutral territory")
+    			&& !senderFaction.equalsIgnoreCase("neutral territory")) {
     		
     		loadFaction(senderFaction);
     		if(factionData.get("enemies").toString().contains(reviewedFaction)) relation="enemy";// return Rel_Enemy;
@@ -3430,22 +3430,22 @@ public class simpleFactions extends JavaPlugin implements Listener {
         	if(!factionData.has("peaceful"))
         		factionData.put("peaceful", "false"); 
 
-        	if(factionData.getString("peaceful").equals("true")) return Config.Rel_Truce;  
-        	if(factionData.getString("safezone").equals("true")) return Config.Rel_Truce; 
-        	if(factionData.getString("warzone").equals("true")) return Config.Rel_Enemy;
+        	if(factionData.getString("peaceful").equalsIgnoreCase("true")) return Config.Rel_Truce;  
+        	if(factionData.getString("safezone").equalsIgnoreCase("true")) return Config.Rel_Truce; 
+        	if(factionData.getString("warzone").equalsIgnoreCase("true")) return Config.Rel_Enemy;
     		
-    		if(relation.equals("enemy") || relation2.equals("enemy")) return Config.Rel_Enemy;
-    		if(relation.equals("ally") && relation2.equals("ally")) return Config.Rel_Ally;
-    		if(relation.equals("truce") && relation2.equals("truce")) return Config.Rel_Truce;
+    		if(relation.equalsIgnoreCase("enemy") || relation2.equalsIgnoreCase("enemy")) return Config.Rel_Enemy;
+    		if(relation.equalsIgnoreCase("ally") && relation2.equalsIgnoreCase("ally")) return Config.Rel_Ally;
+    		if(relation.equalsIgnoreCase("truce") && relation2.equalsIgnoreCase("truce")) return Config.Rel_Truce;
     	
     		loadFaction(senderFaction);
 
-    		if(relation.equals("enemy")) return Config.Rel_Enemy;
-    		if(relation.equals("truce")) return Config.Rel_Truce;
+    		if(relation.equalsIgnoreCase("enemy")) return Config.Rel_Enemy;
+    		if(relation.equalsIgnoreCase("truce")) return Config.Rel_Truce;
         	return relation;
     	}else{
-    		if(relation.equals("enemy")) return Config.Rel_Enemy;
-    		if(relation.equals("truce")) return Config.Rel_Truce;
+    		if(relation.equalsIgnoreCase("enemy")) return Config.Rel_Enemy;
+    		if(relation.equalsIgnoreCase("truce")) return Config.Rel_Truce;
         	return relation;
     	}
     }
@@ -3482,32 +3482,32 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		String factionEditing = playerData.getString("faction");
 		String factionBeingEdited = getFactionAt(location);
     	
-    	if(!factionBeingEdited.equals("")){
+    	if(!factionBeingEdited.equalsIgnoreCase("")){
     		String rel = getFactionRelationColor(factionEditing,factionBeingEdited);
     		
     		Boolean returnType = true;
     		String relation = "neutral";
     		String forceRel = Config.configData.getString("enforce relations");
-    		if(!getScheduledTime().equals("") && !getScheduledTime().equals("war") && !getScheduledTime().equals("peace")) rel = forceRel;
-    		if(rel.equals(Config.Rel_Ally)) relation = "ally";
-    		if(rel.equals(Config.Rel_Enemy)) relation = "enemy";
-    		if(rel.equals(Config.Rel_Truce)) relation = "truce";
-    		if(rel.equals(Config.Rel_Other)) relation = "other";
+    		if(!getScheduledTime().equalsIgnoreCase("") && !getScheduledTime().equalsIgnoreCase("war") && !getScheduledTime().equalsIgnoreCase("peace")) rel = forceRel;
+    		if(rel.equalsIgnoreCase(Config.Rel_Ally)) relation = "ally";
+    		if(rel.equalsIgnoreCase(Config.Rel_Enemy)) relation = "enemy";
+    		if(rel.equalsIgnoreCase(Config.Rel_Truce)) relation = "truce";
+    		if(rel.equalsIgnoreCase(Config.Rel_Other)) relation = "other";
     		
-			if(breakorplace.equals("break") && Config.configData.getString("protect all claimed blocks from being broken in " + relation + " territory").equals("true"))
+			if(breakorplace.equalsIgnoreCase("break") && Config.configData.getString("protect all claimed blocks from being broken in " + relation + " territory").equalsIgnoreCase("true"))
 				returnType=!returnType;
 
-			if(breakorplace.equals("place") && Config.configData.getString("protect all claimed blocks from being placed in " + relation + " territory").equals("true"))
+			if(breakorplace.equalsIgnoreCase("place") && Config.configData.getString("protect all claimed blocks from being placed in " + relation + " territory").equalsIgnoreCase("true"))
 				returnType=!returnType;
 
-			if(breakorplace.equals("break") && Config.configData.getJSONArray("block break protection in " + relation + " land").toString().contains("" + location.getBlock().getType().getId()))
+			if(breakorplace.equalsIgnoreCase("break") && Config.configData.getJSONArray("block break protection in " + relation + " land").toString().contains("" + location.getBlock().getType().getId()))
 				returnType=!returnType;
-			if(breakorplace.equals("break") && Config.configData.getJSONArray("block break protection in " + relation + " land").toString().contains(location.getBlock().getType().toString()))
+			if(breakorplace.equalsIgnoreCase("break") && Config.configData.getJSONArray("block break protection in " + relation + " land").toString().contains(location.getBlock().getType().toString()))
 				returnType=!returnType;
 			
-			if(breakorplace.equals("place") && Config.configData.getJSONArray("block place protection in " + relation + " land").toString().contains("" + location.getBlock().getType().getId()))
+			if(breakorplace.equalsIgnoreCase("place") && Config.configData.getJSONArray("block place protection in " + relation + " land").toString().contains("" + location.getBlock().getType().getId()))
 				returnType=!returnType; 
-			if(breakorplace.equals("place") && Config.configData.getJSONArray("block place protection in " + relation + " land").toString().contains(location.getBlock().getType().toString()))
+			if(breakorplace.equalsIgnoreCase("place") && Config.configData.getJSONArray("block place protection in " + relation + " land").toString().contains(location.getBlock().getType().toString()))
 				returnType=!returnType;
 
 			loadFaction(factionBeingEdited);
@@ -3538,14 +3538,14 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		    			if(j!=0 && factionData.has("p")) type = factionData.getJSONObject("p");
 		    			if(j==0 && chunk.has("p")) type = chunk.getJSONObject("p");
 		    			subtype = player.getName();
-		    			if(!factionEditing.equals(factionBeingEdited))
+		    			if(!factionEditing.equalsIgnoreCase(factionBeingEdited))
 		    				continue;
 		    		}
 					if(factionData.has("f") && k == 2){
 		    			if(j!=0 && factionData.has("f")) type = factionData.getJSONObject("f");
 		    			if(j==0 && chunk.has("f")) type = chunk.getJSONObject("f");
 		    			subtype = factionBeingEdited;
-		    			if(factionEditing.equals(factionBeingEdited))
+		    			if(factionEditing.equalsIgnoreCase(factionBeingEdited))
 		    				continue;
 		    		}
 					
@@ -3553,7 +3553,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		    			if(j!=0 && factionData.has("r")) type = factionData.getJSONObject("r");
 		    			if(j==0 && chunk.has("r")) type = chunk.getJSONObject("r");
 		    			subtype = rankEditing;
-		    			if(!factionEditing.equals(factionBeingEdited))
+		    			if(!factionEditing.equalsIgnoreCase(factionBeingEdited))
 		    				continue;
 		    		}
 		    		
@@ -3562,19 +3562,19 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		    			if(playerJson.has("allowed")){
 		    				JSONArray allowed = playerJson.getJSONArray("allowed");
 		    				for(int i = 0; i < allowed.length(); i++)
-		    					if(allowed.getString(i).equals(location.getBlock().getType().toString()))
+		    					if(allowed.getString(i).equalsIgnoreCase(location.getBlock().getType().toString()))
 		    						returnType = true;;
 		    			}if(playerJson.has("notAllowed")){
 		    				JSONArray notAllowed = playerJson.getJSONArray("notAllowed");
 		    				for(int i = 0; i < notAllowed.length(); i++)
-		    					if(notAllowed.getString(i).equals(location.getBlock().getType().toString()))
+		    					if(notAllowed.getString(i).equalsIgnoreCase(location.getBlock().getType().toString()))
 		    						returnType = false;
 		    			}
 		    		}
 		    	}
 			}
 			
-			if(getScheduledTime().equals("war")){
+			if(getScheduledTime().equalsIgnoreCase("war")){
 				Material mat = location.getBlock().getType();
 				if(mat == Material.WOOL) returnType = true; 
 			}
@@ -3603,25 +3603,25 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	String relation = "neutral";
     	
     	boolean returnType = true;
-    	if(!factionBeingEdited.equals(""))
+    	if(!factionBeingEdited.equalsIgnoreCase(""))
     		rel = getFactionRelationColor(factionEditing,factionBeingEdited);
 
-		if(rel.equals(Config.Rel_Ally)) relation = "ally";
-		if(rel.equals(Config.Rel_Enemy)) relation = "enemy";
-		if(rel.equals(Config.Rel_Truce)) relation = "truce";
-		if(rel.equals(Config.Rel_Other)) relation = "other";
+		if(rel.equalsIgnoreCase(Config.Rel_Ally)) relation = "ally";
+		if(rel.equalsIgnoreCase(Config.Rel_Enemy)) relation = "enemy";
+		if(rel.equalsIgnoreCase(Config.Rel_Truce)) relation = "truce";
+		if(rel.equalsIgnoreCase(Config.Rel_Other)) relation = "other";
 		
-		if(Config.configData.getString("block all item use by default in " + relation + " territory").equals("true"))
+		if(Config.configData.getString("block all item use by default in " + relation + " territory").equalsIgnoreCase("true"))
 			returnType=!returnType;
 
-		if(itemName.equals("") && Config.configData.getJSONArray("item protection in " + relation + " land").toString().contains("" + location.getBlock().getType().getId()))
+		if(itemName.equalsIgnoreCase("") && Config.configData.getJSONArray("item protection in " + relation + " land").toString().contains("" + location.getBlock().getType().getId()))
 			returnType=!returnType;
-		if(itemName.equals("") && Config.configData.getJSONArray("item protection in " + relation + " land").toString().contains(location.getBlock().getType().toString()))
+		if(itemName.equalsIgnoreCase("") && Config.configData.getJSONArray("item protection in " + relation + " land").toString().contains(location.getBlock().getType().toString()))
 			returnType=!returnType;
 		
-		if(!itemName.equals("") && Config.configData.getJSONArray("item protection in " + relation + " land").toString().contains("" + player.getItemInHand().getType().getId()))
+		if(!itemName.equalsIgnoreCase("") && Config.configData.getJSONArray("item protection in " + relation + " land").toString().contains("" + player.getItemInHand().getType().getId()))
 			returnType=!returnType;
-		if(!itemName.equals("") && Config.configData.getJSONArray("item protection in " + relation + " land").toString().contains(itemName))
+		if(!itemName.equalsIgnoreCase("") && Config.configData.getJSONArray("item protection in " + relation + " land").toString().contains(itemName))
 			returnType=!returnType;
 		
 		loadFaction(factionBeingEdited);
@@ -3652,14 +3652,14 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    			if(j!=0 && factionData.has("p")) type = factionData.getJSONObject("p");
 	    			if(j==0 && chunk.has("p")) type = chunk.getJSONObject("p");
 	    			subtype = player.getName();
-	    			if(!factionEditing.equals(factionBeingEdited))
+	    			if(!factionEditing.equalsIgnoreCase(factionBeingEdited))
 	    				continue;
 	    		}
 				if(factionData.has("f") && k == 2){
 	    			if(j!=0 && factionData.has("f")) type = factionData.getJSONObject("f");
 	    			if(j==0 && chunk.has("f")) type = chunk.getJSONObject("f");
 	    			subtype = factionBeingEdited;
-	    			if(factionEditing.equals(factionBeingEdited))
+	    			if(factionEditing.equalsIgnoreCase(factionBeingEdited))
 	    				continue;
 	    		}
 				
@@ -3667,7 +3667,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    			if(j!=0 && factionData.has("r")) type = factionData.getJSONObject("r");
 	    			if(j==0 && chunk.has("r")) type = chunk.getJSONObject("r");
 	    			subtype = rankEditing;
-	    			if(!factionEditing.equals(factionBeingEdited))
+	    			if(!factionEditing.equalsIgnoreCase(factionBeingEdited))
 	    				continue;
 	    		}
 	    		
@@ -3676,19 +3676,19 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    			if(playerJson.has("allowed")){
 	    				JSONArray allowed = playerJson.getJSONArray("allowed");
 	    				for(int i = 0; i < allowed.length(); i++)
-	    					if(allowed.getString(i).equals(location.getBlock().getType().toString()))
+	    					if(allowed.getString(i).equalsIgnoreCase(location.getBlock().getType().toString()))
 	    						returnType = true;;
 	    			}if(playerJson.has("notAllowed")){
 	    				JSONArray notAllowed = playerJson.getJSONArray("notAllowed");
 	    				for(int i = 0; i < notAllowed.length(); i++)
-	    					if(notAllowed.getString(i).equals(location.getBlock().getType().toString()))
+	    					if(notAllowed.getString(i).equalsIgnoreCase(location.getBlock().getType().toString()))
 	    						returnType = false;
 	    			}
 	    		}
 	    	}
 		}
 		
-		if(getScheduledTime().equals("war")){
+		if(getScheduledTime().equalsIgnoreCase("war")){
 			if(itemName.contains("steel")){
 				returnType = true; 
 			}
