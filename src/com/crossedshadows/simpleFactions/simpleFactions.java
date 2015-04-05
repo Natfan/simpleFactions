@@ -118,7 +118,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	static JSONArray inviteData = new JSONArray();
 	
 	//version
-	static String version = "1.88";
+	static String version = "1.89";
 
 	//global thing to pass to async task
 	static TNTPrimed lastCheckedTNT; 
@@ -147,6 +147,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has loaded necessary data!]");
 		scheduleSetup(); 
 		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has set up tasks!]");
+		Language.loadLanguageData();
+		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has loaded the language file!]");
 		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has enabled successfully!]");
 		
 		/*
@@ -205,7 +207,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	if(!dir_world.exists()){
     		dir_world.mkdir();
     		}
-
+    	File dir_tran = new File(dataFolder + "/translations");
+    	if(!dir_tran.exists()){
+    		dir_tran.mkdir();
+    		}
     	/*
     	FileUtil fileutil = new FileUtil();
 
@@ -442,11 +447,20 @@ public class simpleFactions extends JavaPlugin implements Listener {
     
     
     public static void loadWorld(String name){
+    	
+    	boolean exists = false; 
     	for(int i = 0; i < Data.Worlds.length(); i++){
     		if(Data.Worlds.getJSONObject(i).getString("name").equalsIgnoreCase(name)){
     			boardData = Data.Worlds.getJSONObject(i); 
+    			exists = true;
     			//Bukkit.getLogger().info("[LoadPlayer]: Player Found! /n" + playerData.toString(4)); //debug
     		} 
+    	}
+    	
+    	if(!exists){
+    		boardData = new JSONObject();
+			boardData.put("name", name);
+			saveWorld(boardData); 
     	}
     }
     
@@ -695,7 +709,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	if(command.equalsIgnoreCase("sf") || command.equalsIgnoreCase("f")){ //allow use of /f for legacy/compatibility purposes
     		if(sender instanceof Player){
     			if(args.length<1){
-    				sender.sendMessage("§6Try using a command! Example: /sf create faction");
+    				sender.sendMessage("§6" + Language.getMessage("Try using a command! Example: /sf create faction"));
     				return true;
     			}else{
     				if(args[0].equalsIgnoreCase("create") && (Config.configData.getString("only admins can create factions").equalsIgnoreCase("false") 
@@ -777,12 +791,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    						double setPower = Double.parseDouble(args[2]);
 	    						return trySetPower(sender,args[1],setPower); 
     						} catch(NumberFormatException  e){
-    							sender.sendMessage("Please provide a power!"); 
-        						sender.sendMessage("Example usage: /sf setpower player amount");
+    							sender.sendMessage(Language.getMessage("Please provide a power!")); 
+        						sender.sendMessage(Language.getMessage("Example usage: /sf setpower player amount"));
         						return true; 
     						}
     					}else{
-    						sender.sendMessage("Example usage: /sf setpower player amount");
+    						sender.sendMessage(Language.getMessage("Example usage: /sf setpower player amount"));
     						return true; 
     					}
     				}
@@ -799,19 +813,19 @@ public class simpleFactions extends JavaPlugin implements Listener {
     					if(args.length>1)
     						return invitePlayer(sender, args[1]);
     					else
-    						sender.sendMessage("§cYou must provide the name of the person you wish to invite to your faction!");
+    						sender.sendMessage("§c" + Language.getMessage("You must provide the name of the person you wish to invite to your faction!"));
     				}
     				if(args[0].equalsIgnoreCase("set")){
     					if(args.length>3)
     						return setFactionFlag(sender, args[1],args[2],args[3]);
     					else
-    						sender.sendMessage("§cYou must provide the name of the faction and flag! Example, /sf set factionname peaceful true");
+    						sender.sendMessage("§c" + Language.getMessage("You must provide the name of the faction and flag! Example, /sf set factionname peaceful true"));
     				}
     				if(args[0].equalsIgnoreCase("join")){
     					if(args.length>1)
     						return tryJoin(sender, args[1]);
     					else
-    						sender.sendMessage("§cYou must provide the name of the faction you want to join!");
+    						sender.sendMessage("§c" + Language.getMessage("You must provide the name of the faction you want to join!"));
     				}
     				if(args[0].equalsIgnoreCase("info") || args[0].equalsIgnoreCase("f")){
     					if(args.length>1)
@@ -832,7 +846,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
         							return tryDisband(sender,args[1]);
     								}
     							else{
-        							sender.sendMessage("You do not have the permissions to do this!");
+        							sender.sendMessage(Language.getMessage("You do not have the permissions to do this!"));
         							return true;
     								}
     							}
@@ -844,7 +858,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     							if(playerData.getString("faction").equalsIgnoreCase(args[1]))
             						return tryDisband(sender,factionName);
         						else{
-        							sender.sendMessage("You aren't a member of this faction!");
+        							sender.sendMessage(Language.getMessage("You aren't a member of this faction!"));
         							return true;
         							}
     						}else{
@@ -871,7 +885,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
         	playerData.put("power", playerPower);
         	savePlayer(playerData);
     	}else{
-    		sender.sendMessage("Player is not online or does not exist!"); 
+    		sender.sendMessage(Language.getMessage("Player is not online or does not exist!")); 
     	}
     	
     	
@@ -883,9 +897,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	//		/sf schedule (wartime / peacetime) (every number) (minutes/hours/days/weeks) (lasting for number) (minutes/hours/days/weeks)
     	//	
     	if(args.length<5){
-    		sender.sendMessage("Incorrect format! Example: /sf schedule (wartime / peacetime) " +
-    				"(every number) (minutes/hours/days/weeks) " +
-    				"(lasting for number) (minutes/hours/days/weeks)"); 
+    		sender.sendMessage(Language.getMessage("Incorrect format! Example: /sf schedule (wartime / peacetime)") + " " +
+    				Language.getMessage("(every number) (minutes/hours/days/weeks)") + " " +
+    				Language.getMessage("(lasting for number) (minutes/hours/days/weeks)")); 
     		return true;
     	}else{
 
@@ -1082,7 +1096,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	loadPlayer(((Player) sender).getUniqueId());
     	
     	if(!playerData.getString("factionRank").equalsIgnoreCase("officer") && !playerData.getString("factionRank").equalsIgnoreCase("leader")){
-    		sender.sendMessage("§cYou aren't a high enough rank to do this.");
+    		sender.sendMessage("§c" + Language.getMessage("You aren't a high enough rank to do this."));
     		return true; 
     	}
     	
@@ -1116,17 +1130,17 @@ public class simpleFactions extends JavaPlugin implements Listener {
 					factionData.put(flag, tr);
 					saveFaction(factionData);
 					if(tr.equalsIgnoreCase("true"))
-						sender.sendMessage("§aThe faction " + faction + " is now a " + flag + " faction.");
+						sender.sendMessage("§a" + Language.getMessage("The faction") + " " + faction + " " + Language.getMessage("is now a") + " " + flag + " " + Language.getMessage("faction."));
 					if(tr.equalsIgnoreCase("false"))
-						sender.sendMessage("§aThe faction " + faction + " is no longer a " + flag + " faction.");
+						sender.sendMessage("§a" + Language.getMessage("The faction") + faction + " " + Language.getMessage("is no longer a") + " " + flag + " " + Language.getMessage("faction."));
     			}else{
-    				sender.sendMessage("§cPlease specify whether you want " + faction + " to be " + flag + " with true or false at the end.");
+    				sender.sendMessage("§c" + Language.getMessage("Please specify whether you want")  + faction + " " + Language.getMessage("to be") + " " + flag + " " + Language.getMessage("with true or false at the end."));
     			}
     		}else{
-    			sender.sendMessage("§cPlease use either peaceful, warzone, or safezone.");
+    			sender.sendMessage("§c" + Language.getMessage("Please use either peaceful, warzone, or safezone."));
     		}
     	}else{
-    		sender.sendMessage("§cYou must be a server OP or have the simplefactions.admin permission to do this!");
+    		sender.sendMessage("§c" + Language.getMessage("You must be a server OP or have the simplefactions.admin permission to do this!"));
     	}
     	return true;
     }
@@ -1320,12 +1334,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		if(args[1].equalsIgnoreCase("p") || args[1].equalsIgnoreCase("r") || args[1].equalsIgnoreCase("f")){
     			
     			if(args[1].equalsIgnoreCase("p") && !playerCheck(args[2])){
-    				sender.sendMessage("Player not found!");
+    				sender.sendMessage(Language.getMessage("Player not found!"));
     				return true;
     			}
     			
     			if(args[1].equalsIgnoreCase("f") && !factionCheck(args[2])){
-    				sender.sendMessage("Faction not found!");
+    				sender.sendMessage(Language.getMessage("Faction not found!"));
     				return true;
     			}
     			
@@ -1403,6 +1417,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	// -1  0         1     2
     	// sf setrank player factionRank
     	// sf promote player
+    	
+    	if(args.length<2){
+    		sender.sendMessage(Language.getMessage("Please provide a name!"));
+    		return true; 
+    	}
+    	
     	loadPlayer(((Player) sender).getUniqueId());
 		String factionRank = playerData.getString("factionRank");
 		String faction = playerData.getString("faction");
@@ -1422,7 +1442,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		    	}
 		    	
 		    	if(otherleaders==0){
-		    		sender.sendMessage("You must promote another player before changing your own rank!");
+		    		sender.sendMessage(Language.getMessage("You must promote another player before changing your own rank!"));
 					return true; 
 		    	}
 			}
@@ -1432,19 +1452,19 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	if(args.length>1){
     		
     		if(sender.getName().equalsIgnoreCase(args[1])){
-    			sender.sendMessage("§cYou cannot set your own factionRank!");
+    			sender.sendMessage("§c" + Language.getMessage("You cannot set your own factionRank!"));
     			return true;
     		}
     		
     		if(playerCheck(args[1])){
     			loadPlayer(Bukkit.getPlayer(args[1]).getUniqueId());
     			if(!playerData.getString("faction").equalsIgnoreCase(faction)){
-    				sender.sendMessage("§cThis player is not in your faction!");
+    				sender.sendMessage("§c" + Language.getMessage("This player is not in your faction!"));
     				return true;
     			}
     		}
     		else{
-    			sender.sendMessage("§cPlayer not found!");
+    			sender.sendMessage("§c" + Language.getMessage("Player not found!"));
     			return true;
     		}
     		if(args[0].equalsIgnoreCase("leader")){
@@ -1456,7 +1476,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				return true;
     			}
     			else{
-    				sender.sendMessage("§cOnly leaders can select new leaders!");
+    				sender.sendMessage("§c" + Language.getMessage("Only leaders can select new leaders!"));
             		return true;
     			}
     		}
@@ -1477,11 +1497,11 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    		}
     		}else{
 	    		if(args[0].equalsIgnoreCase("promote")){
-	    			sender.sendMessage("You are not a high enough rank to do this.");
+	    			sender.sendMessage(Language.getMessage("You are not a high enough rank to do this."));
 	        		return true;
 	    		}
 	    		if(args[0].equalsIgnoreCase("demote")){
-	    			sender.sendMessage("You are not a high enough rank to do this.");
+	    			sender.sendMessage(Language.getMessage("You are not a high enough rank to do this."));
 	        		return true;
 	    		}
     		}
@@ -1494,20 +1514,20 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			return true;
 			}
 			else{
-				sender.sendMessage("§cOnly leaders can set custom ranks!");
+				sender.sendMessage("§c" + Language.getMessage("Only leaders can set custom ranks!"));
 	    		return true;
 			}
     	}
     	else{
     		if(args[0].equalsIgnoreCase("setrank"))
-        		sender.sendMessage("§cInvalid!§7 Correct usage: §b/sf setrank name factionRank");
+        		sender.sendMessage("§c" + Language.getMessage("Invalid!") + "§7 " + Language.getMessage("Correct usage:") + "§b/sf" + Language.getMessage("setrank name factionRank"));
     		else
-    			sender.sendMessage("§cInvalid!§7 Correct usage: §b/sf promote§6/§bdemote§6/§bleader name");
+    			sender.sendMessage("§c" + Language.getMessage("Invalid!") + "§7 " + Language.getMessage("Correct usage:") + " §b/sf" + Language.getMessage("promote") + "§6/§b" + Language.getMessage("demote") + "§6/§b" + Language.getMessage("leader") + Language.getMessage("name"));
     		
     		return true;
     	}
     	}else{
-    		sender.sendMessage("§cYour factionRank isn't high enough to do this!");
+    		sender.sendMessage("§c" + Language.getMessage("Your factionRank isn't high enough to do this!"));
     		return true;
     	}
     	
@@ -1560,7 +1580,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	loadPlayer(((Player) sender).getUniqueId());
     	String faction = playerData.getString("faction");
     	if(faction.equalsIgnoreCase("")){
-    		sender.sendMessage("§cYou are not in a faction!");
+    		sender.sendMessage("§c" + Language.getMessage("You are not in a faction!"));
     		return true;
     	}
     	if(args.length>1){
@@ -1573,7 +1593,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		messageFaction(faction, "§7Description updated: §f" + desc);
     		return true;
     	}else{
-    		sender.sendMessage("§cPlease provide a description! Example: /sf desc Example Description");
+    		sender.sendMessage("§c" + Language.getMessage("Please provide a description!") + " " + 
+    				Language.getMessage("Example: /sf desc Example Description"));
     		return true;
     	}
     }
@@ -1584,8 +1605,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
     public boolean setChatChannel(CommandSender sender, String[] args){
     	
     	if(Config.configData.getString("allow simplefactions chat channels").equalsIgnoreCase("false")){
-    		sender.sendMessage("§cSimpleFactions chat channels are §6disabled §con this server. Sorry! " +
-    				"Contact an admin if you believe this message is in error."); 
+    		sender.sendMessage("§c" + Language.getMessage("SimpleFactions chat channels are") + 
+    				" §6" + Language.getMessage("disabled") + " §c" + Language.getMessage("on this server. Sorry!") + " " +
+    				Language.getMessage("Contact an admin if you believe this message is in error.")); 
     		return true; 
     	}
     	
@@ -1610,12 +1632,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			loadPlayer(((Player) sender).getUniqueId());
     			playerData.put("chat channel", args[1]);
     			savePlayer(playerData);
-    			sender.sendMessage("You have switched to " + rel + args[1] + " chat.");
+    			sender.sendMessage(Language.getMessage("You have switched to") + " " + rel + args[1] + " " + Language.getMessage("chat."));
     		//}
     	}
     	else{
-    		sender.sendMessage("Default chat channels: " + Config.Rel_Faction + "faction, " + Config.Rel_Ally + "ally, " + 
-    				Config.Rel_Truce + "truce, " + Config.Rel_Enemy + "enemy, " + Config.Rel_Neutral + "local, " + Config.Rel_Other + "global.");
+    		sender.sendMessage(Language.getMessage("Default chat channels") + ": " + Config.Rel_Faction + Language.getMessage("faction") + ", " + Config.Rel_Ally + Language.getMessage("ally") + ", " + 
+    				Config.Rel_Truce + Language.getMessage("truce") + ", " + Config.Rel_Enemy + Language.getMessage("enemy") + ", " + Config.Rel_Neutral + Language.getMessage("local") + ", " + Config.Rel_Other + Language.getMessage("global") + ".");
     	}
     	
     	return true;
@@ -1631,43 +1653,43 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		String faction = playerData.getString("faction");
     		String factionRank = playerData.getString("factionRank");
     		if(faction.equalsIgnoreCase("")){
-    			sender.sendMessage("You are not in a faction!");
+    			sender.sendMessage(Language.getMessage("You are not in a faction!"));
     			return true;
     		}
     		else{
     			if(playerCheck(args[1])){
     				loadPlayer(Bukkit.getPlayer(args[1]).getUniqueId());
     				if(!playerData.getString("faction").equalsIgnoreCase(faction)){
-    					sender.sendMessage("Player not in your faction!");
+    					sender.sendMessage(Language.getMessage("Player not in your faction!"));
     					return true;
     				}
     				else{
     					if(!factionRank.equalsIgnoreCase("leader") && !factionRank.equalsIgnoreCase("officer")){
-    						sender.sendMessage("You are not a high enough factionRank to kick players!");
+    						sender.sendMessage(Language.getMessage("You are not a high enough factionRank to kick players!"));
     						return true;
     					}
     					else{
     						if(playerData.getString("factionRank").equalsIgnoreCase("leader")){
-    							sender.sendMessage("You must demote leaders before kicking them!");
+    							sender.sendMessage(Language.getMessage("You must demote leaders before kicking them!"));
     							return true; 
     						}
     						playerData.put("faction", "");
     						savePlayer(playerData);
     						messageFaction(faction,Config.Rel_Other + playerData.getString("name") + "§7 kicked from faction by " + Config.Rel_Faction + sender.getName());
-    						Bukkit.getPlayer(playerData.getString("name")).sendMessage("You have been kicked from your faction!");
-    			    		//sender.sendMessage("Player kicked from faction!");
+    						Bukkit.getPlayer(playerData.getString("name")).sendMessage(Language.getMessage("You have been kicked from your faction!"));
+    			    		//sender.sendMessage(Language.getMessage("Player kicked from faction!"));
     						return true;
     					}
     				} 
     			}
     			else{
-    				sender.sendMessage("Player not found!");
+    				sender.sendMessage(Language.getMessage("Player not found!"));
     				return true;
     			}
     		}
     	}
     	else{
-    		sender.sendMessage("Please specify a player that you wish to kick from your faction.");
+    		sender.sendMessage(Language.getMessage("Please specify a player that you wish to kick from your faction."));
     	}
     	return true;
     }
@@ -1681,7 +1703,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		if(playerCheck(args[1]))
     			player = args[1];
     		else{
-    			sender.sendMessage("§cPlayer not found.");
+    			sender.sendMessage("§c" + Language.getMessage("Player not found."));
     			return true; 
     		}
     	}
@@ -1693,28 +1715,28 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	String faction2 = playerData.getString("faction");
     	String factionRank = playerData.getString("factionRank");
     	sender.sendMessage("§7 ------ [" + getFactionRelationColor(faction1,faction2) + player + "§7] ------ ");
-    	sender.sendMessage("§6Power: §f" + df.format(playerData.getDouble("power")));
+    	sender.sendMessage("§6" + Language.getMessage("Power") + ": §f" + df.format(playerData.getDouble("power")));
     	if(!playerData.getString("faction").equalsIgnoreCase("")) 
     		sender.sendMessage(getFactionRelationColor(faction1,faction2) + Config.configData.getString("faction symbol left") + faction2 + 
-    				Config.configData.getString("faction symbol right") + "'s §6power: " + getFactionClaimedLand(faction2) + "/" + 
+    				Config.configData.getString("faction symbol right") + "'s §6" + Language.getMessage("power") +": " + getFactionClaimedLand(faction2) + "/" + 
     				df.format(getFactionPower(faction2)) + "/" + df.format(getFactionPowerMax(faction2)));
-    	sender.sendMessage("§6Gaining §f" + df.format(Config.configData.getDouble("power per hour while online")) + "§6 power an hour while online.");
-    	sender.sendMessage("§6Losing §f" + df.format(-1*Config.configData.getDouble("power per hour while offline")) + "§6 power an hour while offline.");
+    	sender.sendMessage("§6" + Language.getMessage("Gaining") +" §f" + df.format(Config.configData.getDouble("power per hour while online")) + "§6 " + Language.getMessage("power an hour while online") + ".");
+    	sender.sendMessage("§6" + Language.getMessage("Losing") + " §f" + df.format(-1*Config.configData.getDouble("power per hour while offline")) + "§6 " + Language.getMessage("power an hour while offline") + ".");
     	loadPlayer(Bukkit.getOfflinePlayer(player).getUniqueId());
-    	sender.sendMessage("§6Rank: " + factionRank);
-    	sender.sendMessage("§6Kills: " + playerData.getInt("kills"));
-    	sender.sendMessage("§6Deaths: " + playerData.getInt("deaths"));
+    	sender.sendMessage("§6" + Language.getMessage("Rank") + ": " + factionRank);
+    	sender.sendMessage("§6" + Language.getMessage("Kills") + ": " + playerData.getInt("kills"));
+    	sender.sendMessage("§6" + Language.getMessage("Deaths") + ": " + playerData.getInt("deaths"));
     	
     	Long timeOnline = playerData.getLong("time online");
     	int seconds = (int) (timeOnline / 1000) % 60 ;
     	int minutes = (int) ((timeOnline / (1000*60)) % 60);
     	int hours   = (int) ((timeOnline / (1000*60*60)) % 24);
-    	sender.sendMessage("§6Time on server: " + hours + " hours, " + minutes + " minutes, " + seconds + " seconds.");
+    	sender.sendMessage("§6" + Language.getMessage("Time on server") + ": " + hours + " " + Language.getMessage("hours") + ", " + minutes + " " + Language.getMessage("minutes") + ", " + seconds + " " + Language.getMessage("seconds") + ".");
     	
     	Long lastOnline = playerData.getLong("last online");
     	SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy HH:mm");
         Date resultdate = new Date(lastOnline);
-    	sender.sendMessage("§6Last online: " + sdf.format(resultdate) + " (server time)");
+    	sender.sendMessage("§6" + Language.getMessage("Last online") + ": " + sdf.format(resultdate) + " (" + Language.getMessage("server time") + ")");
     	
     	return true;
     }
@@ -1831,7 +1853,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
         				saveFaction(factionData);
         				
     				}else{
-    					sender.sendMessage("§cYou have already this relation set!");
+    					sender.sendMessage("§c" + Language.getMessage("You have already this relation set") + "!");
     					return true;
     				}
     				
@@ -1948,7 +1970,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     						}
     				
     				if(k==0){
-    					sender.sendMessage("§6You are already neutral with " + getFactionRelationColor(senderFaction,otherFaction) + 
+    					sender.sendMessage("§6" + Language.getMessage("You are already neutral with") + " " + getFactionRelationColor(senderFaction,otherFaction) + 
     							Config.configData.getString("faction symbol left") + otherFaction + Config.configData.getString("faction symbol right") + "§6!");
     					return true;
     				}
@@ -1979,24 +2001,24 @@ public class simpleFactions extends JavaPlugin implements Listener {
     						}
     				
     				if(k>0 && j==0){
-    					sender.sendMessage("§6You are now neutral with " + getFactionRelationColor(senderFaction,otherFaction) + 
+    					sender.sendMessage("§6" + Language.getMessage("You are now neutral with") + " " + getFactionRelationColor(senderFaction,otherFaction) + 
     							Config.configData.getString("faction symbol left") + otherFaction + Config.configData.getString("faction symbol right") + "§6.");
     					return true;
     				}
     				if(k>0 && j>0){
-    					sender.sendMessage("§6You have asked " + getFactionRelationColor(senderFaction,otherFaction) +
+    					sender.sendMessage("§6" + Language.getMessage("You have asked") + " " + getFactionRelationColor(senderFaction,otherFaction) +
     							Config.configData.getString("faction symbol left") + otherFaction + Config.configData.getString("faction symbol right") + 
-    							"§6 if they would like to become " + relString + "neutral.");
+    							"§6 " + Language.getMessage("if they would like to become") + " " + relString + "" + Language.getMessage("neutral") + ".");
     					return true;
     				}
     			}
     		}
     		else{
-    			sender.sendMessage("§cThis faction doesn't exist!");
+    			sender.sendMessage("§c" + Language.getMessage("This faction doesn't exist") + "!");
     		}
     	}
     	else{
-    		sender.sendMessage("§cYou must provide the name of the faction that you wish to enemy! Example: /sf enemy factionName");
+    		sender.sendMessage("§c" + Language.getMessage("You must provide the name of the faction that you wish to enemy! Example: /sf enemy factionName"));
     	}
     	return true;
     }
@@ -2205,13 +2227,13 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	}
 
     	if(currentclaim.equalsIgnoreCase("false")){
-        	sender.sendMessage("§aAuto claim enabled.");
+        	sender.sendMessage("§a" + Language.getMessage("Auto claim enabled."));
 
         	if(playerData.getString("autounclaim").equalsIgnoreCase("true"))
         		playerData.put("autounclaim","false"); 
     	}
     	else
-        	sender.sendMessage("§aAuto claim disabled.");
+        	sender.sendMessage("§a" + Language.getMessage("Auto claim disabled."));
     	
     	savePlayer(playerData);
     	return true;
@@ -2237,12 +2259,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	
     	
     	if(currentclaim.equalsIgnoreCase("false")){
-        	sender.sendMessage("§aAuto unclaim enabled.");
+        	sender.sendMessage("§a" + Language.getMessage("Auto unclaim enabled."));
         	if(playerData.getString("autoclaim").equalsIgnoreCase("true"))
         		playerData.put("autoclaim","false"); 
         }
     	else
-        	sender.sendMessage("§aAuto unclaim disabled.");
+        	sender.sendMessage("§a" + Language.getMessage("Auto unclaim disabled."));
 
     	savePlayer(playerData);
     	return true;
@@ -2261,70 +2283,70 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			if(page<0) page = 0;
     		}
     		else{
-    			sender.sendMessage("§cPlease provide a page number. Example: /sf help 2");
+    			sender.sendMessage("§c" + Language.getMessage("Please provide a page number. Example:") + " /sf help 2");
         		scan.close();
     			return true;
     		}
     		scan.close();
     	}
-    	String helpMessage =  "  §6 /sf - §aBase command." + "\n";
-    		   helpMessage += " §6 help (page)- §aList of commands (wip)" + "\n";
-    		   helpMessage += " §6 create (name) - §aCreate a faction with specified name" + "\n";
-    		   helpMessage += " §6 join (name) - §aJoin a faction with specified name" + "\n";
-    		   helpMessage += " §6 invite (name) - §aInvite a player to your faction." + "\n";
-    		   helpMessage += " §6 disband (§f(optional)§6name) - §aDisband a faction." + "\n";
+    	String helpMessage =  "  §6 /sf - §a" + Language.getMessage("Base command") + "." + "\n";
+    		   helpMessage += " §6 help (" + Language.getMessage("page") + ")- §a" + Language.getMessage("List of commands") + "\n";
+    		   helpMessage += " §6 create (" + Language.getMessage("name") + ") - §a" + Language.getMessage("Create a faction with specified name") + "\n";
+    		   helpMessage += " §6 join (" + Language.getMessage("name") + ") - §a" + Language.getMessage("Join a faction with specified name") + "\n";
+    		   helpMessage += " §6 invite (" + Language.getMessage("name") + ") - §a" + Language.getMessage("Invite a player to your faction.") + "\n";
+    		   helpMessage += " §6 disband (§f(" + Language.getMessage("optional") + ")§6" + Language.getMessage("name") + ") - §a" + Language.getMessage("Disband a faction.") + "\n";
     		   helpMessage += " §6 leave - §aLeave your faction." + "\n";
-    		   helpMessage += " §6 kick (name) - §aKicks member from faction.." + "\n";
+    		   helpMessage += " §6 kick (" + Language.getMessage("name") + ") - §a" + Language.getMessage("Kicks member from faction.") + "\n";
     		   
     		   //2
-    		   helpMessage += " §6 claim - §aClaims a chunk of land for your faction." + "\n";
-    		   helpMessage += " §6 sethome - §aSet a warp home and respawn point for faction." + "\n";
-    		   helpMessage += " §6 home - §aTeleport home." + "\n";
-    		   helpMessage += " §6 map - §aDraws a map of surrounding faction land." + "\n";
-    		   helpMessage += " §6 info (name) - §aShows info on a faction." + "\n";
-    		   helpMessage += " §6 player (name) - §aShow info on a player." + "\n";
-    		   helpMessage += " §6 list (page) - §aCreates a list of Factions." + "\n";
-    		   helpMessage += " §6 auto(un)claim - §aToggles auto(un)claiming of land." + "\n";
+    		   helpMessage += " §6 claim - §a" + Language.getMessage("Claims a chunk of land for your faction.") + "\n";
+    		   helpMessage += " §6 sethome - §a" + Language.getMessage("Set a warp home and respawn point for faction.") + "\n";
+    		   helpMessage += " §6 home - §a" + Language.getMessage("Teleport home.") + "\n";
+    		   helpMessage += " §6 map - §a" + Language.getMessage("Draws a map of surrounding faction land.") + "\n";
+    		   helpMessage += " §6 info (name) - §a" + Language.getMessage("Shows info on a faction.") + "\n";
+    		   helpMessage += " §6 player (name) - §a" + Language.getMessage("Show info on a player.") + "\n";
+    		   helpMessage += " §6 list (page) - §a" + Language.getMessage("Creates a list of Factions.") + "\n";
+    		   helpMessage += " §6 auto(un)claim - §a" + Language.getMessage("Toggles auto(un)claiming of land.") + "\n";
     		   
     		   //3
-    		   helpMessage += " §6 chat (channel) - §aSwitches to specified channel." + "\n";
-    		   helpMessage += " §a(also works with abbreviations such as §b/sf c g§a" + "\n";
-    		   helpMessage += " §aor §b/sf c f§a. Custom channels supported.)" + "\n";
+    		   helpMessage += " §6 chat (channel) - §a" + Language.getMessage("Switches to specified channel.") + "\n";
+    		   helpMessage += " §a(" + Language.getMessage("also works with abbreviations such as") + " §b/sf c g§a" + "\n";
+    		   helpMessage += " §a" + Language.getMessage("or") + " §b/sf c f§a. " +  Language.getMessage("Custom channels supported.") + ")" + "\n";
     		   helpMessage += " \n";
-    		   helpMessage += " §6Claims explination:§a In order to claim someone" + "\n";
-    		   helpMessage += " §aelse's land, their land claimed must be higher " + "\n";
-    		   helpMessage += " §athan their current power! Kill them to lower their" + "\n";
-    		   helpMessage += " §apower in order to claim their land." + "\n";
+    		   helpMessage += " §6" + Language.getMessage("Claims explanation") + ":§a " + Language.getMessage("In order to claim someone") + "\n";
+    		   helpMessage += " §a" + Language.getMessage("else's land, their land claimed must be higher") + " " + "\n";
+    		   helpMessage += " §a" + Language.getMessage("than their current power! Kill them to lower their") + "\n";
+    		   helpMessage += " §a" + Language.getMessage("power in order to claim their land.") + "\n";
     	
     		   //4
-    		   helpMessage += " §6 access type(p/r/f) name(player/factionRank/faction) " + "\n"; 
-    		   helpMessage += " §6 block(block) allow(true/false) thisChunkOnly(true/false) " + "\n"; 
-    		   helpMessage += " §a - This very powerful command will allow you to edit  " + "\n"; 
-    		   helpMessage += " §a permissions to your liking, within your faction!  " + "\n"; 
+    		   helpMessage += " §6 access " + Language.getMessage("type") + "(p/r/f) " + Language.getMessage("name") + "(" + Language.getMessage("player/factionRank/faction") + ") " + "\n"; 
+    		   helpMessage += " §6 " + Language.getMessage("block") + "(" + Language.getMessage("block") + ") " + "allow(true/false)" + " " + Language.getMessage("thisChunkOnly(true/false)") + "\n"; 
+    		   helpMessage += " §a - " + Language.getMessage("This very powerful command will allow you to edit") + "  " + "\n"; 
+    		   helpMessage += " §a " + Language.getMessage("permissions to your liking, within your faction!") + "  " + "\n"; 
     		   helpMessage += " \n"; 
-    		   helpMessage += " §6 promote (player) - §aPromotes player to officer." + "\n"; 
-    		   helpMessage += " §6 demote (player) - §aDemotes player to member." + "\n"; 
-    		   helpMessage += " §6 leader (player) - §aAdds leader to faction." + "\n";
+    		   helpMessage += " §6 promote (" + Language.getMessage("player") + ") - §a" + Language.getMessage("Promotes player to officer.") + "\n"; 
+    		   helpMessage += " §6 demote (" + Language.getMessage("player") + ") - §a" + Language.getMessage("Demotes player to member.") + "\n"; 
+    		   helpMessage += " §6 leader (" + Language.getMessage("player") + ") - §a" + Language.getMessage("Adds leader to faction.") + "\n";
 
     		   //5
-    		   helpMessage += " §6 top §7<§btime§7/§bkills§7/§bdeaths§7 - §aShows server's top stats." + "\n";
-    		   helpMessage += " §6 setrank (name) (factionRank) - §aYou can specify a" + "\n"; 
-    		   helpMessage += "  §aspecific factionRank to give a player. You can even" + "\n"; 
-    		   helpMessage += "  §ause custom factionRank names (with /sf access) to " + "\n"; 
-    		   helpMessage += "  §acreate entirely new faction ranks!" + "\n"; 
+    		   helpMessage += " §6 " + Language.getMessage("top") + " §7<§b" + Language.getMessage("time") + "§7/§b" + Language.getMessage("kills") + "§7/§b" + Language.getMessage("deaths") + "§7 - §a" + Language.getMessage("Shows server's top stats.") + "\n";
+    		   helpMessage += " §6 setrank (" + Language.getMessage("name") + ") (" + Language.getMessage("factionRank") + ") - §a" + Language.getMessage("You can specify a") + "\n"; 
+    		   helpMessage += "  §a" + Language.getMessage("specific factionRank to give a player. You can even") + "\n"; 
+    		   helpMessage += "  §a" + Language.getMessage("use custom factionRank names (with /sf access) to") + " " + "\n"; 
+    		   helpMessage += "  §a" + Language.getMessage("create entirely new faction ranks!") + "\n"; 
     		   helpMessage += " \n"; 
     		   helpMessage += " \n"; 
     		   helpMessage += " \n"; 
     		   
     		   //6
-    		   helpMessage += " §6 set (peaceful/safezone/warzone) (true/false) - §aSets flag for faction." + "\n";
-    		   helpMessage += " §aIf peaceful, land cannot be damaged and players cannot be hurt." + "\n";
-    		   helpMessage += " §aIf safezone, land cannot be damaged and anyone inside of the land cannot be hurt." + "\n";
-    		   helpMessage += " §aIf warzone, land cannot be damaged and friendly fire inside of land is enabled." + "\n";
-    		   helpMessage += " \n"; 
+    		   helpMessage += " §6 set " + Language.getMessage("(peaceful/safezone/warzone) (true/false)") + " - §a" + Language.getMessage("Sets flag for faction.") + "\n";
+    		   helpMessage += " §a" + Language.getMessage("If peaceful, land cannot be damaged and players cannot be hurt.") + "\n";
+    		   helpMessage += " §a" + Language.getMessage("If safezone, land cannot be damaged and anyone inside of the land cannot be hurt.") + "\n";
+    		   helpMessage += " §a" + Language.getMessage("If warzone, land cannot be damaged and friendly fire inside of land is enabled.") + "\n";
     		   helpMessage += " \n"; 
     		   helpMessage += " §6 (§dCoty loves you :3c§6)" + "\n"; 
-    		   helpMessage += "§aPlugin version: " + version +" \n"; 
+    		   helpMessage += "§a" + Language.getMessage("Plugin version") +   ": " + version +" \n"; 
+    		   helpMessage += "§aUsing language: §6" + Language.getLanguage() + "§f \n"; 
     		   
     	int lineCount = 0;
     	int pageCount = 0;
@@ -2343,7 +2365,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	}
     	
     	if(page>pageCount) {
-    		sender.sendMessage("§cThere are only " + (pageCount+1) + " help pages!");
+    		sender.sendMessage("§c" + Language.getMessage("There are only") + " " + (pageCount+1) + " help pages!");
     	}
     	sender.sendMessage("§6simpleFactions help - page " + (page+1) + "/ " + (pageCount+1) + " \n" + pageToDisplay);
     	return true;

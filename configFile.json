@@ -2,7 +2,11 @@
         "## -- SIMPLE FACTIONS CONFIGURATION FILE --##": "",
         "## -- Any entries with ##s are just comments that can be ignored --##": "",
         
-        "version": "1.88",
+        "version": "1.89",
+		
+		"## -- LANGUAGE CHOICE --##": "",
+		"## -- Copy en.json, make changes, then set the name of the file without the .json here --##": "",
+		"Language": "en",
 		
         "## -- FACTION SETTINGS --##": "",
         "only admins can create factions": "false",
