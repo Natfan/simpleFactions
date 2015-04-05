@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -58,8 +59,6 @@ public class eventListener implements Listener {
 	public void respawnEvent(PlayerRespawnEvent event){
 		//set new spawn (if faction has one)
 		Player player = event.getPlayer();
-		player.sendMessage("debug, you died");
-		String playerString = player.getName();
 		simpleFactions.loadPlayer(player.getUniqueId()); 
 		if(!simpleFactions.playerData.getString("faction").equals("")){
 			simpleFactions.loadFaction(simpleFactions.playerData.getString("faction"));
@@ -282,7 +281,7 @@ public class eventListener implements Listener {
 		}
     	
 		for(Player player : playerList){
-			simpleFactions.loadPlayer(Bukkit.getPlayer(playerName).getUniqueId());
+			simpleFactions.loadPlayer(player.getUniqueId());
 	    	factionString = simpleFactions.playerData.getString("faction").replaceAll("\\$", "\\\\\\$");
 	    	simpleFactions.loadPlayer(player.getUniqueId());
 	    	faction2 = simpleFactions.playerData.getString("faction");
@@ -653,22 +652,25 @@ public class eventListener implements Listener {
 		String deathMessage = event.getDeathMessage();
 		Collection<? extends Player> players = Bukkit.getOnlinePlayers();
 		String player = ((Player) event.getEntity()).getName();
+		UUID player_uuid = ((Player) event.getEntity()).getUniqueId(); 
 		String player2 = ""; 
+		UUID player2_uuid = null; 
 		
 		for(Player p : players){
 			if(deathMessage.contains(p.getName())){
 				if(!p.getName().equalsIgnoreCase(player))
-					player2 = p.getName(); 
+					player2 = p.getName();
+					player2_uuid = p.getUniqueId();
 			}
 		}
 
 		if(!player2.equalsIgnoreCase("")){
-			simpleFactions.loadPlayer(Bukkit.getPlayer(player2).getUniqueId());
+			simpleFactions.loadPlayer(player2_uuid);
 			deathMessage = deathMessage.replace(player2, Config.configData.getString("faction symbol left") + 
 					simpleFactions.playerData.getString("faction") + Config.configData.getString("faction symbol right") + " " + player2); 
 		}
 		
-		simpleFactions.loadPlayer(Bukkit.getPlayer(player).getUniqueId());
+		simpleFactions.loadPlayer(player_uuid);
 
 		deathMessage = deathMessage.replace(player, Config.configData.getString("faction symbol left") + 
 				simpleFactions.playerData.getString("faction") + Config.configData.getString("faction symbol right") + " " + player); 
