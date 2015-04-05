@@ -118,7 +118,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	static JSONArray inviteData = new JSONArray();
 	
 	//version
-	static String version = "1.87";
+	static String version = "1.88";
 
 	//global thing to pass to async task
 	static TNTPrimed lastCheckedTNT; 
@@ -1689,6 +1689,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	loadPlayer(((OfflinePlayer) sender).getUniqueId());
     	String faction1 = playerData.getString("faction");
     	loadPlayer(Bukkit.getOfflinePlayer(player).getUniqueId());
+    	player = playerData.getString("name"); 
     	String faction2 = playerData.getString("faction");
     	String factionRank = playerData.getString("factionRank");
     	sender.sendMessage("§7 ------ [" + getFactionRelationColor(faction1,faction2) + player + "§7] ------ ");
@@ -2579,6 +2580,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	loadPlayer(((Player) sender).getUniqueId());
     	String viewingFaction = playerData.getString("faction");
     	loadFaction(faction);
+    	faction = factionData.getString("name"); 
     	//Bukkit.getLogger().info(factionData.toString(4)); //debug
     	DecimalFormat df = new DecimalFormat("0.###");
     	

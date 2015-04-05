@@ -60,7 +60,7 @@ public class eventListener implements Listener {
 		Player player = event.getPlayer();
 		player.sendMessage("debug, you died");
 		String playerString = player.getName();
-		simpleFactions.loadPlayer(Bukkit.getPlayer(playerString).getUniqueId()); 
+		simpleFactions.loadPlayer(player.getUniqueId()); 
 		if(!simpleFactions.playerData.getString("faction").equals("")){
 			simpleFactions.loadFaction(simpleFactions.playerData.getString("faction"));
 			String home = simpleFactions.factionData.getString("home");
