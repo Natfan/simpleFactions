@@ -582,7 +582,7 @@ public class eventListener implements Listener {
 		        posZ = Math.round(posZ / Config.chunkSizeZ) * Config.chunkSizeZ;
 		        if(simpleFactions.boardData.has("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ)){
 		        	String faction = simpleFactions.boardData.getString("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ);
-		        	boolean online = simpleFactions.isFactionOnline(faction);
+		        	boolean online = Faction.isFactionOnline(faction);
 	
 		        	simpleFactions.loadFaction(faction);
 		        	if(simpleFactions.factionData.has("peaceful")){

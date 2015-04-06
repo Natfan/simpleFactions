@@ -118,7 +118,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	static JSONArray inviteData = new JSONArray();
 	
 	//version
-	static String version = "1.89";
+	static String version = "1.89"; 
 
 	//global thing to pass to async task
 	static TNTPrimed lastCheckedTNT; 
@@ -416,7 +416,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 				FileWriter fw = new FileWriter(factionFile);
 				BufferedWriter bw=new BufferedWriter(fw);
 				//factionData = new JSONObject();
-				createFaction(uuid);
+				Faction.createFaction(uuid);
 				bw.write(factionData.toString(8));
 				bw.newLine();
 				bw.close();
@@ -714,13 +714,13 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			}else{
     				if(args[0].equalsIgnoreCase("create") && (Config.configData.getString("only admins can create factions").equalsIgnoreCase("false") 
     						|| sender.isOp() ||  sender.hasPermission("simplefactions.admin") )){
-    					return tryCreateFaction(sender,args);
+    					return Faction.tryCreateFaction(sender,args);
     				}
     				if(args[0].equalsIgnoreCase("claim")){
     					return tryClaim(sender);
     				}
     				if(args[0].equalsIgnoreCase("open")){
-    					return tryOpen(sender);
+    					return Faction.tryOpen(sender);
     				}
     				if(args[0].equalsIgnoreCase("schedule")){
     					return trySchedule(sender,args);
@@ -744,31 +744,31 @@ public class simpleFactions extends JavaPlugin implements Listener {
     					return showPlayerPower(sender, args);
     				}
     				if(args[0].equalsIgnoreCase("list")){
-    					return listFactions(sender, args);
+    					return Faction.listFactions(sender, args);
     				}
     				if(args[0].equalsIgnoreCase("sethome")){
-    					return trySetHome(sender);
+    					return Faction.trySetHome(sender);
     				}
     				if(args[0].equalsIgnoreCase("access")){
-    					return setAccess(sender,args);
+    					return Faction.setAccess(sender,args);
     				}
     				if(args[0].equalsIgnoreCase("enemy")){
-    					return setRelation(sender, args, "enemies"); 
+    					return Faction.setRelation(sender, args, "enemies"); 
     				}
     				if(args[0].equalsIgnoreCase("ally")){
-    					return setRelation(sender, args, "allies"); 
+    					return Faction.setRelation(sender, args, "allies"); 
     				}
     				if(args[0].equalsIgnoreCase("truce")){
-    					return setRelation(sender, args, "truce"); 
+    					return Faction.setRelation(sender, args, "truce"); 
     				}
     				if(args[0].equalsIgnoreCase("neutral")){
-    					return setRelation(sender, args, "neutral"); 
+    					return Faction.setRelation(sender, args, "neutral"); 
     				}
     				if(args[0].equalsIgnoreCase("home")){
-    					return tryHome(sender);
+    					return Faction.tryHome(sender);
     				}
     				if(args[0].equalsIgnoreCase("desc")){
-    					return setDesc(sender,args);
+    					return Faction.setDesc(sender,args);
     				}
     				if(args[0].equalsIgnoreCase("promote")){
     					return setRank(sender,args);
@@ -817,7 +817,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				}
     				if(args[0].equalsIgnoreCase("set")){
     					if(args.length>3)
-    						return setFactionFlag(sender, args[1],args[2],args[3]);
+    						return Faction.setFactionFlag(sender, args[1],args[2],args[3]);
     					else
     						sender.sendMessage("§c" + Language.getMessage("You must provide the name of the faction and flag! Example, /sf set factionname peaceful true"));
     				}
@@ -840,10 +840,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
     					if(args.length>1){
     						loadPlayer(((Player) sender).getUniqueId());
     						if(playerData.getString("faction").equalsIgnoreCase(args[1]))
-    							return tryDisband(sender,args[1]);
+    							return Faction.tryDisband(sender,args[1]);
     						else{
     							if(sender.isOp() || sender.hasPermission("simplefactions.admin")){
-        							return tryDisband(sender,args[1]);
+        							return Faction.tryDisband(sender,args[1]);
     								}
     							else{
         							sender.sendMessage(Language.getMessage("You do not have the permissions to do this!"));
@@ -856,13 +856,13 @@ public class simpleFactions extends JavaPlugin implements Listener {
     						String factionName = playerData.getString("faction");
     						if(args.length>1){
     							if(playerData.getString("faction").equalsIgnoreCase(args[1]))
-            						return tryDisband(sender,factionName);
+            						return Faction.tryDisband(sender,factionName);
         						else{
         							sender.sendMessage(Language.getMessage("You aren't a member of this faction!"));
         							return true;
         							}
     						}else{
-    							return tryDisband(sender,playerData.getString("faction")); 
+    							return Faction.tryDisband(sender,playerData.getString("faction")); 
     						}
     						
     					}
@@ -1091,59 +1091,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		}
     }
     
-    public boolean tryOpen(CommandSender sender){
-    	
-    	loadPlayer(((Player) sender).getUniqueId());
-    	
-    	if(!playerData.getString("factionRank").equalsIgnoreCase("officer") && !playerData.getString("factionRank").equalsIgnoreCase("leader")){
-    		sender.sendMessage("§c" + Language.getMessage("You aren't a high enough rank to do this."));
-    		return true; 
-    	}
-    	
-    	loadFaction(playerData.getString("faction"));
-    	
-    	String open = factionData.getString("open");
-    	if(open.equalsIgnoreCase("true")){
-    		open = "false";
-    		factionData.put("open", "false");
-    	}else{
-    		open = "true";
-    		factionData.put("open", "true");
-    	}
-    	
-    	saveFaction(factionData);
-    	messageFaction(playerData.getString("faction"), "§bYour faction is now set to " + open + ".");
-    	
-    	return true;
-    }
-    
-    public boolean setFactionFlag(CommandSender sender, String faction, String flag, String tr){
-    	if(sender.isOp() || sender.hasPermission("simplefactions.admin")){
-    		loadFaction(faction);
-    		if(flag.equalsIgnoreCase("peaceful") || flag.equalsIgnoreCase("warzone") || flag.equalsIgnoreCase("safezone")){
-    			if(tr.equalsIgnoreCase("true") || tr.equalsIgnoreCase("false")){
-    				String ntr = "false";
-    				if(tr.equalsIgnoreCase("false")) ntr = "true";
-					factionData.put("peaceful", ntr);
-					factionData.put("warzone",  ntr);
-					factionData.put("safezone", ntr);
-					factionData.put(flag, tr);
-					saveFaction(factionData);
-					if(tr.equalsIgnoreCase("true"))
-						sender.sendMessage("§a" + Language.getMessage("The faction") + " " + faction + " " + Language.getMessage("is now a") + " " + flag + " " + Language.getMessage("faction."));
-					if(tr.equalsIgnoreCase("false"))
-						sender.sendMessage("§a" + Language.getMessage("The faction") + faction + " " + Language.getMessage("is no longer a") + " " + flag + " " + Language.getMessage("faction."));
-    			}else{
-    				sender.sendMessage("§c" + Language.getMessage("Please specify whether you want")  + faction + " " + Language.getMessage("to be") + " " + flag + " " + Language.getMessage("with true or false at the end."));
-    			}
-    		}else{
-    			sender.sendMessage("§c" + Language.getMessage("Please use either peaceful, warzone, or safezone."));
-    		}
-    	}else{
-    		sender.sendMessage("§c" + Language.getMessage("You must be a server OP or have the simplefactions.admin permission to do this!"));
-    	}
-    	return true;
-    }
+
     
     	/*
   		playerData.put("deaths",0);
@@ -1298,118 +1246,6 @@ public class simpleFactions extends JavaPlugin implements Listener {
     }
     
     /**
-     * setAccess() is complicated, read more...
-     * Example usage: /sf access <p/r/f> <player/factionRank/faction> <block> <true/false> (this chunk only <true/false>) 
-     * You provide p/r/f (player, factionRank, or faction) and then the name of the player, factionRank, or faction.
-     * You provide the block or item, and then true/false to show you want it to be allowed or not.
-     * You can also add an additional "true" at the end of it, if you want this info to only affect the current chunk.
-     * 
-     * Using this, you can literally create faction specific ranks and permissions (both globally and for specific chunks).
-     * */
-    public boolean setAccess(CommandSender sender,String[] args){
-    	//argument base   0     1             2               3       4                               5
-    	//example /sf access <p/r/f> <player/factionRank/faction> <block> <true/false> (this chunk only <true/false>) 
-    	String example = "§7Example usage: §b/sf access §7<§bp§7/§br§7/§bf§7> " +
-				"§7<§bplayer§7/§brank§7/§bfaction§7> §7<§bblock§7> §7<§btrue§7/§bfalse§7> " +
-				"(optional, this chunk only §7<§btrue§7/§bfalse§7>)";
-    	
-    	Location location = ((Player) sender).getLocation();
-    	int posX = location.getBlockX(), chunkSizeX = Config.chunkSizeX;
-    	int posY = location.getBlockY(), chunkSizeY = Config.chunkSizeY;
-    	int posZ = location.getBlockZ(), chunkSizeZ = Config.chunkSizeZ;
-    	posX = Math.round(posX / chunkSizeX) * chunkSizeX;
-    	posY = Math.round(posY / chunkSizeY) * chunkSizeY;
-    	posZ = Math.round(posZ / chunkSizeZ) * chunkSizeZ;
-    	String board = location.getWorld().getName() + "chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ;
-    	
-    	if(args.length>4){
-    		loadPlayer(((Player) sender).getUniqueId());
-    		loadFaction(playerData.getString("faction"));
-    	JSONObject chunk = new JSONObject();
-    		JSONObject type = new JSONObject();
-    			JSONObject subType = new JSONObject();
-    				JSONArray allowed = new JSONArray();
-    				JSONArray notAllowed = new JSONArray();
-    		
-    		if(args[1].equalsIgnoreCase("p") || args[1].equalsIgnoreCase("r") || args[1].equalsIgnoreCase("f")){
-    			
-    			if(args[1].equalsIgnoreCase("p") && !playerCheck(args[2])){
-    				sender.sendMessage(Language.getMessage("Player not found!"));
-    				return true;
-    			}
-    			
-    			if(args[1].equalsIgnoreCase("f") && !factionCheck(args[2])){
-    				sender.sendMessage(Language.getMessage("Faction not found!"));
-    				return true;
-    			}
-    			
-        		if(factionData.has(args[1])){
-        			if(args.length>5){
-        				if(factionData.has(board))
-        					chunk = factionData.getJSONObject(board);
-        			}
-        			type = factionData.getJSONObject(args[1]);
-        			if(type.has(args[2])){
-        				subType = type.getJSONObject(args[2]);
-        				if(subType.has("allowed")){
-        					allowed = subType.getJSONArray("allowed");
-        				}
-        				if(subType.has("notAllowed")){
-        					notAllowed = subType.getJSONArray("notAllowed");
-        				}
-        			}
-        		}
-        		
-        		if(args[4].equalsIgnoreCase("true") || args[4].equalsIgnoreCase("yes")){
-        			allowed.put(args[3].toUpperCase());
-        			for(int i = 0; i < notAllowed.length(); i++) 
-        				if(notAllowed.getString(i).equalsIgnoreCase(args[3].toUpperCase())) 
-        					notAllowed.remove(i);
-        		}
-        		if(args[4].equalsIgnoreCase("false") || args[4].equalsIgnoreCase("no")){
-        			notAllowed.put(args[3].toUpperCase());
-        			for(int i = 0; i < allowed.length(); i++) 
-        				if(allowed.getString(i).equalsIgnoreCase(args[3].toUpperCase())) 
-        					allowed.remove(i);
-        		}
-
-        		subType.put("allowed", allowed);
-        		subType.put("notAllowed", notAllowed);
-        		type.put(args[2], subType);
-        		if(args.length>5){
-        			chunk.put(args[1], type);
-            		factionData.put(board, chunk); 
-        		}
-        		else{
-            		factionData.put(args[1], type); 
-        		}
-        		saveFaction(factionData);
-        		
-        		String stype = ""; 
-        			if(args[1].equalsIgnoreCase("p")) stype = "§7The player " + Config.Rel_Faction;
-        			if(args[1].equalsIgnoreCase("r")) stype = "§7Members ranked as " + Config.Rel_Faction;
-        			if(args[1].equalsIgnoreCase("f")) stype = "§7The faction " + getFactionRelationColor(factionData.getString("name"),args[2]);
-        		String sSubType = args[2];
-        		String access = "";
-        			if(args[4].equalsIgnoreCase("true")) access = " §7can now access §a";
-        			if(args[4].equalsIgnoreCase("false")) access = " §7can no longer access §c";
-        		String block = args[3].toLowerCase() + "§7";
-        		String area = "";
-        		if(args.length>5 && !board.equalsIgnoreCase("")) area = " §7at§6 " + board;
-        		messageFaction(factionData.getString("name"),stype + sSubType + access + block + area + "§7.");
-        		return true;
-    		}else{
-        		sender.sendMessage(example);
-        		return true;
-    		}
-    	}
-    	else{
-    		sender.sendMessage(example);
-    		return true;
-    	}
-    }
-    
-    /**
      * Sets the factionRank of a player.
      * */
     @SuppressWarnings("deprecation")
@@ -1472,7 +1308,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
         			loadPlayer(Bukkit.getPlayer(args[1]).getUniqueId());
     				playerData.put("factionRank", "leader");
         			savePlayer(playerData);
-    				messageFaction(faction,Config.Rel_Faction + args[1] + "§a has been promoted to leader.");
+    				Faction.messageFaction(faction,Config.Rel_Faction + args[1] + "§a has been promoted to leader.");
     				return true;
     			}
     			else{
@@ -1485,14 +1321,14 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    			loadPlayer(Bukkit.getPlayer(args[1]).getUniqueId());
 	    			playerData.put("factionRank", "officer");
 	        		savePlayer(playerData);
-	    			messageFaction(faction,Config.Rel_Faction + args[1] + "§a has been promoted to officer.");
+	    			Faction.messageFaction(faction,Config.Rel_Faction + args[1] + "§a has been promoted to officer.");
 	        		return true;
 	    		}
 	    		if(args[0].equalsIgnoreCase("demote")){
 	    			loadPlayer(Bukkit.getPlayer(args[1]).getUniqueId());
 	    			playerData.put("factionRank", "member");
 	        		savePlayer(playerData);
-	    			messageFaction(faction,Config.Rel_Faction + args[1] + "§a has been demoted to member.");
+	    			Faction.messageFaction(faction,Config.Rel_Faction + args[1] + "§a has been demoted to member.");
 	        		return true;
 	    		}
     		}else{
@@ -1510,7 +1346,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			loadPlayer(Bukkit.getPlayer(args[1]).getUniqueId());
 				playerData.put("factionRank", args[2]);
     			savePlayer(playerData);
-				messageFaction(faction,Config.Rel_Faction + args[1] + "§a has been set as to a " + args[2] + ".");
+				Faction.messageFaction(faction,Config.Rel_Faction + args[1] + "§a has been set as to a " + args[2] + ".");
     			return true;
 			}
 			else{
@@ -1534,33 +1370,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
     }
     
     /**
-     * Sends out a sendMessage to everyone in a certain faction.
-     * */
-    public static void messageFaction(String faction, String message){
-    	Collection<? extends Player> on = Bukkit.getOnlinePlayers();
-    	
-    	for(Player player : on){
-    		loadPlayer(player.getUniqueId()); 
-    		if(playerData.getString("faction").equalsIgnoreCase(faction)){
-    			player.getPlayer().sendMessage(message);
-    		}
-    	}
-    	
-    	/*
-    	 * This is code from 1.7.9
-    	for(int i = 0; i<on.length; i++){
-    		loadPlayer(on[i].getPlayer().getName());
-    		if(playerData.getString("faction").equalsIgnoreCase(faction)){
-    			on[i].getPlayer().sendMessage(message);
-    		}
-    	}
-    	*/
-    }
-    
-    /**
      * Sends out a sendMessage to the entire server.
      * */
-    public void messageEveryone(String message){
+    public static void messageEveryone(String message){
     	Collection<? extends Player> on = Bukkit.getOnlinePlayers();
     	for(Player player : on){
     		player.getPlayer().sendMessage(message);
@@ -1573,31 +1385,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	*/
     }
     
-    /**
-     * Sets the description of the faction.
-     * */
-    public boolean setDesc(CommandSender sender, String[] args){
-    	loadPlayer(((Player) sender).getUniqueId());
-    	String faction = playerData.getString("faction");
-    	if(faction.equalsIgnoreCase("")){
-    		sender.sendMessage("§c" + Language.getMessage("You are not in a faction!"));
-    		return true;
-    	}
-    	if(args.length>1){
-    		String desc = "";
-    		for(int i = 1; i<args.length; i++)
-    			desc += args[i] + " ";
-    		loadFaction(faction);
-    		factionData.put("desc", desc);
-    		saveFaction(factionData);
-    		messageFaction(faction, "§7Description updated: §f" + desc);
-    		return true;
-    	}else{
-    		sender.sendMessage("§c" + Language.getMessage("Please provide a description!") + " " + 
-    				Language.getMessage("Example: /sf desc Example Description"));
-    		return true;
-    	}
-    }
+    
     
     /**
      * Sets the current chat channel for the sender; custom chat channels supported.
@@ -1675,7 +1463,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     						}
     						playerData.put("faction", "");
     						savePlayer(playerData);
-    						messageFaction(faction,Config.Rel_Other + playerData.getString("name") + "§7 kicked from faction by " + Config.Rel_Faction + sender.getName());
+    						Faction.messageFaction(faction,Config.Rel_Other + playerData.getString("name") + "§7 kicked from faction by " + Config.Rel_Faction + sender.getName());
     						Bukkit.getPlayer(playerData.getString("name")).sendMessage(Language.getMessage("You have been kicked from your faction!"));
     			    		//sender.sendMessage(Language.getMessage("Player kicked from faction!"));
     						return true;
@@ -1742,7 +1530,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     }
     
     
-    public boolean playerCheck(String name){
+    public static boolean playerCheck(String name){
     	for(int i = 0; i < Data.Players.length(); i++){
     		if(Data.Players.getJSONObject(i).getString("name").equalsIgnoreCase(name)){
     			return true;
@@ -1752,15 +1540,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	return false; 
     }
     
-    public boolean factionCheck(String name){
-    	for(int i = 0; i < Data.Factions.length(); i++){
-    		if(Data.Factions.getJSONObject(i).getString("name").equalsIgnoreCase(name)){
-    			return true;
-    		}
-    	}
-    	
-    	return false; 
-    }
+    
     
     
     /**
@@ -1791,237 +1571,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	return false;
     }
     
-    /**
-     * Attempts to set a relation with another faction.
-     * */
-    public boolean setRelation(CommandSender sender, String[] args, String relation){
-    	if(args.length>1){
-
-			loadPlayer(((Player) sender).getUniqueId());
-    		String senderFaction = playerData.getString("faction"); 
-    		String otherFaction = args[1]; 
-    		
-    		if(factionCheck(otherFaction)){
-
-				String relString = "";
-				if(relation.equalsIgnoreCase("enemies")) relString = Config.Rel_Enemy;
-				if(relation.equalsIgnoreCase("allies")) relString = Config.Rel_Ally;
-				if(relation.equalsIgnoreCase("truce")) relString = Config.Rel_Truce;
-				if(relation.equalsIgnoreCase("neutral")) relString = Config.Rel_Other;
-				
-    			if(!relation.equalsIgnoreCase("neutral")){
-    				
-    				loadPlayer(((Player) sender).getUniqueId());
-    				loadFaction(senderFaction);
-    				enemyData = factionData.getJSONArray(relation); //says enemy data; but it can be any of them. Just a free array
-    				int k = 0;
-    				for(int i = 0; i < enemyData.length(); i++){ //make sure we don't already have this relation set
-    					if(enemyData.getString(i).equalsIgnoreCase(otherFaction))
-    						k++;
-    				}
-    				if(k<1){
-    					enemyData.put(otherFaction);
-        				factionData.put(relation, enemyData);
-        				saveFaction(factionData);
-        				
-        				loadFaction(senderFaction);
-        				enemyData = factionData.getJSONArray("enemies");
-        				allyData = factionData.getJSONArray("allies");
-        				truceData = factionData.getJSONArray("truce");
-    					if(!relation.equalsIgnoreCase("enemies")){
-        					for(int i = 0; i < enemyData.length(); i++){
-        						if(enemyData.getString(i).equalsIgnoreCase(otherFaction))
-        							enemyData.remove(i);
-        					}
-        				}
-        				if(!relation.equalsIgnoreCase("allies")){
-        					for(int i = 0; i < allyData.length(); i++){
-        						if(allyData.getString(i).equalsIgnoreCase(otherFaction))
-        							allyData.remove(i);
-        					}
-        				}
-        				if(!relation.equalsIgnoreCase("truce")){
-        					for(int i = 0; i < truceData.length(); i++){
-        						if(truceData.getString(i).equalsIgnoreCase(otherFaction))
-        							truceData.remove(i);
-        					}
-        				}
-        				
-        				factionData.put("enemies", enemyData);
-        				factionData.put("allies", allyData);
-        				factionData.put("truce", truceData);
-        				saveFaction(factionData);
-        				
-    				}else{
-    					sender.sendMessage("§c" + Language.getMessage("You have already this relation set") + "!");
-    					return true;
-    				}
-    				
-    				
-    				
-    				loadFaction(otherFaction);
-    				enemyData = factionData.getJSONArray("enemies");
-    				allyData = factionData.getJSONArray("allies");
-    				truceData = factionData.getJSONArray("truce");
-    				
-    				if(!relation.equalsIgnoreCase("allies")){
-    					for(int i = 0; i < allyData.length(); i++){
-    						if(allyData.getString(i).equalsIgnoreCase(senderFaction))
-    							allyData.remove(i);
-    					}
-    				}
-    				if(!relation.equalsIgnoreCase("truce")){
-    					for(int i = 0; i < truceData.length(); i++){
-    						if(truceData.getString(i).equalsIgnoreCase(senderFaction))
-    							truceData.remove(i);
-    					}
-    				}
-    				
-    				
-					if(relation.equalsIgnoreCase("enemies")){
-	    				int m = 0;
-	    				for(int i = 0; i < enemyData.length(); i++){ //make sure we don't already have this relation set
-	    					if(enemyData.getString(i).equalsIgnoreCase(senderFaction))
-	    						m++;
-	    				}
-	    				
-	    				if(m<1){
-							enemyData.put(senderFaction);
-	    				}
-					}
-
-    				factionData.put("enemies", enemyData);
-    				factionData.put("allies", allyData);
-    				factionData.put("truce", truceData);
-					saveFaction(factionData);
-					
-					//below this is messages
-					
-    				int j = 0;
-    				
-    				if(relation.equalsIgnoreCase("enemies"))
-    					for(int i = 0; i < enemyData.length(); i++)
-    						if(enemyData.getString(i).equalsIgnoreCase(senderFaction))
-    							j++;
-    				
-    				if(relation.equalsIgnoreCase("allies"))	
-    					for(int i = 0; i < allyData.length(); i++)
-    						if(allyData.getString(i).equalsIgnoreCase(senderFaction))
-    							j++;
-    				
-    				if(relation.equalsIgnoreCase("truce"))		
-    					for(int i = 0; i < truceData.length(); i++)
-    						if(truceData.getString(i).equalsIgnoreCase(senderFaction))
-    							j++;
-    				
-    				if(j>0 || (j==0 && relation.equalsIgnoreCase("neutral"))){
-    					
-    					
-    					
-    					//message sender's faction
-    					messageFaction(senderFaction,"§6You are now " + relString + relation + "§6 with " + 
-    							getFactionRelationColor(senderFaction,otherFaction) + Config.configData.getString("faction symbol left") + otherFaction + 
-    							Config.configData.getString("faction symbol right") + "§6.");
-    					
-    					//message other faction
-    					messageFaction(otherFaction,"§6You are now " + relString + relation + "§6 with " + 
-    							getFactionRelationColor(senderFaction,otherFaction) + Config.configData.getString("faction symbol left") + 
-    							senderFaction + Config.configData.getString("faction symbol right") + "§6.");
-    					return true;
-    				}
-    				if(j==0){
-    					//message sender's faction
-			    		messageFaction(senderFaction,"§6You have asked " + getFactionRelationColor(senderFaction,otherFaction) + 
-			    				Config.configData.getString("faction symbol left") + otherFaction + Config.configData.getString("faction symbol right") + 
-    							" §6if they would like to become " + relString + relation + "§6.");
-			    		
-			    		//message ask'd faction
-			    		messageFaction(otherFaction,getFactionRelationColor(senderFaction,otherFaction) + Config.configData.getString("faction symbol left") + 
-			    				senderFaction + Config.configData.getString("faction symbol right") + " §6have asked  if you would like to become " + 
-			    				relString + relation + "§6.");
-			    		
-    					return true;
-    				}
-    				
-    			}
-    			else{
-    				loadPlayer(((Player) sender).getUniqueId());
-    				loadFaction(senderFaction);
-    				enemyData = factionData.getJSONArray("enemies");
-    				allyData = factionData.getJSONArray("allies");
-    				truceData = factionData.getJSONArray("truce");
-    				
-    				int k = 0;
-    				
-    				for(int i = 0; i < enemyData.length(); i++)
-    					if(enemyData.getString(i).equalsIgnoreCase(otherFaction)){
-    						enemyData.remove(i);
-    						k++;
-    						}
-    				for(int i = 0; i < allyData.length(); i++)
-    					if(allyData.getString(i).equalsIgnoreCase(otherFaction)){
-    						allyData.remove(i);
-    						k++;
-    						}
-    				for(int i = 0; i < truceData.length(); i++)
-    					if(truceData.getString(i).equalsIgnoreCase(otherFaction)){
-    						truceData.remove(i);
-    						k++;
-    						}
-    				
-    				if(k==0){
-    					sender.sendMessage("§6" + Language.getMessage("You are already neutral with") + " " + getFactionRelationColor(senderFaction,otherFaction) + 
-    							Config.configData.getString("faction symbol left") + otherFaction + Config.configData.getString("faction symbol right") + "§6!");
-    					return true;
-    				}
-    				
-    				factionData.put("enemies", enemyData);
-    				factionData.put("allies", allyData);
-    				factionData.put("truce", truceData);
-    				saveFaction(factionData);
-    				
-    				loadFaction(otherFaction);
-    				enemyData = factionData.getJSONArray("enemies");
-    				allyData = factionData.getJSONArray("allies");
-    				truceData = factionData.getJSONArray("truce");
-    				
-    				int j = 0;
-    				
-    				for(int i = 0; i < enemyData.length(); i++)
-    					if(enemyData.getString(i).equalsIgnoreCase(senderFaction)){
-    						j++;
-    						}
-    				for(int i = 0; i < allyData.length(); i++)
-    					if(allyData.getString(i).equalsIgnoreCase(senderFaction)){
-    						j++;
-    						}
-    				for(int i = 0; i < truceData.length(); i++)
-    					if(truceData.getString(i).equalsIgnoreCase(senderFaction)){
-    						j++;
-    						}
-    				
-    				if(k>0 && j==0){
-    					sender.sendMessage("§6" + Language.getMessage("You are now neutral with") + " " + getFactionRelationColor(senderFaction,otherFaction) + 
-    							Config.configData.getString("faction symbol left") + otherFaction + Config.configData.getString("faction symbol right") + "§6.");
-    					return true;
-    				}
-    				if(k>0 && j>0){
-    					sender.sendMessage("§6" + Language.getMessage("You have asked") + " " + getFactionRelationColor(senderFaction,otherFaction) +
-    							Config.configData.getString("faction symbol left") + otherFaction + Config.configData.getString("faction symbol right") + 
-    							"§6 " + Language.getMessage("if they would like to become") + " " + relString + "" + Language.getMessage("neutral") + ".");
-    					return true;
-    				}
-    			}
-    		}
-    		else{
-    			sender.sendMessage("§c" + Language.getMessage("This faction doesn't exist") + "!");
-    		}
-    	}
-    	else{
-    		sender.sendMessage("§c" + Language.getMessage("You must provide the name of the faction that you wish to enemy! Example: /sf enemy factionName"));
-    	}
-    	return true;
-    }
+    
     
     /**
      * Returns faction power information.
@@ -2057,7 +1607,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     }
     */
     
-    public double getFactionPowerMax(String faction){
+    public static double getFactionPowerMax(String faction){
     	double factionPower = 0;
     	
     	/*
@@ -2371,122 +1921,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	return true;
     }
     
-    /**
-     * Attempts to set a home on the specified block.
-     * */
-    public boolean trySetHome(CommandSender sender){
-    	loadPlayer(((Player) sender).getUniqueId());
-    	Player player = ((Player) sender);
-    	String factionName = playerData.getString("faction");
-    	
-    	if(factionName.equalsIgnoreCase("")){
-    		sender.sendMessage("§cYou aren't in a faction.");
-    		return true;
-    	}
-    	
-    	if(!playerData.getString("factionRank").equalsIgnoreCase("officer") && !playerData.getString("factionRank").equalsIgnoreCase("leader")){
-    		sender.sendMessage("§cYou aren't a high enough rank to do this.");
-    		return true; 
-    	}
-    	
-    	Config.loadConfig(); 
-    	for(int i = 0; i<Config.claimsDisabledInTheseWorlds.length(); i++){
-    		String worldDisabled = Config.claimsDisabledInTheseWorlds.optString(i);
-    		if(worldDisabled.equalsIgnoreCase(player.getWorld().getName())){
-        		sender.sendMessage("§cHomes are disabled in §f" + player.getWorld().getName() + "§c.");
-        		return true;
-    		}
-    	}
-    	
-    	String world = player.getLocation().getWorld().getName().toString();
-    	double posX = player.getLocation().getX();
-    	double posY = player.getLocation().getY()+1;
-    	double posZ = player.getLocation().getZ();
-    	
-
-    	Location loc = new Location(Bukkit.getWorld(world), posX, posY, posZ);
-    	Block block = loc.getBlock();
-    	if(block.getRelative(BlockFace.UP).getType() != Material.AIR){
-    		sender.sendMessage("§cMake more empty space above you, and then try setting a home again.");
-    		return true;
-    	}
-    	
-    	loadPlayer(player.getUniqueId());
-    	loadFaction(playerData.getString("faction"));
-    	factionData.put("home",world + " " + posX + " " + posY + " " + posZ);
-    	saveFaction(factionData);
-		//sender.sendMessage("§7You have set your faction home at §6" + (int)posX + "," + (int)posY + "," + (int)posZ + "§7.");
-		messageFaction(playerData.getString("faction"), Config.Rel_Faction + sender.getName()  + "§7 has set your faction home at §6" + (int)posX + "," + (int)posY + "," + (int)posZ + "§7.");
-    	return true;
-    }
     
-    /**
-     * Returns the Location of the faction home. 
-     * */
-    public Location getHome(String faction){
-    	loadFaction(faction);
-    	String home = factionData.getString("home");
-    	
-    	if(home.equalsIgnoreCase(""))
-    		return null;
-    	
-    	Scanner scan = new Scanner(home);
-    	String world = scan.next();
-    	double x = scan.nextDouble();
-    	double y = scan.nextDouble();
-    	double z = scan.nextDouble();
-    	scan.close();
-    	
-    	return new Location(Bukkit.getWorld(world), x, y, z);
-    }
     
-    /**
-     * Tries to teleport home. If the home is blocked, attempts to find the next best spot.
-     * */
-    public boolean tryHome(CommandSender sender){
-    	loadPlayer(((Player) sender).getUniqueId());
-    	Player player = ((Player) sender);
-    	String factionName = playerData.getString("faction");
-    	if(factionName.equalsIgnoreCase("")){
-    		sender.sendMessage("§cYou aren't in a faction.");
-    		return true;
-    	}
-
-    	loadPlayer(((Player) sender).getUniqueId());
-    	loadFaction(playerData.getString("faction"));
-    	
-    	Location loc = getHome(factionName);
-    	if(loc == null){
-    		sender.sendMessage("Your faction doesn't have a home!");
-    		return true;
-    	}
-    	
-    	Block block = loc.getBlock();
-    	int i = 0;
-    	while(block.getRelative(BlockFace.UP).getType() != Material.AIR || block.getType() != Material.AIR){
-    		
-    		Random generater = new Random(System.currentTimeMillis() + block.getX() + block.getY() + block.getZ());
-    		block = block.getRelative((generater.nextInt(10) *i), (int)(generater.nextInt(10)*i), (int)(generater.nextInt(10)*i));
-    		
-    		int l = 0;
-    		while(block.getRelative(BlockFace.DOWN).getType() == Material.AIR){
-    			l++; if(l>9) break;
-    			block = block.getRelative(BlockFace.DOWN);
-    		}
-    		
-    		//sender.sendMessage("§cUnsafe! §6Trying next block! Block type here is " + block.getType().toString() + " at " + block.getLocation().toString());
-    		i++;
-    		if(i>9){
-    			sender.sendMessage("§cArea is to unsafe to teleport to.");
-    			return true;
-    		}
-    	}
-    	
-    	loc = block.getLocation();
-    	player.teleport(loc);
-		sender.sendMessage("§7Teleported home.");
-    	return true;
-    }
+   
     
     /**
      * Invites a player to a faction
@@ -2546,16 +1983,16 @@ public class simpleFactions extends JavaPlugin implements Listener {
      * */
     public boolean displayInfo(CommandSender sender, String name){
     	
-    	if(factionCheck(name)){
+    	if(Faction.factionCheck(name)){
     		loadFaction(name);
-    		sender.sendMessage(factionInformationString(sender,name));
+    		sender.sendMessage(Faction.factionInformationString(sender,name));
     		return true;
     	}
     	
     	if(playerCheck(name)){
     		loadPlayer(Bukkit.getPlayer(name).getUniqueId());
     		if(!playerData.getString("faction").equalsIgnoreCase(""))
-    			sender.sendMessage(factionInformationString(sender,playerData.getString("faction")));
+    			sender.sendMessage(Faction.factionInformationString(sender,playerData.getString("faction")));
     		else
     			sender.sendMessage(name + " is not in a faction!");
     		return true;
@@ -2565,190 +2002,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	return true;
     }
     
-    public static boolean isFactionOnline(String faction){
-		loadFaction(faction);
-		Collection<? extends Player> on = Bukkit.getOnlinePlayers();
-		for(Player player : on){
-			loadPlayer(player.getUniqueId());
-			if(playerData.getString("faction").equalsIgnoreCase(faction) && player.isOnline()) {
-				factionData.put("lastOnline", System.currentTimeMillis());
-				saveFaction(factionData);
-				return true; //if anyone from faction is online, break from loop and return true; update last online time
-			}
-		}
-		
-		/*
-		 * Code from 1.7.9
-		for(int i = 0; i < on.length; i++){
-			loadPlayer(on[i].getName());
-			if(playerData.getString("faction").equalsIgnoreCase(faction) && on[i].isOnline()) {
-				factionData.put("lastOnline", System.currentTimeMillis());
-				saveFaction(factionData);
-				return true; //if anyone from faction is online, break from loop and return true; update last online time
-			}
-		}*/
-    	
-		if(factionData.getLong("lastOnline")+ (Config.configData.getInt("seconds before faction is considered really offline") * 1000) > System.currentTimeMillis()){
-			return true;
-		}
-		
-    	return false;
-    }
+
     
-    /**
-     * Gather information on a faction and put it into a string.
-     * */
-    public String factionInformationString(CommandSender sender, String faction){
-    	loadPlayer(((Player) sender).getUniqueId());
-    	String viewingFaction = playerData.getString("faction");
-    	loadFaction(faction);
-    	faction = factionData.getString("name"); 
-    	//Bukkit.getLogger().info(factionData.toString(4)); //debug
-    	DecimalFormat df = new DecimalFormat("0.###");
-    	
-    	String truce = "";
-    	String ally = "";
-    	String enemy = "";
-    	
-    	enemyData = factionData.getJSONArray("enemies");
-    	truceData = factionData.getJSONArray("truce");
-    	allyData = factionData.getJSONArray("allies");
-    	
-    	Location factionHome = getHome(faction); 
-    	
-    	if(!factionData.has("safezone"))
-    		factionData.put("safezone", "false"); 
-
-    	if(!factionData.has("warzone"))
-    		factionData.put("warzone", "false"); 
-
-    	if(!factionData.has("peaceful"))
-    		factionData.put("peaceful", "false"); 
-    	
-    	
-    	for(int i = 0; i<enemyData.length(); i++){
-    		String rel = getFactionRelationColor(faction, enemyData.getString(i));
-    		if(rel.equalsIgnoreCase(Config.Rel_Enemy)){
-    			enemy += ", " + Config.configData.getString("faction symbol left") + enemyData.getString(i) + Config.configData.getString("faction symbol right");// enemyData.getString(i);
-    		}
-    	}
-    	
-    	for(int i = 0; i<factionIndex.size(); i++){
-    		if(!enemy.contains(factionIndex.get(i) + ",") && !enemy.contains(", " + factionIndex.get(i)) 
-    			&& !enemy.contains(Config.configData.getString("faction symbol left") + factionIndex.get(i) + Config.configData.getString("faction symbol right"))){
-    			loadFaction(factionIndex.get(i));
-    			enemyData = factionData.getJSONArray("enemies");
-    			for(int l = 0; l<enemyData.length(); l++) 
-    				if(enemyData.getString(l).equalsIgnoreCase(faction)) 
-    					enemy += ", " + Config.configData.getString("faction symbol left") + factionIndex.get(i) + Config.configData.getString("faction symbol right");
-    		}
-    	}
-
-    	enemy = enemy.replaceFirst(",","");
-    	
-    	
-    	
-    	for(int i = 0; i<truceData.length(); i++){
-    		String rel = getFactionRelationColor(faction, truceData.getString(i));
-    		if(rel.equalsIgnoreCase(Config.Rel_Truce)){
-    			truce += ", " + Config.configData.getString("faction symbol left") + truceData.getString(i) + Config.configData.getString("faction symbol right"); //truceData.getString(i);
-    		}
-    	}
-    	truce = truce.replaceFirst(",","");
-
-    	for(int i = 0; i<allyData.length(); i++){
-    		String rel = getFactionRelationColor(faction, allyData.getString(i));
-    		if(rel.equalsIgnoreCase(Config.Rel_Ally)){
-    			ally += ", " + Config.configData.getString("faction symbol left") + allyData.getString(i) + Config.configData.getString("faction symbol right");// + allyData.getString(i);
-    		}
-    	}
-    	ally = ally.replaceFirst(",","");
-
-    	loadFaction(faction);
-    	String factionInfo = "";
-    	factionInfo += "§6---- " + getFactionRelationColor(viewingFaction,faction) + 
-    			Config.configData.getString("faction symbol left") + faction + Config.configData.getString("faction symbol right") + "§6 ---- \n";
-    	factionInfo += "§6" + factionData.getString("desc") + "\n§6";
-    	
-    	if(factionData.getString("safezone").equalsIgnoreCase("true"))
-    		factionInfo += "§6This faction is a safezone.\n"; 
-    	if(factionData.getString("warzone").equalsIgnoreCase("true"))
-    		factionInfo += "§cThis faction is a warzone.\n"; 
-    	if(factionData.getString("peaceful").equalsIgnoreCase("true"))
-    		factionInfo += "§6This faction is peaceful.\n"; 
-    	
-    	if(factionHome != null && viewingFaction.equalsIgnoreCase(faction))
-    		factionInfo += "Home in " + factionHome.getWorld().getName() + " at x" + 
-    			Math.round(factionHome.getX()) + " z" + Math.round(factionHome.getZ()) + " y" + Math.round(factionHome.getY());
-    	
-    	factionInfo += "§6Power: " + getFactionClaimedLand(faction) + "/" + df.format(getFactionPower(faction)) + "/" + df.format(getFactionPowerMax(faction)) + "\n";
-    	
-    	String isOnline = "§coffline";
-    	
-    	if(isFactionOnline(faction))
-    		isOnline = "§bonline";
-    	
-    	factionInfo += "§6This faction is " + isOnline + "§6.\n";
-    	
-    	if(isOnline.equalsIgnoreCase("§coffline")){
-    		long time = factionData.getLong("lastOnline") - System.currentTimeMillis() - (Config.configData.getInt("seconds before faction is considered really offline") * 1000);
-    		int seconds = (int) (-time/1000);
-    		factionInfo += "§6Has been offline for " + (seconds) + " seconds. \n";
-    	}else{
-    		long time = factionData.getLong("lastOnline") - System.currentTimeMillis() - (Config.configData.getInt("seconds before faction is considered really offline") * 1000);
-    		int seconds = (int) (-time/1000);
-    		
-    		if(seconds<299){
-    		factionInfo += "§6Faction will become §coffline§6 if no members are §bonline§6 for " + (((factionData.getLong("lastOnline") - System.currentTimeMillis())/1000) + Config.configData.getInt("seconds before faction is considered really offline")) + "§6 more seconds. \n";
-    		}
-    	}
-    	
-    	if(!ally.equalsIgnoreCase("")) factionInfo += "§dAlly: " + ally.replace("]", "").replace("[", "").replace("\"", "") + "\n§6";
-    	if(!truce.equalsIgnoreCase("")) factionInfo += "§6Truce: " + truce.replace("]", "").replace("[", "").replace("\"", "") + "\n§6";
-    	if(!enemy.equalsIgnoreCase("")) factionInfo += "§cEnemy: " + enemy.replace("]", "").replace("[", "").replace("\"", "") + "\n§6";
-    	
-    	String members = "";
-    	String offMembers = "";
-		OfflinePlayer[] off = Bukkit.getOfflinePlayers();
-		Collection<? extends Player> on = Bukkit.getOnlinePlayers();
-		
-		
-		for(Player player : on){
-			loadPlayer(player.getUniqueId());
-			if(playerData.getString("faction").equalsIgnoreCase(faction) && player.isOnline()) {
-				if(!members.equalsIgnoreCase("")) 
-					members+= ", ";
-				members+="(" + playerData.getString("factionRank") + ") " + player.getName();
-			}
-		}
-		
-		for(int i = 0; i < off.length; i++){
-			loadPlayer(off[i].getUniqueId());
-			if(playerData.getString("faction").equalsIgnoreCase(faction) && !off[i].isOnline()) {
-				if(!members.contains(off[i].getName())){
-					if(!offMembers.equalsIgnoreCase("")) 
-						offMembers+= ", ";
-					offMembers+="(" + playerData.getString("factionRank") + ") " + off[i].getName();
-				}
-			}
-		}
-		
-		/*
-		 * Code from 1.7.9
-		for(int i = 0; i < on.length; i++){
-			loadPlayer(on[i].getName());
-			if(playerData.getString("faction").equalsIgnoreCase(faction) && on[i].isOnline()) {
-				if(!members.equalsIgnoreCase("")) 
-					members+= ", ";
-				members+="(" + playerData.getString("factionRank") + ") " + on[i].getName();
-			}
-		}*/
-    	
-    	if(!members.equalsIgnoreCase("")) factionInfo += "§6Online: " + members + "\n";
-    	if(!offMembers.equalsIgnoreCase("")) factionInfo += "§6Offline: " + offMembers + "\n";
-    	
-    	return factionInfo;
-    }
+    
     
     /**
      * Try to join the supplied faction.
@@ -2766,7 +2022,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
         			playerData.put("factionRank", Config.configData.getString("default player factionRank"));
         			savePlayer(playerData); 
         			sender.sendMessage("§6You have joined " + Config.Rel_Faction + playerData.getString("faction") + "§6!");
-        			messageFaction(faction,Config.Rel_Faction + sender.getName() + "§6 has joined your faction!");
+        			Faction.messageFaction(faction,Config.Rel_Faction + sender.getName() + "§6 has joined your faction!");
         			return true;
     			}
     			else{
@@ -2784,93 +2040,6 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	return true;
     }
     
-    /**
-     * List all factions on the server.
-     * */
-    public boolean listFactions(CommandSender sender, String[] args){
-    	int page = 0;
-    	DecimalFormat df = new DecimalFormat("0.###");
-    	String filter = "";
-    	if(args.length>1){
-    		Scanner scan = new Scanner(args[1]);
-    		if(scan.hasNext() && !scan.hasNextInt()){
-    			filter = scan.next();
-    			filter = filter.toLowerCase();
-    			if(!filter.equalsIgnoreCase("ally") && !filter.equalsIgnoreCase("enemy") && !filter.equalsIgnoreCase("truce")){
-    				sender.sendMessage("§cInvalid filter!§7 Example: §b/sf list ally");
-    				scan.close();
-    				return true;
-    			}
-    		}
-    		if(scan.hasNextInt()){
-    			page = scan.nextInt();
-    			page--;
-    			if(page<0) page = 0;
-    		}
-    		else{
-    			if(filter.equalsIgnoreCase("")){
-    				sender.sendMessage("§cPlease provide a page number.§7 Example: §b/sf list 2");
-        			scan.close();
-    				return true;
-    			}
-    		}
-    		scan.close();
-    	}
-    	String factionList = "";
-
-    	if(factionIndex.size() == 0){
-    		sender.sendMessage("§6There are no factions to show!");
-    		return true;
-    	}
-    	if(factionIndex.size() == 1)
-    		sender.sendMessage("§6Only one faction exsists on this server.");
-    	else
-    		sender.sendMessage("§6There are " + factionIndex.size() + " factions on this server.");
-    	
-    	loadPlayer(((Player) sender).getUniqueId());
-    	String factionName = playerData.getString("faction");
-    		factionList += "  " + getFactionRelationColor(factionName,factionName) + "" + Config.configData.getString("faction symbol left") + factionName + Config.configData.getString("faction symbol right")
-    			+ " "  + getFactionClaimedLand(factionName) + "/" + df.format(getFactionPower(factionName)) + "/" + df.format(getFactionPowerMax(factionName))   +"" + "§7 <-- you\n";
-    	
-    	for(int i=0; i<factionIndex.size(); i++){
-    		String name = factionIndex.get(i);
-        	String Rel = "";
-        	if(filter.equalsIgnoreCase("ally")) Rel = Config.Rel_Ally;
-        	if(filter.equalsIgnoreCase("enemy")) Rel = Config.Rel_Enemy;
-        	if(filter.equalsIgnoreCase("truce")) Rel = Config.Rel_Truce;
-        	if(filter.equalsIgnoreCase("")) Rel = getFactionRelationColor(factionName,name);
-        		
-        	if(!factionIndex.get(i).equalsIgnoreCase(factionName) && Rel.equalsIgnoreCase(getFactionRelationColor(factionName,name)))
-        		factionList += "  " + getFactionRelationColor(factionName,name) + "" + Config.configData.getString("faction symbol left") + name + Config.configData.getString("faction symbol right")
-        			+ " " + getFactionClaimedLand(name) + "/" + df.format(getFactionPower(name)) + "/" + df.format(getFactionPowerMax(name))   + "\n";
-        }
-    	
-    	int lineCount = 0;
-    	int pageCount = 0;
-    	String pageToDisplay = "";
-    	
-    	for(int i = 1; i < factionList.length(); i++){
-    		if(pageCount == page) pageToDisplay+= factionList.charAt(i);
-    		if(factionList.substring(i-1, i).equalsIgnoreCase("\n")){
-    			lineCount++;
-    			if(lineCount>7){
-    				lineCount = 0;
-    				pageCount++;
-    				pageToDisplay+=" ";
-    			}
-    		}
-    	}
-    	
-    	if(page>pageCount) {
-    		sender.sendMessage("§cThere are only " + (pageCount+1) + " faction list pages!");
-    	}
-    	
-    	if(filter.equalsIgnoreCase("ally")) sender.sendMessage("§6Filter: " + Config.Rel_Ally + "Ally");
-    	if(filter.equalsIgnoreCase("truce")) sender.sendMessage("§6Filter: " + Config.Rel_Truce + "Truce");
-    	if(filter.equalsIgnoreCase("enemy")) sender.sendMessage("§6Filter: " + Config.Rel_Enemy + "Enemy");
-    	sender.sendMessage("§6Faction List - page " + (page+1) + "/ " + (pageCount+1) + " \n" + pageToDisplay);
-    	return true;
-    }
     
     /**
      * Display a text map of the surround faction claims.
@@ -3026,7 +2195,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	boardData.put("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ, factionName);
     	
     	saveWorld(boardData);
-    	messageFaction(factionName,Config.Rel_Faction + sender.getName() + "§6 claimed x:" + posX + " y:" + posY + 
+    	Faction.messageFaction(factionName,Config.Rel_Faction + sender.getName() + "§6 claimed x:" + posX + " y:" + posY + 
     			" z:" + posZ + " for " + Config.Rel_Faction + Config.configData.getString("faction symbol left") + factionName + Config.configData.getString("faction symbol right") + "§6!");
     	//sender.sendMessage();
     	return true;
@@ -3066,7 +2235,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
         		if(boardData.getString("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ).equalsIgnoreCase(factionName)){
         			boardData.remove("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ);
         			//sender.sendMessage("§6Chunk has been unclaimed.");
-        			messageFaction(factionName,Config.Rel_Faction + sender.getName() + "§6 unclaimed " + "chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ);
+        			Faction.messageFaction(factionName,Config.Rel_Faction + sender.getName() + "§6 unclaimed " + "chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ);
         	    	saveWorld(boardData);
         			return true;
         		}
@@ -3074,9 +2243,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
     			String faction2 = boardData.getString("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ);
     			if(getFactionPower(faction2)<getFactionClaimedLand(faction2)){
     				
-    				messageFaction(factionName,Config.Rel_Faction + sender.getName() + "§6 unclaimed " + getFactionRelationColor(factionName,faction2) + 
+    				Faction.messageFaction(factionName,Config.Rel_Faction + sender.getName() + "§6 unclaimed " + getFactionRelationColor(factionName,faction2) + 
     						Config.configData.getString("faction symbol left") + faction2 + Config.configData.getString("faction symbol right") + "§6's land!");
-    				messageFaction(faction2,getFactionRelationColor(faction2,factionName) + Config.configData.getString("faction symbol left") +  factionName + 
+    				Faction.messageFaction(faction2,getFactionRelationColor(faction2,factionName) + Config.configData.getString("faction symbol left") +  factionName + 
     						Config.configData.getString("faction symbol right") + " " + sender.getName() + "§6 unclaimed your land!");
     				//sender.sendMessage();
         			
@@ -3121,87 +2290,11 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		saveWorld(boardData);
     	
     	//sender.sendMessage("§6Unclaimed all of your faction's land!");
-    	messageFaction(factionName,Config.Rel_Faction + sender.getName() + "§6 has unclaimed all of your factions land in §f" + player.getWorld().getName());
+    	Faction.messageFaction(factionName,Config.Rel_Faction + sender.getName() + "§6 has unclaimed all of your factions land in §f" + player.getWorld().getName());
     	return true;
     }
     
-    /**
-     * Tries to create a faction with the specified name.
-     * */
-    public boolean tryCreateFaction(CommandSender sender, String[] args){
-    	if(args.length<2){
-			sender.sendMessage("Please include a name! Example: /sf create name");
-		}else{
-			
-			if(args[1].contains("/") || args[1].contains("\\") || args[1].contains(".") || args[1].contains("\"") 
-				|| args[1].contains(",") || args[1].contains("?") || args[1].contains("'") || args[1].contains("*") 
-				|| args[1].contains("|") || args[1].contains("<") || args[1].contains(":") || args[1].contains("$")){
-				sender.sendMessage("§cName cannot contain special characters!");
-				return true;
-			}
-			
-			for(int i = 0; i<factionIndex.size(); i++){
-				if(factionIndex.get(i).equalsIgnoreCase(args[1].toString())){
-					sender.sendMessage("§cThe faction name §f" + args[1].toString() + "§c is already taken!");
-					return false;
-				}
-			}
 
-			loadPlayer(((Player) sender).getUniqueId()); //load up playerData jsonobject
-			
-			String factionName = playerData.getString("faction");
-			if(!factionName.equalsIgnoreCase("")){
-				sender.sendMessage("§cYou are already in a faction!");
-				sender.sendMessage("§ccurrent faction: §b" + Config.configData.getString("faction symbol left") + factionName + Config.configData.getString("faction symbol right"));
-				sender.sendMessage("§cPlease do /sf leave in order to create a new faction!");
-				return false;
-			}
-
-			createFaction(args[1].toString());
-			
-			loadPlayer(((Player) sender).getUniqueId());
-			playerData.put("factionRank","leader");
-			playerData.put("faction", args[1].toString());
-			savePlayer(playerData);
-			
-			messageEveryone("§6The faction name " + Config.Rel_Other + args[1].toString() + " §6has been created!");
-			//sender.sendMessage();
-			return true;
-			
-		}
-    	
-    	return false;
-    }
-    
-    /**
-     * Creates a faction
-     * Is used for
-     * 		New faction creation
-     * 		used if faction is somehow deleted from filesystem
-     * */
-    public static void createFaction(String faction){
-    	enemyData = new JSONArray();
-    	allyData = new JSONArray();
-    	truceData = new JSONArray();
-    	inviteData = new JSONArray();
-    	factionData = new JSONObject();
-		factionData.put("name", faction);
-		factionData.put("peaceful", "false");
-		factionData.put("warzone", "false");
-		factionData.put("safezone", "false");
-		factionData.put("ID", UUID.randomUUID().toString());
-		factionData.put("shekels", 0.0);
-		factionData.put("enemies",enemyData);
-		factionData.put("allies",allyData);
-		factionData.put("truce", truceData);
-		factionData.put("invited", inviteData);
-		factionData.put("lastOnline", System.currentTimeMillis());
-		factionData.put("home", "");
-		factionData.put("desc", Config.configData.getString("default faction description"));
-		factionData.put("open", Config.configData.getString("factions open by default"));
-		saveFaction(factionData);
-    	factionIndex.add(faction);
-    }
     
     /**
      * Returns the jsonobject key, or a default value if no key is found.
@@ -3307,40 +2400,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	}
     }
     
-    /**
-     * Disbands the faction given.
-     * */
-    public boolean tryDisband(CommandSender sender,String factionName){
-    	
-    	loadPlayer(((Player) sender).getUniqueId());
-    	if(playerData.getString("faction").equalsIgnoreCase("")){
-    		sender.sendMessage("You must be in a faction to do this!");
-    		return true;
-    	}
-    	
-    	if(!playerData.getString("factionRank").equalsIgnoreCase("leader") && !sender.isOp()){
-    		sender.sendMessage("You cannot do this unless you are the leader of your faction!");
-    		return true; 
-    	}
-    	
-    	if(factionName.equalsIgnoreCase("")){
-    		factionName = playerData.getString("faction"); 
-    	}
-    	
-    	for(String player : playerIndex){
-    		loadPlayer(UUID.fromString(player));
-    		if(playerData.getString("faction").equalsIgnoreCase(factionName)){
-    			playerData.put("faction", "");
-    			playerData.put("factionRank", "member");
-    			savePlayer(playerData);
-    		}
-    	}
-    	
-    	deleteFaction(factionName); 
-    	
-		sender.sendMessage("The faction has been disbanded!");
-    	return true;
-    }
+    
     
     
     
@@ -3473,26 +2533,6 @@ public class simpleFactions extends JavaPlugin implements Listener {
         	return relation;
     	}
     }
-    
-    
-	
-	
-	public static String getFactionAt(Location location){
-		String faction = "";
-    	loadWorld(location.getWorld().getName());
-
-    	int posX = location.getBlockX(), chunkSizeX = Config.chunkSizeX;
-    	int posY = location.getBlockY(), chunkSizeY = Config.chunkSizeY;
-    	int posZ = location.getBlockZ(), chunkSizeZ = Config.chunkSizeZ;
-    	posX = Math.round(posX / chunkSizeX) * chunkSizeX;
-    	posY = Math.round(posY / chunkSizeY) * chunkSizeY;
-    	posZ = Math.round(posZ / chunkSizeZ) * chunkSizeZ;
-    	
-    	if(boardData.has("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ))
-    		faction = boardData.getString("chunkX" + posX + " chunkY" + posY + " chunkZ" + posZ);
-    	
-		return faction;
-	}
 	
 	/**
 	 * Checks if the player can edit terrain at location, returns true/false if they can or cannot.
@@ -3504,7 +2544,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		loadPlayer(player.getUniqueId());
 		String rankEditing = playerData.getString("factionRank");
 		String factionEditing = playerData.getString("faction");
-		String factionBeingEdited = getFactionAt(location);
+		String factionBeingEdited = Faction.getFactionAt(location);
     	
     	if(!factionBeingEdited.equalsIgnoreCase("")){
     		String rel = getFactionRelationColor(factionEditing,factionBeingEdited);
@@ -3621,7 +2661,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		loadPlayer(player.getUniqueId());
 		String rankEditing = playerData.getString("factionRank");
 		String factionEditing = playerData.getString("faction");
-		String factionBeingEdited = getFactionAt(location);
+		String factionBeingEdited = Faction.getFactionAt(location);
 		
     	String rel = Config.Rel_Neutral;
     	String relation = "neutral";
