@@ -27,6 +27,9 @@ public class Tasks implements Listener {
 	 * */
 	@SuppressWarnings("deprecation")
 	public static void saveDataToDisk(){
+		long minutesBetweenSaves = Config.configData.getLong("minutes between disk saving"); 
+		long interval = minutesBetweenSaves*120; 
+		
 		BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
 		scheduler.scheduleAsyncRepeatingTask(simpleFactions.plugin, new Runnable() {
 			@Override
@@ -34,7 +37,7 @@ public class Tasks implements Listener {
 				simpleFactions.saveData(); 
 			}
 			
-		}, 12000L, 12000L); 
+		}, interval, interval); 
 	}
 	
 	/**
