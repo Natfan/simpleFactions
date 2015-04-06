@@ -16,40 +16,41 @@ import org.json.JSONObject;
 public class Config {
 	
 	//the json object storing all config data
-	static JSONObject configData = new JSONObject();
+	public static JSONObject configData = new JSONObject();
+	public static String configVersion = "1.0"; 
 	
 	//default configs
-	static int chunkSizeX = 16;
-	static int chunkSizeY = 16;
-	static int chunkSizeZ = 16;
-	static int powerCapMax = 750; // 25 * 30 (default power is 25 * 30 players)
+	public static int chunkSizeX = 16;
+	public static int chunkSizeY = 16;
+	public static int chunkSizeZ = 16;
+	public static int powerCapMax = 750; // 25 * 30 (default power is 25 * 30 players)
 	
 	//default colors
-	static String Rel_Faction = "§b";
-	static String Rel_Ally = "§d";
-	static String Rel_Enemy = "§c";
-	static String Rel_Neutral = "§2";
-	static String Rel_Other = "§f";
-	static String Rel_Truce = "§6";
-	static String powerCapType = "none";
+	public static String Rel_Faction = "§b";
+	public static String Rel_Ally = "§d";
+	public static String Rel_Enemy = "§c";
+	public static String Rel_Neutral = "§2";
+	public static String Rel_Other = "§f";
+	public static String Rel_Truce = "§6";
+	public static String powerCapType = "none";
 	
 	//priv config
-	static JSONArray neutralBreakData = new JSONArray();
-	static JSONArray allyBreakData = new JSONArray();
-	static JSONArray truceBreakData = new JSONArray();
-	static JSONArray otherBreakData = new JSONArray();
-	static JSONArray enemyBreakData = new JSONArray();
-	static JSONArray neutralPlaceData = new JSONArray();
-	static JSONArray allyPlaceData = new JSONArray();
-	static JSONArray trucePlaceData = new JSONArray();
-	static JSONArray otherPlaceData = new JSONArray();
-	static JSONArray enemyPlaceData = new JSONArray();
-	static JSONArray neutralItemData = new JSONArray();
-	static JSONArray allyItemData = new JSONArray();
-	static JSONArray truceItemData = new JSONArray();
-	static JSONArray otherItemData = new JSONArray();
-	static JSONArray enemyItemData = new JSONArray();
-	static JSONArray claimsDisabledInTheseWorlds = new JSONArray();
+	public static JSONArray neutralBreakData = new JSONArray();
+	public static JSONArray allyBreakData = new JSONArray();
+	public static JSONArray truceBreakData = new JSONArray();
+	public static JSONArray otherBreakData = new JSONArray();
+	public static JSONArray enemyBreakData = new JSONArray();
+	public static JSONArray neutralPlaceData = new JSONArray();
+	public static JSONArray allyPlaceData = new JSONArray();
+	public static JSONArray trucePlaceData = new JSONArray();
+	public static JSONArray otherPlaceData = new JSONArray();
+	public static JSONArray enemyPlaceData = new JSONArray();
+	public static JSONArray neutralItemData = new JSONArray();
+	public static JSONArray allyItemData = new JSONArray();
+	public static JSONArray truceItemData = new JSONArray();
+	public static JSONArray otherItemData = new JSONArray();
+	public static JSONArray enemyItemData = new JSONArray();
+	public static JSONArray claimsDisabledInTheseWorlds = new JSONArray();
 	
     /**
      * Creates config file.
@@ -82,7 +83,7 @@ public class Config {
     public static void loadConfig(){
     	
     	File dataFolder = simpleFactions.dataFolder; 
-    	String version = simpleFactions.version; 
+    	String version = configVersion; 
     	
     	File configFile = new File(dataFolder + "/config.json");
     	if(!configFile.exists()){
@@ -106,7 +107,7 @@ public class Config {
 			loadConfigData(); 
 			scan.close();
 			
-			if(!configData.getString("version").equals(version)){
+			if(!configData.getString("configVersion").equals(version)){
 				Bukkit.getServer().getConsoleSender().sendMessage("§cConfig file is out of date! " +
 						"Backing up old config file and creating a new one! Please go and redo your configs with the new format!");
 

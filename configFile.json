@@ -2,7 +2,7 @@
         "## -- SIMPLE FACTIONS CONFIGURATION FILE --##": "",
         "## -- Any entries with ##s are just comments that can be ignored --##": "",
         
-        "version": "1.89",
+        "configVersion": "1.0",
 		
 		"## -- MISC SETTINGS --##": "",
 		"minutes between disk saving":	10,

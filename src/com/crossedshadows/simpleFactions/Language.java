@@ -14,6 +14,7 @@ import org.json.JSONObject;
 
 public class Language {
 	public static JSONObject language = new JSONObject(); 
+	public static String languageVersion = "1.0"; 
 	
 	public static String loadLanguageFile(){
 		String languageFile = "";
@@ -28,7 +29,7 @@ public class Language {
 	
 	public static void loadLanguageData(){
     	File dataFolder = simpleFactions.dataFolder; 
-    	String version = simpleFactions.version; 
+    	String version = languageVersion; 
     	String filename = "translations/" + Config.configData.getString("Language"); 
     	
     	File languageFile = new File(dataFolder + "/" + filename + ".json");
