@@ -4,6 +4,9 @@
         
         "version": "1.89",
 		
+		"## -- MISC SETTINGS --##": "",
+		"minutes between disk saving":	10,
+		
 		"## -- LANGUAGE CHOICE --##": "",
 		"## -- Copy en.json, make changes, then set the name of the file without the .json here --##": "",
 		"Language": "en",
