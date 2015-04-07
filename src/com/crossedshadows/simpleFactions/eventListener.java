@@ -263,7 +263,7 @@ public class eventListener implements Listener {
 		simpleFactions.loadPlayer(event.getPlayer().getUniqueId());
     	String chatChannel_talk = simpleFactions.playerData.getString("chat channel");
     	String factionRank = simpleFactions.playerData.get("factionRank").toString();
-    	String title = simpleFactions.playerData.get("factionTitle").toString();
+    	String title = simpleFactions.playerData.get("factionTitle").toString() + " ";
     	String faction = simpleFactions.playerData.get("faction").toString();
     	String factionString = simpleFactions.playerData.get("faction").toString().replaceAll("\\$", "\\\\\\$");
     	factionRank += " ";
@@ -293,7 +293,7 @@ public class eventListener implements Listener {
 	    		factionRelation = simpleFactions.getFactionRelationColor(faction2,faction);
 	    	else
 	    		factionRelation = Config.Rel_Other;
-	    	if(!faction.equalsIgnoreCase("")) factionString = Config.configData.getString("faction symbol left") + faction.replaceAll("\\$", "\\\\\\$") + Config.configData.getString("faction symbol right");
+	    	if(!faction.equalsIgnoreCase("")) factionString = Config.configData.getString("faction symbol left") + faction.replaceAll("\\$", "\\\\\\$") + Config.configData.getString("faction symbol right") + " ";
 
 	    	
 	    	if(!faction.equalsIgnoreCase("") && !faction2.equalsIgnoreCase(""))
@@ -338,7 +338,7 @@ public class eventListener implements Listener {
 	    		
 	    		if(Config.configData.getString("inject faction into message instead of replacing whole message").equalsIgnoreCase("true")){
 	    			String format = event.getFormat();
-	    			message = format.replaceFirst("%1", factionRelation + factionRank + "" + factionString + " " + playerNickname);
+	    			message = format.replaceFirst("%1", factionRelation + factionRank + "" + factionString  + playerNickname);
 	    			message = message.replaceFirst("%2", event.getMessage().replaceAll("\\$", "\\\\\\$")); //man don't ask me shit
 	    			message = message.replaceAll("\\$s", "§f");
 	    		}
@@ -350,7 +350,7 @@ public class eventListener implements Listener {
 	    	//faction
 	    	if(chatChannel_talk.equalsIgnoreCase("faction")){
 	    		if(faction.equalsIgnoreCase(faction2))
-	    			player.sendMessage(Config.Rel_Faction + "(" + Language.getMessage("faction") + ") " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
+	    			player.sendMessage(Config.Rel_Faction + "(" + Language.getMessage("faction") + ") " + factionRelation + title  + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
 	    		continue;
 	    	}
 	    	
@@ -359,9 +359,9 @@ public class eventListener implements Listener {
 	    		simpleFactions.allyData = simpleFactions.factionData.getJSONArray("allies");
 	    		for(int i = 0; i<simpleFactions.allyData.length(); i++)
 	    			if(simpleFactions.allyData.getString(i).equalsIgnoreCase(faction2))
-	    	    		player.sendMessage(Config.Rel_Ally + "(" + Language.getMessage("ally") + ") " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
+	    	    		player.sendMessage(Config.Rel_Ally + "(" + Language.getMessage("ally") + ") " + factionRelation + title  + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
 	    		if(faction.equalsIgnoreCase(faction2))
-    	    		player.sendMessage(Config.Rel_Ally + "(" + Language.getMessage("ally") + ") " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
+    	    		player.sendMessage(Config.Rel_Ally + "(" + Language.getMessage("ally") + ") " + factionRelation + title  + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
 	    		continue;
 	    	}
 	    	
@@ -370,9 +370,9 @@ public class eventListener implements Listener {
 	    		simpleFactions.truceData = simpleFactions.factionData.getJSONArray("truce");
 	    		for(int i = 0; i<simpleFactions.truceData.length(); i++)
 	    			if(simpleFactions.truceData.getString(i).equalsIgnoreCase(faction2))
-	    	    		player.sendMessage(Config.Rel_Truce + "(" + Language.getMessage("truce") + ") " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
+	    	    		player.sendMessage(Config.Rel_Truce + "(" + Language.getMessage("truce") + ") " + factionRelation + title  + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
 	    		if(faction.equalsIgnoreCase(faction2))
-    	    		player.sendMessage(Config.Rel_Truce + "(" + Language.getMessage("truce") + ") " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
+    	    		player.sendMessage(Config.Rel_Truce + "(" + Language.getMessage("truce") + ") " + factionRelation + title  + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
 	    		continue;
 	    	}
 	    	
@@ -381,9 +381,9 @@ public class eventListener implements Listener {
 	    		simpleFactions.enemyData = simpleFactions.factionData.getJSONArray("enemies");
 	    		for(int i = 0; i<simpleFactions.enemyData.length(); i++)
 	    			if(simpleFactions.enemyData.getString(i).equalsIgnoreCase(faction2))
-	    	    		player.sendMessage(Config.Rel_Enemy + "(" + Language.getMessage("enemy") + ") " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
+	    	    		player.sendMessage(Config.Rel_Enemy + "(" + Language.getMessage("enemy") + ") " + factionRelation + title  + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
 	    		if(faction.equalsIgnoreCase(faction2))
-    	    		player.sendMessage(Config.Rel_Enemy + "(" + Language.getMessage("enemy") + ") " + factionRelation + title + " " + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
+    	    		player.sendMessage(Config.Rel_Enemy + "(" + Language.getMessage("enemy") + ") " + factionRelation + title  + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
 	    		
 	    		continue;
 	    	}
@@ -415,7 +415,7 @@ public class eventListener implements Listener {
 	    		if(distance<Config.configData.getInt("local chat distance") && !player.getName().equalsIgnoreCase(event.getPlayer().getName())){
 	    				String message_ = Config.Rel_Neutral + "(" + (distance) + "" + Direction + ") "; 
 	    				if(Config.configData.getString("show faction data in local chat").equalsIgnoreCase("true")) //only display faction stuff if settings say so
-	    					message_ += factionRelation + title + " " + factionRank + "" + factionString;
+	    					message_ += factionRelation + title  + factionRank + "" + factionString;
 	    				message_ += " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage();
     	    			player.sendMessage(message_);
     	    		}
@@ -503,7 +503,7 @@ public class eventListener implements Listener {
     			&& simpleFactions.playerData.has("autoclaim") && simpleFactions.playerData.getString("autoclaim").equalsIgnoreCase("false")
     			&& simpleFactions.playerData.has("autounclaim") && simpleFactions.playerData.getString("autounclaim").equalsIgnoreCase("false")
     			){
-    		player.sendMessage("§7" + Language.getMessage("You have traveled from") + " " + simpleFactions.getFactionRelationColor(playerFaction,simpleFactions.playerIsIn_faction.get(k)) + Config.configData.getString("faction symbol left") + 
+    		player.sendMessage("§7" + Language.getMessage("You have travelom") + " " + simpleFactions.getFactionRelationColor(playerFaction,simpleFactions.playerIsIn_faction.get(k)) + Config.configData.getString("faction symbol left") + 
     				simpleFactions.playerIsIn_faction.get(k) + Config.configData.getString("faction symbol right") + 
     				"§7 " + Language.getMessage("to") + " " + simpleFactions.getFactionRelationColor(playerFaction,inFaction) + Config.configData.getString("faction symbol left") + 
     				inFaction + Config.configData.getString("faction symbol right") + "§7.");
