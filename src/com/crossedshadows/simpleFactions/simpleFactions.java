@@ -68,6 +68,7 @@ import com.sun.corba.se.spi.activation.Server;
  * 
  * Idea TODO:
  * 		Make a secondary claiming system, so factions can "claim" and, but won't have protections there.
+ * 		Make claims go away after a configurable amount of time
  * 
  * Misc TODO: 
  * 		Optional power scaling systems
@@ -282,7 +283,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		loadPlayerDisk(uuid);
     		playerIndex.add(uuid); 
     		}
+    	
 		Bukkit.getServer().getConsoleSender().sendMessage("§bLoaded all players.");
+		
 		for(int i=0; i<factionIndexList.size(); i++){
     		String uuid = factionIndexList.get(i).replaceFirst(".json", "");
     		//Bukkit.getServer().getConsoleSender().sendMessage("    §c->§7Loading " + uuid);
@@ -302,18 +305,21 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		}
     		
     		if(!exists){
-    			Bukkit.getServer().getConsoleSender().sendMessage("        §c->§There are no players here, removing faction..");
+    			Bukkit.getServer().getConsoleSender().sendMessage("  §c->§There are no players in " + factionData.getString("name") + " ..removing.");
     			deleteFaction(factionData.getString("name")); 
     		}
     		
-    		}
+    	}
+		
 		Bukkit.getServer().getConsoleSender().sendMessage("§bLoaded all factions.");
+		
     	for(int i=0; i<boardIndexList.size(); i++){
     		String name = boardIndexList.get(i).replaceFirst(".json", "");
-    		//Bukkit.getServer().getConsoleSender().sendMessage("    §c->§7Loading " + name); 
+    		Bukkit.getServer().getConsoleSender().sendMessage("  §c->§7Loading " + name); 
     		loadWorldDisk(name); 
     		boardIndex.add(name);
     		}
+    	
 		Bukkit.getServer().getConsoleSender().sendMessage("§bLoaded all worlds.");
     }
     
@@ -429,6 +435,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 				e.printStackTrace();
 			}
     	}
+    	
     	try {
     		
 			Scanner scan = new Scanner(new FileReader(dataFolder + "/factionData/" + uuid + ".json"));
@@ -496,6 +503,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 
 			Scanner scan = new Scanner(new FileReader(dataFolder + "/boardData/" + name + ".json"));
 			scan.useDelimiter("\\Z");
+			boardData = new JSONObject(scan.next());
 			
 			for(int i = 0; i < Data.Worlds.length(); i++){
 				if(Data.Worlds.getJSONObject(i).getString("name").equalsIgnoreCase(name)){
@@ -503,7 +511,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 				}
 			}
 			
-			boardData = new JSONObject(scan.next());
+			Data.Worlds.put(boardData);
 			scan.close();
     		
 			
@@ -670,7 +678,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 
     	createDirectories();
     	
-    	String saveString = wData.toString(8); //save data for faction
+    	String saveString = wData.toString(8); //save data for world
 		try{
 			FileWriter fw=new FileWriter(dataFolder + "/boardData/" + wData.getString("name").toString() + ".json");
 			BufferedWriter bw=new BufferedWriter(fw);
@@ -2510,15 +2518,35 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	if(!senderFaction.equalsIgnoreCase("") && !reviewedFaction.equalsIgnoreCase("") && !reviewedFaction.equalsIgnoreCase("neutral territory")
     			&& !senderFaction.equalsIgnoreCase("neutral territory")) {
     		
+    		//faction 1
     		loadFaction(senderFaction);
-    		if(factionData.get("enemies").toString().contains(reviewedFaction)) relation="enemy";// return Rel_Enemy;
-    		if(factionData.get("allies").toString().contains(reviewedFaction)) relation="ally";// return Rel_Ally;
-    		if(factionData.get("truce").toString().contains(reviewedFaction)) relation="truce";// return Rel_Truce;
-    	
+    		
+    		enemyData = factionData.getJSONArray("enemies"); 
+    		for(int i = 0; i < enemyData.length(); i++) if(enemyData.getString(i).equalsIgnoreCase(reviewedFaction)) relation="enemy"; 
+    		allyData = factionData.getJSONArray("allies"); 
+    		for(int i = 0; i < allyData.length(); i++) if(allyData.getString(i).equalsIgnoreCase(reviewedFaction)) relation="ally"; 
+    		truceData = factionData.getJSONArray("truce"); 
+    		for(int i = 0; i < truceData.length(); i++) if(truceData.getString(i).equalsIgnoreCase(reviewedFaction)) relation="truce"; 
+    		
+    		//faction 2
     		loadFaction(reviewedFaction);
-    		if(factionData.get("enemies").toString().contains(senderFaction)) relation2="enemy";// return Rel_Enemy;
-    		if(factionData.get("allies").toString().contains(senderFaction)) relation2="ally";// return Rel_Ally;
-    		if(factionData.get("truce").toString().contains(senderFaction)) relation2="truce";// return Rel_Truce;
+    		
+    		enemyData = factionData.getJSONArray("enemies"); 
+    		for(int i = 0; i < enemyData.length(); i++) if(enemyData.getString(i).equalsIgnoreCase(senderFaction)) relation2="enemy"; 
+    		allyData = factionData.getJSONArray("allies"); 
+    		for(int i = 0; i < allyData.length(); i++) if(allyData.getString(i).equalsIgnoreCase(senderFaction)) relation2="ally"; 
+    		truceData = factionData.getJSONArray("truce"); 
+    		for(int i = 0; i < truceData.length(); i++) if(truceData.getString(i).equalsIgnoreCase(senderFaction)) relation2="truce"; 
+    		
+    		//loadFaction(senderFaction);
+    		//if(factionData.get("enemies").toString().contains(reviewedFaction)) relation="enemy";// return Rel_Enemy;
+    		//if(factionData.get("allies").toString().contains(reviewedFaction)) relation="ally";// return Rel_Ally;
+    		//if(factionData.get("truce").toString().contains(reviewedFaction)) relation="truce";// return Rel_Truce;
+    	
+    		//loadFaction(reviewedFaction);
+    		//if(factionData.get("enemies").toString().contains(senderFaction)) relation2="enemy";// return Rel_Enemy;
+    		//if(factionData.get("allies").toString().contains(senderFaction)) relation2="ally";// return Rel_Ally;
+    		//if(factionData.get("truce").toString().contains(senderFaction)) relation2="truce";// return Rel_Truce;
 
         	if(!factionData.has("safezone"))
         		factionData.put("safezone", "false"); 

@@ -233,7 +233,7 @@ public class eventListener implements Listener {
 	@EventHandler
     public void AsyncPlayerChatEvent(AsyncPlayerChatEvent event){
 		event.setMessage(event.getMessage().replace(">", "§a>"));
-
+		event.setMessage(event.getMessage().replaceAll("&", "§")); 
 		
 		String playerName = event.getPlayer().getName();
 		
@@ -262,10 +262,10 @@ public class eventListener implements Listener {
 		Set<Player> playerList = event.getRecipients();
 		simpleFactions.loadPlayer(event.getPlayer().getUniqueId());
     	String chatChannel_talk = simpleFactions.playerData.getString("chat channel");
-    	String factionRank = simpleFactions.playerData.get("factionRank").toString();
-    	String title = simpleFactions.playerData.get("factionTitle").toString() + " ";
-    	String faction = simpleFactions.playerData.get("faction").toString();
-    	String factionString = simpleFactions.playerData.get("faction").toString().replaceAll("\\$", "\\\\\\$");
+    	String factionRank = simpleFactions.playerData.getString("factionRank");
+    	String title = simpleFactions.playerData.getString("factionTitle") + " ";
+    	String faction = simpleFactions.playerData.getString("faction");
+    	String factionString = simpleFactions.playerData.getString("faction").replaceAll("\\$", "\\\\\\$");
     	factionRank += " ";
     	if(factionRank.contains("leader")) factionRank = "** ";
     	if(factionRank.contains("officer")) factionRank = "* ";
@@ -284,8 +284,8 @@ public class eventListener implements Listener {
 		for(Player player : playerList){
 			
 			World world = player.getWorld(); 
-			simpleFactions.loadPlayer(player.getUniqueId());
-	    	factionString = simpleFactions.playerData.getString("faction").replaceAll("\\$", "\\\\\\$");
+			simpleFactions.loadPlayer(event.getPlayer().getUniqueId());
+	    	factionString = simpleFactions.playerData.getString("faction");
 	    	simpleFactions.loadPlayer(player.getUniqueId());
 	    	faction2 = simpleFactions.playerData.getString("faction");
 	    	String chatChannel_listen = simpleFactions.playerData.getString("chat channel");
@@ -357,9 +357,19 @@ public class eventListener implements Listener {
 	    	//ally
 	    	if(chatChannel_talk.equalsIgnoreCase("ally")){
 	    		simpleFactions.allyData = simpleFactions.factionData.getJSONArray("allies");
-	    		for(int i = 0; i<simpleFactions.allyData.length(); i++)
-	    			if(simpleFactions.allyData.getString(i).equalsIgnoreCase(faction2))
-	    	    		player.sendMessage(Config.Rel_Ally + "(" + Language.getMessage("ally") + ") " + factionRelation + title  + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
+	    		simpleFactions.loadFaction(faction2);
+	    		JSONArray allyData2 = simpleFactions.factionData.getJSONArray("allies"); 
+	    		simpleFactions.loadFaction(faction); 
+	    		for(int i = 0; i<simpleFactions.allyData.length(); i++){
+	    			if(simpleFactions.allyData.getString(i).equalsIgnoreCase(faction2)){
+	    				for(int k = 0; k < allyData2.length(); k++){
+	    					if(allyData2.getString(k).equalsIgnoreCase(faction)){
+	    						player.sendMessage(Config.Rel_Ally + "(" + Language.getMessage("ally") + ") " + factionRelation + title  + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
+	    					}
+	    				}
+	    			}
+	    		}
+	    	    		
 	    		if(faction.equalsIgnoreCase(faction2))
     	    		player.sendMessage(Config.Rel_Ally + "(" + Language.getMessage("ally") + ") " + factionRelation + title  + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
 	    		continue;
@@ -368,9 +378,27 @@ public class eventListener implements Listener {
 	    	//truce
 	    	if(chatChannel_talk.equalsIgnoreCase("truce")){
 	    		simpleFactions.truceData = simpleFactions.factionData.getJSONArray("truce");
-	    		for(int i = 0; i<simpleFactions.truceData.length(); i++)
-	    			if(simpleFactions.truceData.getString(i).equalsIgnoreCase(faction2))
-	    	    		player.sendMessage(Config.Rel_Truce + "(" + Language.getMessage("truce") + ") " + factionRelation + title  + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
+	    		
+	    		
+	    		simpleFactions.truceData = simpleFactions.factionData.getJSONArray("truce");
+	    		simpleFactions.loadFaction(faction2);
+	    		JSONArray truceData2 = simpleFactions.factionData.getJSONArray("truce"); 
+	    		simpleFactions.loadFaction(faction); 
+	    		for(int i = 0; i<simpleFactions.truceData.length(); i++){
+	    			if(simpleFactions.truceData.getString(i).equalsIgnoreCase(faction2)){
+	    				for(int k = 0; k < truceData2.length(); k++){
+	    					if(truceData2.getString(k).equalsIgnoreCase(faction)){
+	    						player.sendMessage(Config.Rel_Truce + "(" + Language.getMessage("truce") + ") " + factionRelation + title  + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
+	    					}
+	    				}
+	    			}
+	    		}
+	    		
+	    		
+	    		//for(int i = 0; i<simpleFactions.truceData.length(); i++)
+	    		//	if(simpleFactions.truceData.getString(i).equalsIgnoreCase(faction2))
+	    	    //		player.sendMessage(Config.Rel_Truce + "(" + Language.getMessage("truce") + ") " + factionRelation + title  + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
+	    		
 	    		if(faction.equalsIgnoreCase(faction2))
     	    		player.sendMessage(Config.Rel_Truce + "(" + Language.getMessage("truce") + ") " + factionRelation + title  + factionRank + "" + factionString + " §f(" + factionRelation + playerNickname + "§f): " + event.getMessage());
 	    		continue;
@@ -503,7 +531,7 @@ public class eventListener implements Listener {
     			&& simpleFactions.playerData.has("autoclaim") && simpleFactions.playerData.getString("autoclaim").equalsIgnoreCase("false")
     			&& simpleFactions.playerData.has("autounclaim") && simpleFactions.playerData.getString("autounclaim").equalsIgnoreCase("false")
     			){
-    		player.sendMessage("§7" + Language.getMessage("You have travelom") + " " + simpleFactions.getFactionRelationColor(playerFaction,simpleFactions.playerIsIn_faction.get(k)) + Config.configData.getString("faction symbol left") + 
+    		player.sendMessage("§7" + Language.getMessage("You have traveled from") + " " + simpleFactions.getFactionRelationColor(playerFaction,simpleFactions.playerIsIn_faction.get(k)) + Config.configData.getString("faction symbol left") + 
     				simpleFactions.playerIsIn_faction.get(k) + Config.configData.getString("faction symbol right") + 
     				"§7 " + Language.getMessage("to") + " " + simpleFactions.getFactionRelationColor(playerFaction,inFaction) + Config.configData.getString("faction symbol left") + 
     				inFaction + Config.configData.getString("faction symbol right") + "§7.");
@@ -678,7 +706,9 @@ public class eventListener implements Listener {
 	@EventHandler
 	public void playerDied(PlayerDeathEvent event){
 		
+		event.setDeathMessage("§o§7" + event.getDeathMessage()); 
 		String deathMessage = event.getDeathMessage();
+		
 		Collection<? extends Player> players = Bukkit.getOnlinePlayers();
 		String player = ((Player) event.getEntity()).getName();
 		UUID player_uuid = ((Player) event.getEntity()).getUniqueId(); 

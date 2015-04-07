@@ -696,51 +696,56 @@ public class Faction {
     	simpleFactions.allyData = simpleFactions.factionData.getJSONArray("allies");
     	
     	Location factionHome = Faction.getHome(faction); 
-    	
-    	if(!simpleFactions.factionData.has("safezone"))
-    		simpleFactions.factionData.put("safezone", "false"); 
 
-    	if(!simpleFactions.factionData.has("warzone"))
-    		simpleFactions.factionData.put("warzone", "false"); 
-
-    	if(!simpleFactions.factionData.has("peaceful"))
-    		simpleFactions.factionData.put("peaceful", "false"); 
-    	
-    	
+		simpleFactions.loadFaction(faction); 
     	for(int i = 0; i<simpleFactions.enemyData.length(); i++){
-    		String rel = simpleFactions.getFactionRelationColor(faction, simpleFactions.enemyData.getString(i));
+    		simpleFactions.loadFaction(faction);
+    		String thisEnemy = simpleFactions.enemyData.getString(i); 
+    		String rel = simpleFactions.getFactionRelationColor(faction, thisEnemy);
     		if(rel.equalsIgnoreCase(Config.Rel_Enemy)){
-    			enemy += ", " + Config.configData.getString("faction symbol left") + simpleFactions.enemyData.getString(i) + Config.configData.getString("faction symbol right");// enemyData.getString(i);
+    			enemy += ", " + Config.configData.getString("faction symbol left") + thisEnemy + Config.configData.getString("faction symbol right");// enemyData.getString(i);
     		}
     	}
-    	
+
+		simpleFactions.loadFaction(faction); 
     	for(int i = 0; i<simpleFactions.factionIndex.size(); i++){
-    		if(!enemy.contains(simpleFactions.factionIndex.get(i) + ",") && !enemy.contains(", " + simpleFactions.factionIndex.get(i)) 
-    			&& !enemy.contains(Config.configData.getString("faction symbol left") + simpleFactions.factionIndex.get(i) + Config.configData.getString("faction symbol right"))){
-    			simpleFactions.loadFaction(simpleFactions.factionIndex.get(i));
-    			simpleFactions.enemyData = simpleFactions.factionData.getJSONArray("enemies");
-    			for(int l = 0; l<simpleFactions.enemyData.length(); l++) 
-    				if(simpleFactions.enemyData.getString(l).equalsIgnoreCase(faction)) 
-    					enemy += ", " + Config.configData.getString("faction symbol left") + simpleFactions.factionIndex.get(i) + Config.configData.getString("faction symbol right");
+    		simpleFactions.loadFaction(faction); 
+    		String thisEnemy = simpleFactions.factionIndex.get(i); 
+    		
+    		for(int k = 0; k < enemy.length(); k++){
+    			if(enemy.equalsIgnoreCase(thisEnemy)){
+    				simpleFactions.loadFaction(simpleFactions.factionIndex.get(k));
+        			simpleFactions.enemyData = simpleFactions.factionData.getJSONArray("enemies");
+        			for(int l = 0; l<simpleFactions.enemyData.length(); l++) 
+        				if(simpleFactions.enemyData.getString(l).equalsIgnoreCase(faction)) 
+        					enemy += ", " + Config.configData.getString("faction symbol left") + simpleFactions.factionIndex.get(i) + Config.configData.getString("faction symbol right");
+        		
+    			}
     		}
     	}
 
     	enemy = enemy.replaceFirst(",","");
     	
     	
-    	
+
+		simpleFactions.loadFaction(faction); 
     	for(int i = 0; i<simpleFactions.truceData.length(); i++){
-    		String rel = simpleFactions.getFactionRelationColor(faction, simpleFactions.truceData.getString(i));
+    		simpleFactions.loadFaction(faction); 
+    		String thisTruce = simpleFactions.truceData.getString(i); 
+    		String rel = simpleFactions.getFactionRelationColor(faction, thisTruce);
     		if(rel.equalsIgnoreCase(Config.Rel_Truce)){
-    			truce += ", " + Config.configData.getString("faction symbol left") + simpleFactions.truceData.getString(i) + Config.configData.getString("faction symbol right"); //truceData.getString(i);
+    			truce += ", " + Config.configData.getString("faction symbol left") + thisTruce + Config.configData.getString("faction symbol right"); //truceData.getString(i);
     		}
     	}
     	truce = truce.replaceFirst(",","");
 
+		simpleFactions.loadFaction(faction); 
     	for(int i = 0; i<simpleFactions.allyData.length(); i++){
-    		String rel = simpleFactions.getFactionRelationColor(faction, simpleFactions.allyData.getString(i));
+    		simpleFactions.loadFaction(faction); 
+    		String thisAlly = simpleFactions.allyData.getString(i); 
+    		String rel = simpleFactions.getFactionRelationColor(faction, thisAlly);
     		if(rel.equalsIgnoreCase(Config.Rel_Ally)){
-    			ally += ", " + Config.configData.getString("faction symbol left") + simpleFactions.allyData.getString(i) + Config.configData.getString("faction symbol right");// + allyData.getString(i);
+    			ally += ", " + Config.configData.getString("faction symbol left") + thisAlly + Config.configData.getString("faction symbol right");// + allyData.getString(i);
     		}
     	}
     	ally = ally.replaceFirst(",","");
@@ -784,9 +789,12 @@ public class Faction {
     		}
     	}
     	
-    	if(!ally.equalsIgnoreCase("")) factionInfo += "§dAlly: " + ally.replace("]", "").replace("[", "").replace("\"", "") + "\n§6";
-    	if(!truce.equalsIgnoreCase("")) factionInfo += "§6Truce: " + truce.replace("]", "").replace("[", "").replace("\"", "") + "\n§6";
-    	if(!enemy.equalsIgnoreCase("")) factionInfo += "§cEnemy: " + enemy.replace("]", "").replace("[", "").replace("\"", "") + "\n§6";
+    	if(!ally.equals("")) 
+    		factionInfo += "§dAlly: " + ally.replace("]", "").replace("[", "").replace("\"", "") + "\n§6";
+    	if(!truce.equals("")) 
+    		factionInfo += "§6Truce: " + truce.replace("]", "").replace("[", "").replace("\"", "") + "\n§6";
+    	if(!enemy.equals("")) 
+    		factionInfo += "§cEnemy: " + enemy.replace("]", "").replace("[", "").replace("\"", "") + "\n§6";
     	
     	String members = "";
     	String offMembers = "";
