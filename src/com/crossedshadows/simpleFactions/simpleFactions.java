@@ -278,14 +278,14 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	
     	for(int i=0; i<playerIndexList.size(); i++){
     		String uuid = playerIndexList.get(i).replaceAll(".json", "");
-    		Bukkit.getServer().getConsoleSender().sendMessage("    §c->§7Loading " + uuid); 
+    		//Bukkit.getServer().getConsoleSender().sendMessage("    §c->§7Loading " + uuid); 
     		loadPlayerDisk(uuid);
     		playerIndex.add(uuid); 
     		}
 		Bukkit.getServer().getConsoleSender().sendMessage("§bLoaded all players.");
 		for(int i=0; i<factionIndexList.size(); i++){
     		String uuid = factionIndexList.get(i).replaceFirst(".json", "");
-    		Bukkit.getServer().getConsoleSender().sendMessage("    §c->§7Loading " + uuid);
+    		//Bukkit.getServer().getConsoleSender().sendMessage("    §c->§7Loading " + uuid);
     		
     		
     		
@@ -310,7 +310,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		Bukkit.getServer().getConsoleSender().sendMessage("§bLoaded all factions.");
     	for(int i=0; i<boardIndexList.size(); i++){
     		String name = boardIndexList.get(i).replaceFirst(".json", "");
-    		Bukkit.getServer().getConsoleSender().sendMessage("    §c->§7Loading " + name); 
+    		//Bukkit.getServer().getConsoleSender().sendMessage("    §c->§7Loading " + name); 
     		loadWorldDisk(name); 
     		boardIndex.add(name);
     		}
