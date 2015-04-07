@@ -74,7 +74,6 @@ public class Config {
 	
 	public static String getOnlineVersion() throws Throwable {
 	  String link = "https://raw.githubusercontent.com/coty-crg/simpleFactions/master/configFile.json";
-	  String fileName = "configFile.json";
 	  URL url  = new URL( link );
 	  HttpURLConnection http = (HttpURLConnection)url.openConnection();
 	  http.setRequestProperty("User-Agent","Mozilla/5.0 (Windows NT 5.1; rv:19.0) Gecko/20100101 Firefox/19.0"); //trick to bypass cloudflare checks on various sites
@@ -101,20 +100,7 @@ public class Config {
 	  }
 	  
 	  return onlineVersion; 
-		
-      //InputStream  input  = http.getInputStream();
-      //byte[]       buffer = new byte[4096];
-      //int          n      = -1;
-      //OutputStream output = new FileOutputStream( new File( fileName ));
-      //while ((n = input.read(buffer)) != -1) {
-      //   output.write( buffer, 0, n );
-      //}
-      //output.close();
 	}
-	
-	
-	
-	
 	
 	/**
 	 * Checks for updates online. 
@@ -122,31 +108,9 @@ public class Config {
 	public static void checkForUpdates(){
 		try {
 			
-			/*
-			URL downloadUrl = new URL("https://github.com/coty-crg/simpleFactions/blob/master/downloads/simpleFactions.jar?raw=true"); 
-			URL configUrl = new URL("https://raw.githubusercontent.com/coty-crg/simpleFactions/master/configFile.json");
-			
-			URLConnection conn1 = configUrl.openConnection();
-			
-			conn1.setRequestProperty("User-Agent","Mozilla/5.0 (Windows NT 5.1; rv:19.0) Gecko/20100101 Firefox/19.0"); //trick to bypass cloudflare checks on various sites
-			conn1.connect(); 
-			BufferedReader response1 = new BufferedReader(new InputStreamReader(conn1.getInputStream()));
-			
-			String res1 = ""; //response1.toString();
-			String someLine = "";
-			while((someLine = response1.readLine())!=null)
-				res1 += someLine;
-			
-			Bukkit.getConsoleSender().sendMessage(res1);
-			
-			JSONObject onlineConfig = new JSONObject(res1); 
-			String onlineVersion = onlineConfig.getString("pluginVersion"); 
-			*/
-			
 			String onlineVersion = getOnlineVersion();
-			String onlineDownload = "https://github.com/coty-crg/simpleFactions/blob/master/downloads/simpleFactions.jar?raw=true";
 			
-			if(!onlineVersion.equalsIgnoreCase(configVersion)){
+			if(!onlineVersion.equalsIgnoreCase(simpleFactions.version)){
 				Bukkit.getConsoleSender().sendMessage("§c#############################################");
 				Bukkit.getConsoleSender().sendMessage("  ");
 				Bukkit.getConsoleSender().sendMessage("§aYOUR SIMPLEFACTIONS PLUGIN MIGHT BE OUT OF DATE.");
