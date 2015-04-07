@@ -118,7 +118,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	static JSONArray inviteData = new JSONArray();
 	
 	//version
-	static String version = "1.89"; 
+	static String version = "1.90"; 
 
 	//global thing to pass to async task
 	static TNTPrimed lastCheckedTNT; 
@@ -149,8 +149,13 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has set up tasks!]");
 		Language.loadLanguageData();
 		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has loaded the language file!]");
-		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has enabled successfully!]");
 		
+		if(Config.configData.getString("checkForUpdates").equalsIgnoreCase("true")){
+			Config.checkForUpdates(); 
+			Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has finished checking for updates!]");
+		}
+
+		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has enabled successfully!]");
 		/*
 		boolean hasapi = false; 
 		Plugin[] plugins = getServer().getPluginManager().getPlugins();
@@ -737,6 +742,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
     				if(args[0].equalsIgnoreCase("autounclaim")){
     					return toggleAutounclaim(sender);
     				}
+    				if(args[0].equalsIgnoreCase("version")){
+    					return sendVersion(sender);
+    				}
     				if(args[0].equalsIgnoreCase("map")){
     					return drawMap(sender);
     				}
@@ -890,6 +898,13 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	
     	
     	return true; 
+    }
+    
+    public boolean sendVersion(CommandSender sender){
+    	sender.sendMessage("§aSimpleFactions: §bv" + version);
+    	sender.sendMessage("§aSF-Config: §bv" + Config.configVersion);
+    	sender.sendMessage("§aSF-Language: §bv" + Language.languageVersion);
+    	return true;
     }
     
     public boolean trySchedule(CommandSender sender, String[] args){

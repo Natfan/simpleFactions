@@ -1,14 +1,17 @@
 {
-        "## -- SIMPLE FACTIONS CONFIGURATION FILE --##": "",
-        "## -- Any entries with ##s are just comments that can be ignored --##": "",
+        "## -- SIMPLE FACTIONS CONFIGURATION FILE --##":"",
+        "## -- Any entries with ##s are just comments that can be ignored --##":"",
         
+        "##DO NOT CHANGE THESE TWO VALUES##":"",
         "configVersion": "1.0",
+        "pluginVersion": "1.90",
 		
 		"## -- MISC SETTINGS --##": "",
 		"minutes between disk saving":	10,
+        "checkForUpdates": "true",
 		
 		"## -- LANGUAGE CHOICE --##": "",
-		"## -- Copy en.json, make changes, then set the name of the file without the .json here --##": "",
+		"## -- Copy en.json, make changes, then set the name of the file without the .json here --##":"",
 		"Language": "en",
 		
         "## -- FACTION SETTINGS --##": "",
@@ -23,13 +26,13 @@
         "friendly fire other": "false",
         "default player money": 100,
 		
-        "## -- Used to FORCE all factions into one relationship. --##": "",
-        "## -- Options are Ally, Truce, Neutral, Enemy, and Other --##": "",
+        "## -- Used to FORCE all factions into one relationship. --##":"",
+        "## -- Options are Ally, Truce, Neutral, Enemy, and Other --##":"",
         "enforce relations": "",
 		
         "## -- CHAT SETTINGS --##": "",
         "enable simplefaction chat": "true",
-        "##The follow setting allows better compatibility for EssentialsChat and other plugins##": "",
+        "##The follow setting allows better compatibility for EssentialsChat and other plugins##":"",
         "inject faction into message instead of replacing whole message": "true",
         "allow simplefactions chat channels": "true",
         "show faction data in global chat": "true",
@@ -39,7 +42,7 @@
         "local chat distance": 500,
         "treat all chat like a radio": "false",
 		
-        "## -- POWER SETTINGS --##": "",
+        "## -- POWER SETTINGS --##":"",
         "power cap max powe": 750,
         "power cap type": "none",
         "max player power": 25,
@@ -47,7 +50,7 @@
         "default player power": 10,
         "power lost on death": 2,
 		
-        "## -- Values stack additively --##": "",
+        "## -- Values stack additively --##":"",
         "update power while online": "true",
         "power per hour while online": 2,
         "update power while offline": "true",
@@ -59,7 +62,7 @@
         "update power while enemy in your territory": "true",
         "power per hour while enemy in your territory": -0.25,
 		
-        "## -- PROTECTION SETTINGS --##": "",
+        "## -- PROTECTION SETTINGS --##":"",
         "use 3D claim system?": "true",
         "claim size x": 16,
         "claim size z": 16,
@@ -68,28 +71,28 @@
         "protect claimed land from explosions while faction is offline": "true",
         "seconds before faction is considered really offline": 300,
 		
-        "## -- Block breaking --##": "",
+        "## -- Block breaking --##":"",
         "protect all claimed blocks from being broken in ally territory": "false",
         "protect all claimed blocks from being broken in truce territory": "true",
         "protect all claimed blocks from being broken in neutral territory": "false",
         "protect all claimed blocks from being broken in enemy territory": "true",
         "protect all claimed blocks from being broken in other territory": "true",
 		
-        "## -- Block placing --##": "",
+        "## -- Block placing --##":"",
         "protect all claimed blocks from being placed in ally territory": "false",
         "protect all claimed blocks from being placed in truce territory": "true",
         "protect all claimed blocks from being placed in neutral territory": "false",
         "protect all claimed blocks from being placed in enemy territory": "true",
         "protect all claimed blocks from being placed in other territory": "true",
 
-        "## -- Item usage --##": "",
+        "## -- Item usage --##":"",
         "block all item use by default in ally territory": "false",
         "block all item use by default in truce territory": "true",
         "block all item use by default in neutral territory": "false",
         "block all item use by default in enemy territory": "true",
         "block all item use by default in other territory": "true",
 		
-        "## -- Protection rule bypass --##": "",
+        "## -- Protection rule bypass --##":"",
         "block break protection in ally land": [],
         "block break protection in truce land": [],
         "block break protection in neutral land": [],
@@ -138,11 +141,21 @@
                 "WOOD_BUTTON"
         ],
 		
-        "## -- Configs for slime blocks and pistons --##": "",
+        "## -- Configs for slime blocks and pistons --##":"",
         "allow pistons to move slime blocks across faction lines": "false",
 		
-        "## -- Disable the plugin for certain worlds --##": "",
+        "## -- Disable plugin features for certain worlds --##":"",
         "disable claims and homes in these worlds": [
+                "customworld_1",
+                "customworld_1_nether",
+                "customworld_1_the_end"
+        ],
+        "disable faction(and ally/enemy/truce/etc) chat in these worlds": [
+                "customworld_1",
+                "customworld_1_nether",
+                "customworld_1_the_end"
+        ],
+        "disable global chat in these worlds": [
                 "customworld_1",
                 "customworld_1_nether",
                 "customworld_1_the_end"

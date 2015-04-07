@@ -1,12 +1,22 @@
 package com.crossedshadows.simpleFactions;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import org.bukkit.Bukkit;
@@ -51,6 +61,114 @@ public class Config {
 	public static JSONArray otherItemData = new JSONArray();
 	public static JSONArray enemyItemData = new JSONArray();
 	public static JSONArray claimsDisabledInTheseWorlds = new JSONArray();
+	
+	
+	
+	private static boolean isRedirected( Map<String, List<String>> header ) {
+	      for( String hv : header.get( null )) {
+	         if(   hv.contains( " 301 " )
+	            || hv.contains( " 302 " )) return true;
+	      }
+	      return false;
+	   }
+	
+	public static String getOnlineVersion() throws Throwable {
+	  String link = "https://raw.githubusercontent.com/coty-crg/simpleFactions/master/configFile.json";
+	  String fileName = "configFile.json";
+	  URL url  = new URL( link );
+	  HttpURLConnection http = (HttpURLConnection)url.openConnection();
+	  http.setRequestProperty("User-Agent","Mozilla/5.0 (Windows NT 5.1; rv:19.0) Gecko/20100101 Firefox/19.0"); //trick to bypass cloudflare checks on various sites
+		
+	  Map< String, List< String >> header = http.getHeaderFields();
+	  while( isRedirected( header )) {
+		  	link = header.get( "Location" ).get( 0 );
+	         url    = new URL( link );
+	         http   = (HttpURLConnection)url.openConnection();
+	         header = http.getHeaderFields();
+	  }
+	  BufferedReader response1 = new BufferedReader(new InputStreamReader(http.getInputStream()));
+	  String res1 = ""; //response1.toString();
+	  String someLine = "";
+	  while((someLine = response1.readLine())!=null)
+		  res1 += someLine;
+	  
+	  //Bukkit.getConsoleSender().sendMessage(res1);
+	  JSONObject onlineConfig = new JSONObject(res1); 
+
+	  String onlineVersion = "NULL"; //just in case no version is there
+	  if(onlineConfig.has("pluginVersion")){
+		  onlineVersion = onlineConfig.getString("pluginVersion"); 
+	  }
+	  
+	  return onlineVersion; 
+		
+      //InputStream  input  = http.getInputStream();
+      //byte[]       buffer = new byte[4096];
+      //int          n      = -1;
+      //OutputStream output = new FileOutputStream( new File( fileName ));
+      //while ((n = input.read(buffer)) != -1) {
+      //   output.write( buffer, 0, n );
+      //}
+      //output.close();
+	}
+	
+	
+	
+	
+	
+	/**
+	 * Checks for updates online. 
+	 * */
+	public static void checkForUpdates(){
+		try {
+			
+			/*
+			URL downloadUrl = new URL("https://github.com/coty-crg/simpleFactions/blob/master/downloads/simpleFactions.jar?raw=true"); 
+			URL configUrl = new URL("https://raw.githubusercontent.com/coty-crg/simpleFactions/master/configFile.json");
+			
+			URLConnection conn1 = configUrl.openConnection();
+			
+			conn1.setRequestProperty("User-Agent","Mozilla/5.0 (Windows NT 5.1; rv:19.0) Gecko/20100101 Firefox/19.0"); //trick to bypass cloudflare checks on various sites
+			conn1.connect(); 
+			BufferedReader response1 = new BufferedReader(new InputStreamReader(conn1.getInputStream()));
+			
+			String res1 = ""; //response1.toString();
+			String someLine = "";
+			while((someLine = response1.readLine())!=null)
+				res1 += someLine;
+			
+			Bukkit.getConsoleSender().sendMessage(res1);
+			
+			JSONObject onlineConfig = new JSONObject(res1); 
+			String onlineVersion = onlineConfig.getString("pluginVersion"); 
+			*/
+			
+			String onlineVersion = getOnlineVersion();
+			String onlineDownload = "https://github.com/coty-crg/simpleFactions/blob/master/downloads/simpleFactions.jar?raw=true";
+			
+			if(!onlineVersion.equalsIgnoreCase(configVersion)){
+				Bukkit.getConsoleSender().sendMessage("§c#############################################");
+				Bukkit.getConsoleSender().sendMessage("  ");
+				Bukkit.getConsoleSender().sendMessage("§aYOUR SIMPLEFACTIONS PLUGIN MIGHT BE OUT OF DATE.");
+				Bukkit.getConsoleSender().sendMessage("  ");
+				Bukkit.getConsoleSender().sendMessage("§aYour version: §c" + simpleFactions.version + " §aGithub version: §c" + onlineVersion);
+				Bukkit.getConsoleSender().sendMessage("  ");
+				Bukkit.getConsoleSender().sendMessage("§aPLEASE GO TO ONE OF THE FOLLOWING URLS TO UPDATE IT!");
+				Bukkit.getConsoleSender().sendMessage("  ");
+				Bukkit.getConsoleSender().sendMessage("  §b https://github.com/coty-crg/simpleFactions");
+				Bukkit.getConsoleSender().sendMessage("  §b http://dev.bukkit.org/bukkit-plugins/simple-factions/");
+				Bukkit.getConsoleSender().sendMessage("  §b http://www.spigotmc.org/threads/simplefactions.36766/");
+				Bukkit.getConsoleSender().sendMessage("  ");
+				Bukkit.getConsoleSender().sendMessage("§c#############################################");
+			}
+		} catch (MalformedURLException e) {
+			Bukkit.getConsoleSender().sendMessage("§c[SimpleFactions Error]: Malformed URL detected while checking for updates!");
+		} catch (IOException e) {
+			Bukkit.getConsoleSender().sendMessage("§c[SimpleFactions Error]: I/O exception while checking for updates. Are you online?");
+		} catch (Throwable e) {
+			Bukkit.getConsoleSender().sendMessage("§c[SimpleFactions Error]: Unable to check for update. You may be offline or Github may be experiencing heavy traffic.");
+		}
+	}
 	
     /**
      * Creates config file.

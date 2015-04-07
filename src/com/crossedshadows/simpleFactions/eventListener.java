@@ -35,6 +35,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.plugin.Plugin;
+import org.json.JSONArray;
 
 /**
  * TODO: Move all event handlers into this file. 
@@ -281,6 +282,8 @@ public class eventListener implements Listener {
 		}
     	
 		for(Player player : playerList){
+			
+			World world = player.getWorld(); 
 			simpleFactions.loadPlayer(player.getUniqueId());
 	    	factionString = simpleFactions.playerData.getString("faction").replaceAll("\\$", "\\\\\\$");
 	    	simpleFactions.loadPlayer(player.getUniqueId());
@@ -299,6 +302,32 @@ public class eventListener implements Listener {
 			/*	
 			configData.put("show faction data in global chat", "true");
 			*/
+	    	
+	    	//ignore cases
+	    	JSONArray ignoreWorlds = Config.configData.getJSONArray("disable global chat in these worlds"); 
+	    	JSONArray ignoreFactionChatWorlds = Config.configData.getJSONArray("disable faction(and ally/enemy/truce/etc) chat in these worlds"); 
+			boolean skipThisPlayer = false; 
+			for(int w = 0; w<ignoreWorlds.length(); w++){
+				String ignoreWorld = ignoreWorlds.getString(w);
+				if(ignoreWorld.equalsIgnoreCase(world.getName())){
+					skipThisPlayer = true;
+					continue; //ignore the rest in the loop, just skip the player
+				}
+			}
+			
+			if(!chatChannel_talk.equalsIgnoreCase("global")){
+				for(int w = 0; w<ignoreFactionChatWorlds.length(); w++){
+					String ignoreWorld = ignoreWorlds.getString(w);
+					if(ignoreWorld.equalsIgnoreCase(world.getName())){
+						skipThisPlayer = true;
+						continue; //ignore the rest in the loop, just skip the player
+					}
+				}
+			}
+			
+			if(skipThisPlayer){
+				continue; //actually skip over this player
+			}
 	    	
 	    	//global
 	    	if(chatChannel_talk.equalsIgnoreCase("global")){
