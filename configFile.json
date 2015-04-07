@@ -3,7 +3,7 @@
         "## -- Any entries with ##s are just comments that can be ignored --##":"",
         
         "##DO NOT CHANGE THESE TWO VALUES##":"",
-        "configVersion": "1.0",
+        "configVersion": "2.0",
         "pluginVersion": "1.90",
 		
 		"## -- MISC SETTINGS --##": "",

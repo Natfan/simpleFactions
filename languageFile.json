@@ -3,7 +3,7 @@
 
 		"##DO NOT CHANGE VALUES ON THE LEFT##": 			"##CHANGE THE VALUES ON THE RIGHT TO MAKE THEM REPLACE MESSAGES IN GAME##",
 		
-		"LanguageVersion": 									"1.0",
+		"LanguageVersion": 									"2.0",
 		"LanguageName":										"English",
 		
 		"Try using a command! Example: /sf create faction":	"Try using a command! Example: /sf create faction",

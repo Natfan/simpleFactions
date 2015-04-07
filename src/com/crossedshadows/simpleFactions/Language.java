@@ -14,7 +14,7 @@ import org.json.JSONObject;
 
 public class Language {
 	public static JSONObject language = new JSONObject(); 
-	public static String languageVersion = "1.0"; 
+	public static String languageVersion = "2.0"; 
 	
 	public static String loadLanguageFile(){
 		String languageFile = "";
