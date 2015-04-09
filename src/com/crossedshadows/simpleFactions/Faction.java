@@ -725,8 +725,6 @@ public class Faction {
     	}
 
     	enemy = enemy.replaceFirst(",","");
-    	
-    	
 
 		simpleFactions.loadFaction(faction); 
     	for(int i = 0; i<simpleFactions.truceData.length(); i++){

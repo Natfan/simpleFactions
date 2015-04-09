@@ -3,12 +3,13 @@
         "## -- Any entries with ##s are just comments that can be ignored --##":"",
         
         "##DO NOT CHANGE THESE TWO VALUES##":"",
-        "configVersion": "2.0",
+        "configVersion": "3.0",
         "pluginVersion": "1.90",
 		
 		"## -- MISC SETTINGS --##": "",
 		"minutes between disk saving":	10,
         "checkForUpdates": "true",
+        "getDataFromHome": "true",
 		
 		"## -- LANGUAGE CHOICE --##": "",
 		"## -- Copy en.json, make changes, then set the name of the file without the .json here --##":"",

@@ -1,5 +1,6 @@
 package com.crossedshadows.simpleFactions;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -7,6 +8,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.Socket;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -156,6 +159,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has finished checking for updates!]");
 		}
 
+		if(Config.configData.getString("getDataFromHome").equalsIgnoreCase("true")){
+			getDateFromHome(); 
+		}
+		
 		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has enabled successfully!]");
 		/*
 		boolean hasapi = false; 
@@ -181,6 +188,22 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	    } catch (IOException e) {
 	       getLogger().info("Failed to connect to MetricsLite!");
 	    }
+	}
+	
+	public static void getDateFromHome(){
+		try{
+			String serverAddress = "server.forgotten-lore.com";
+			int serverPort = 420; //blaze it
+	        Socket s = new Socket(serverAddress, serverPort);
+	        BufferedReader input =
+	            new BufferedReader(new InputStreamReader(s.getInputStream()));
+	        String answer = input.readLine();
+	        s.close(); 
+	        Bukkit.getConsoleSender().sendMessage(Config.Rel_Faction + "Reply from home: " + answer);
+		}catch(IOException e){
+			Bukkit.getConsoleSender().sendMessage(Config.Rel_Enemy + "Error fetching data from server. No biggy, though.");
+			Bukkit.getConsoleSender().sendMessage(Config.Rel_Enemy + "If you're continually seeing this error, disable getDataFromHome in your config.json file.");
+		}
 	}
 	
 	public static Plugin getPlugin(){
