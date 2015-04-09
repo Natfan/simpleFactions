@@ -481,8 +481,8 @@ public class Faction {
     		factionName = simpleFactions.playerData.getString("faction"); 
     	}
     	
-    	for(String player : simpleFactions.playerIndex){
-    		simpleFactions.loadPlayer(UUID.fromString(player));
+    	for(UUID player : simpleFactions.playerIndex){
+    		simpleFactions.loadPlayer(player);
     		if(simpleFactions.playerData.getString("faction").equalsIgnoreCase(factionName)){
     			simpleFactions.playerData.put("faction", "");
     			simpleFactions.playerData.put("factionRank", "member");
@@ -696,56 +696,33 @@ public class Faction {
     	simpleFactions.allyData = simpleFactions.factionData.getJSONArray("allies");
     	
     	Location factionHome = Faction.getHome(faction); 
-
-		simpleFactions.loadFaction(faction); 
-    	for(int i = 0; i<simpleFactions.enemyData.length(); i++){
-    		simpleFactions.loadFaction(faction);
-    		String thisEnemy = simpleFactions.enemyData.getString(i); 
-    		String rel = simpleFactions.getFactionRelationColor(faction, thisEnemy);
-    		if(rel.equalsIgnoreCase(Config.Rel_Enemy)){
-    			enemy += ", " + Config.configData.getString("faction symbol left") + thisEnemy + Config.configData.getString("faction symbol right");// enemyData.getString(i);
-    		}
-    	}
-
-		simpleFactions.loadFaction(faction); 
-    	for(int i = 0; i<simpleFactions.factionIndex.size(); i++){
-    		simpleFactions.loadFaction(faction); 
-    		String thisEnemy = simpleFactions.factionIndex.get(i); 
+    	
+    	//scan relationships
+    	for(int i = 0; i < simpleFactions.factionIndex.size(); i++){
+    		String checkFaction = simpleFactions.factionIndex.get(i);
+    		String rel = simpleFactions.getFactionRelationColor(faction, checkFaction);
     		
-    		for(int k = 0; k < enemy.length(); k++){
-    			if(enemy.equalsIgnoreCase(thisEnemy)){
-    				simpleFactions.loadFaction(simpleFactions.factionIndex.get(k));
-        			simpleFactions.enemyData = simpleFactions.factionData.getJSONArray("enemies");
-        			for(int l = 0; l<simpleFactions.enemyData.length(); l++) 
-        				if(simpleFactions.enemyData.getString(l).equalsIgnoreCase(faction)) 
-        					enemy += ", " + Config.configData.getString("faction symbol left") + simpleFactions.factionIndex.get(i) + Config.configData.getString("faction symbol right");
-        		
-    			}
+    		simpleFactions.loadFaction(checkFaction); 
+        	if(simpleFactions.factionData.getString("peaceful").equalsIgnoreCase("true")) continue;  
+        	if(simpleFactions.factionData.getString("safezone").equalsIgnoreCase("true")) continue; 
+        	if(simpleFactions.factionData.getString("warzone").equalsIgnoreCase("true")) continue;
+    		
+    		if(rel.equalsIgnoreCase(Config.Rel_Enemy)){
+    			enemy += ", " + Config.configData.getString("faction symbol left") + checkFaction + Config.configData.getString("faction symbol right");
     		}
-    	}
-
-    	enemy = enemy.replaceFirst(",","");
-
-		simpleFactions.loadFaction(faction); 
-    	for(int i = 0; i<simpleFactions.truceData.length(); i++){
-    		simpleFactions.loadFaction(faction); 
-    		String thisTruce = simpleFactions.truceData.getString(i); 
-    		String rel = simpleFactions.getFactionRelationColor(faction, thisTruce);
+    		
     		if(rel.equalsIgnoreCase(Config.Rel_Truce)){
-    			truce += ", " + Config.configData.getString("faction symbol left") + thisTruce + Config.configData.getString("faction symbol right"); //truceData.getString(i);
+    			truce += ", " + Config.configData.getString("faction symbol left") + checkFaction + Config.configData.getString("faction symbol right");
     		}
-    	}
-    	truce = truce.replaceFirst(",","");
 
-		simpleFactions.loadFaction(faction); 
-    	for(int i = 0; i<simpleFactions.allyData.length(); i++){
-    		simpleFactions.loadFaction(faction); 
-    		String thisAlly = simpleFactions.allyData.getString(i); 
-    		String rel = simpleFactions.getFactionRelationColor(faction, thisAlly);
     		if(rel.equalsIgnoreCase(Config.Rel_Ally)){
-    			ally += ", " + Config.configData.getString("faction symbol left") + thisAlly + Config.configData.getString("faction symbol right");// + allyData.getString(i);
+    			ally += ", " + Config.configData.getString("faction symbol left") + checkFaction + Config.configData.getString("faction symbol right");
     		}
     	}
+
+    	//manage strings
+    	enemy = enemy.replaceFirst(",","");
+    	truce = truce.replaceFirst(",","");
     	ally = ally.replaceFirst(",","");
 
     	simpleFactions.loadFaction(faction);

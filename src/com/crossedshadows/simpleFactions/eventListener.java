@@ -712,12 +712,17 @@ public class eventListener implements Listener {
 		Collection<? extends Player> players = Bukkit.getOnlinePlayers();
 		String player = ((Player) event.getEntity()).getName();
 		UUID player_uuid = ((Player) event.getEntity()).getUniqueId(); 
+		
 		String player2 = ""; 
 		UUID player2_uuid = null; 
 		
 		for(Player p : players){
-			if(deathMessage.contains(p.getName())){
-				if(!p.getName().equalsIgnoreCase(player))
+			
+			String tempMessage = deathMessage.toLowerCase(); 
+			String tempName = p.getName().toLowerCase(); 
+			
+			if(tempMessage.contains(tempName)){
+				if(p.getUniqueId() != player_uuid)
 					player2 = p.getName();
 					player2_uuid = p.getUniqueId();
 			}

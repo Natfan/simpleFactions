@@ -89,7 +89,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	
 	//index of players/factions (constantly updating to stay accurate)
 	static List<String> factionIndex = new ArrayList<String>();
-	static List<String> playerIndex = new ArrayList<String>();
+	static List<UUID> playerIndex = new ArrayList<UUID>();
 	static List<String> boardIndex = new ArrayList<String>();
 	
 	//for traveling around faction territory (one of the few things that stay in memory for entire life of plugin)
@@ -122,7 +122,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	static JSONArray inviteData = new JSONArray();
 	
 	//version
-	static String version = "1.90"; 
+	static String version = "1.91"; 
 
 	//global thing to pass to async task
 	static TNTPrimed lastCheckedTNT; 
@@ -291,7 +291,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	FileUtil fileutil = new FileUtil();
     	
     	factionIndex = new ArrayList<String>();
-    	playerIndex = new ArrayList<String>();
+    	playerIndex = new ArrayList<UUID>();
     	boardIndex = new ArrayList<String>();
     	
     	List<String> factionIndexList = Arrays.asList(fileutil.listFiles(dataFolder + "/factionData"));
@@ -301,9 +301,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	//display loaded factions and players
     	
     	for(int i=0; i<playerIndexList.size(); i++){
-    		String uuid = playerIndexList.get(i).replaceAll(".json", "");
+    		UUID uuid = UUID.fromString(playerIndexList.get(i).replaceAll(".json", ""));
     		//Bukkit.getServer().getConsoleSender().sendMessage("    §c->§7Loading " + uuid); 
-    		loadPlayerDisk(uuid);
+    		loadPlayerDisk(uuid.toString());
     		playerIndex.add(uuid); 
     		}
     	
@@ -1312,10 +1312,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		if(factionRank.equalsIgnoreCase("leader")){
 			if(args[1].equalsIgnoreCase(sender.getName())){
 				int otherleaders = 0; 
-		    	for(String player : playerIndex){
-		    		loadPlayer(UUID.fromString(player)); 
+		    	for(UUID player : playerIndex){
+		    		loadPlayer(player); 
 		    		if(playerData.getString("faction").equalsIgnoreCase(faction)){
-		    			if(!player.equalsIgnoreCase(sender.getName())){
+		    			if(!player.toString().equalsIgnoreCase(sender.getName())){
 		    				if(playerData.getString("factionRank").equalsIgnoreCase("leader")){
 		    					otherleaders++;
 		    				}
@@ -2365,10 +2365,10 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	}
 
     	int otherleaders = 0; 
-    	for(String player : playerIndex){
-    		loadPlayer(UUID.fromString(player));
+    	for(UUID player : playerIndex){
+    		loadPlayer(player);
     		if(playerData.getString("faction").equalsIgnoreCase(factionName)){
-    			if(!player.equalsIgnoreCase(sender.getName())){
+    			if(!player.toString().equalsIgnoreCase(sender.getName())){
     				if(playerData.getString("factionRank").equalsIgnoreCase("leader")){
     					otherleaders++;
     				}
@@ -2388,8 +2388,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	
     	//disband if you're the last one there
     	boolean canDisband = true;
-    	for(String player : playerIndex){
-    		loadPlayer(UUID.fromString(player));
+    	for(UUID player : playerIndex){
+    		loadPlayer(player);
     		if(playerData.getString("faction").equalsIgnoreCase(factionName)){
     			canDisband = false;
     		}
@@ -2475,7 +2475,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
   		savePlayer(playerData);
     	
   		Data.Players.put(playerData); 
-    	playerIndex.add(player.getUniqueId().toString());
+    	playerIndex.add(player.getUniqueId());
     }
     public static void createPlayer(OfflinePlayer player){
     	playerData = new JSONObject();
@@ -2496,7 +2496,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
   		savePlayer(playerData);
 
   		Data.Players.put(playerData); 
-    	playerIndex.add(player.getUniqueId().toString());
+    	playerIndex.add(player.getUniqueId());
     }
     
     /**
@@ -2517,6 +2517,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		if(rel.equalsIgnoreCase("other")) return Config.Rel_Other;
     	}
     	
+    	//war or peacetime?
     	if(getScheduledTime().equalsIgnoreCase("war")){
 			relation="enemy";
 			relation2="enemy";
@@ -2543,23 +2544,49 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		
     		//faction 1
     		loadFaction(senderFaction);
-    		
     		enemyData = factionData.getJSONArray("enemies"); 
-    		for(int i = 0; i < enemyData.length(); i++) if(enemyData.getString(i).equalsIgnoreCase(reviewedFaction)) relation="enemy"; 
+    		for(int i = 0; i < enemyData.length(); i++){
+    			if(enemyData.getString(i).equalsIgnoreCase(reviewedFaction)) {
+    				relation="enemy"; 
+    			}
+    		}
+    		
     		allyData = factionData.getJSONArray("allies"); 
-    		for(int i = 0; i < allyData.length(); i++) if(allyData.getString(i).equalsIgnoreCase(reviewedFaction)) relation="ally"; 
+    		for(int i = 0; i < allyData.length(); i++) {
+    			if(allyData.getString(i).equalsIgnoreCase(reviewedFaction)) {
+    				relation="ally"; 
+    			}
+    		}
+    		
     		truceData = factionData.getJSONArray("truce"); 
-    		for(int i = 0; i < truceData.length(); i++) if(truceData.getString(i).equalsIgnoreCase(reviewedFaction)) relation="truce"; 
+    		for(int i = 0; i < truceData.length(); i++) {
+    			if(truceData.getString(i).equalsIgnoreCase(reviewedFaction)) {
+    				relation="truce"; 
+    			}
+    		}
     		
     		//faction 2
     		loadFaction(reviewedFaction);
     		
     		enemyData = factionData.getJSONArray("enemies"); 
-    		for(int i = 0; i < enemyData.length(); i++) if(enemyData.getString(i).equalsIgnoreCase(senderFaction)) relation2="enemy"; 
+    		for(int i = 0; i < enemyData.length(); i++) {
+    			if(enemyData.getString(i).equalsIgnoreCase(senderFaction)) {
+    				relation2="enemy"; 
+    			}
+    		}
+    		
     		allyData = factionData.getJSONArray("allies"); 
-    		for(int i = 0; i < allyData.length(); i++) if(allyData.getString(i).equalsIgnoreCase(senderFaction)) relation2="ally"; 
+    		for(int i = 0; i < allyData.length(); i++) {
+    			if(allyData.getString(i).equalsIgnoreCase(senderFaction)) {
+    				relation2="ally"; 
+    			}
+    		}
     		truceData = factionData.getJSONArray("truce"); 
-    		for(int i = 0; i < truceData.length(); i++) if(truceData.getString(i).equalsIgnoreCase(senderFaction)) relation2="truce"; 
+    		for(int i = 0; i < truceData.length(); i++) {
+    			if(truceData.getString(i).equalsIgnoreCase(senderFaction)) {
+    				relation2="truce"; 
+    			}
+    		}
     		
     		//loadFaction(senderFaction);
     		//if(factionData.get("enemies").toString().contains(reviewedFaction)) relation="enemy";// return Rel_Enemy;
@@ -2570,16 +2597,13 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		//if(factionData.get("enemies").toString().contains(senderFaction)) relation2="enemy";// return Rel_Enemy;
     		//if(factionData.get("allies").toString().contains(senderFaction)) relation2="ally";// return Rel_Ally;
     		//if(factionData.get("truce").toString().contains(senderFaction)) relation2="truce";// return Rel_Truce;
-
-        	if(!factionData.has("safezone"))
-        		factionData.put("safezone", "false"); 
-
-        	if(!factionData.has("warzone"))
-        		factionData.put("warzone", "false"); 
-
-        	if(!factionData.has("peaceful"))
-        		factionData.put("peaceful", "false"); 
-
+    		
+    		//reviewed faction still loaded right now
+        	if(factionData.getString("peaceful").equalsIgnoreCase("true")) return Config.Rel_Truce;  
+        	if(factionData.getString("safezone").equalsIgnoreCase("true")) return Config.Rel_Truce; 
+        	if(factionData.getString("warzone").equalsIgnoreCase("true")) return Config.Rel_Enemy;
+        	
+    		loadFaction(senderFaction);
         	if(factionData.getString("peaceful").equalsIgnoreCase("true")) return Config.Rel_Truce;  
         	if(factionData.getString("safezone").equalsIgnoreCase("true")) return Config.Rel_Truce; 
         	if(factionData.getString("warzone").equalsIgnoreCase("true")) return Config.Rel_Enemy;
