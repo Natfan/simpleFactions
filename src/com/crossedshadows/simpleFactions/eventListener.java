@@ -715,14 +715,13 @@ public class eventListener implements Listener {
 		
 		String player2 = ""; 
 		UUID player2_uuid = null; 
-		
+
+		String tempMessage = deathMessage.toLowerCase(); 
 		for(Player p : players){
 			
-			String tempMessage = deathMessage.toLowerCase(); 
 			String tempName = p.getName().toLowerCase(); 
-			
 			if(tempMessage.contains(tempName)){
-				if(p.getUniqueId() != player_uuid)
+				if(!p.getUniqueId().equals(player_uuid))
 					player2 = p.getName();
 					player2_uuid = p.getUniqueId();
 			}
