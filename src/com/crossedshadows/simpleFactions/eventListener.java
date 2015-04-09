@@ -282,6 +282,12 @@ public class eventListener implements Listener {
 			event.setMessage(event.getMessage().replace("!", ""));
 		}
     	
+    	if(chatChannel_talk.equals("global")){
+    		if(Config.configData.getString("disable simplefaction chat in global").equals("true")){
+    			return; 
+    		}
+    	}
+    	
 		for(Player player : playerList){
 			
 			World world = player.getWorld(); 

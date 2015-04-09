@@ -27,7 +27,7 @@ public class Config {
 	
 	//the json object storing all config data
 	public static JSONObject configData = new JSONObject();
-	public static String configVersion = "4.0"; 
+	public static String configVersion = "5.0"; 
 	
 	//default configs
 	public static int chunkSizeX = 16;

@@ -122,7 +122,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	static JSONArray inviteData = new JSONArray();
 	
 	//version
-	static String version = "1.92"; 
+	static String version = "1.93"; 
 
 	//global thing to pass to async task
 	static TNTPrimed lastCheckedTNT; 
