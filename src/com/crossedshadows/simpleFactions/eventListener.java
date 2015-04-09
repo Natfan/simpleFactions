@@ -231,7 +231,7 @@ public class eventListener implements Listener {
     /**
      * This is where the plugin edits the chat messages/formatting.
      * */
-	@EventHandler(priority = EventPriority.HIGHEST)
+	@EventHandler(priority = EventPriority.MONITOR)
     public void AsyncPlayerChatEvent(AsyncPlayerChatEvent event){
 		event.setMessage(event.getMessage().replace(">", "§a>"));
 		event.setMessage(event.getMessage().replaceAll("&", "§")); 

@@ -409,7 +409,24 @@ public class Faction {
     	simpleFactions.factionData.put("desc", Config.configData.getString("default faction description"));
     	simpleFactions.factionData.put("open", Config.configData.getString("factions open by default"));
     	simpleFactions.saveFaction(simpleFactions.factionData);
+    	//simpleFactions.factionIndex.add(faction);
+    	
+    	for(int i = 0; i < simpleFactions.factionIndex.size(); i++){
+  			if(simpleFactions.factionIndex.get(i).equals(faction)){
+  				simpleFactions.factionIndex.remove(i); 
+  			}
+  		}
+    	 
     	simpleFactions.factionIndex.add(faction);
+    	
+    	for(int i = 0; i < Data.Factions.length(); i++){
+  			if(Data.Factions.getJSONObject(i).getString("ID").equals(simpleFactions.factionData.getString("ID"))){
+  				Data.Factions.remove(i); 
+  			}
+  		}
+  		
+  		Data.Factions.put(simpleFactions.factionData);
+    	
     }
     
     /**

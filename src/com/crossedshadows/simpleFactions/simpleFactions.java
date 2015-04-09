@@ -122,7 +122,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	static JSONArray inviteData = new JSONArray();
 	
 	//version
-	static String version = "1.93"; 
+	static String version = "1.94"; 
 
 	//global thing to pass to async task
 	static TNTPrimed lastCheckedTNT; 
@@ -435,9 +435,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	for(int i = 0; i < Data.Factions.length(); i++){
     		if(Data.Factions.getJSONObject(i).getString("name").equalsIgnoreCase(name)){
     			factionData = Data.Factions.getJSONObject(i); 
-    			//Bukkit.getLogger().info("[LoadPlayer]: Player Found! /n" + playerData.toString(4)); //debug
+    			return;
     		} 
     	}
+
+    	Faction.createFaction(name);
+    	return; 
     }
     
     /**
