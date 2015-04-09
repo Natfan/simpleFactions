@@ -231,7 +231,7 @@ public class eventListener implements Listener {
     /**
      * This is where the plugin edits the chat messages/formatting.
      * */
-	@EventHandler(priority = EventPriority.LOWEST)
+	@EventHandler(priority = EventPriority.HIGHEST)
     public void AsyncPlayerChatEvent(AsyncPlayerChatEvent event){
 		event.setMessage(event.getMessage().replace(">", "§a>"));
 		event.setMessage(event.getMessage().replaceAll("&", "§")); 
@@ -339,9 +339,9 @@ public class eventListener implements Listener {
 	    		
 	    		if(Config.configData.getString("inject faction into message instead of replacing whole message").equalsIgnoreCase("true")){
 	    			String format = event.getFormat();
-	    			message = format.replaceFirst("%1", factionRelation + factionRank + "" + factionString  + playerNickname);
-	    			message = message.replaceFirst("%2", event.getMessage().replaceAll("\\$", "\\\\\\$")); //man don't ask me shit
-	    			message = message.replaceAll("\\$s", "§f");
+	    			message = format.replaceFirst("playerNickname", factionRelation + factionRank + "" + factionString  + playerNickname);
+	    			//message = message.replaceFirst("%2", event.getMessage().replaceAll("\\$", "\\\\\\$")); //man don't ask me shit
+	    			//message = message.replaceAll("\\$s", "§f");
 	    		}
 	    		
 	    		player.sendMessage(message);
