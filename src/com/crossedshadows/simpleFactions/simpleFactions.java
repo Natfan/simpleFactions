@@ -122,7 +122,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	static JSONArray inviteData = new JSONArray();
 	
 	//version
-	static String version = "1.91"; 
+	static String version = "1.92"; 
 
 	//global thing to pass to async task
 	static TNTPrimed lastCheckedTNT; 
@@ -347,7 +347,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     }
     
     public static void loadPlayer(String name){
-    	for(Player p : Bukkit.getOnlinePlayers()){
+    	for(OfflinePlayer p : Bukkit.getOfflinePlayers()){
     		if(p.getName().equalsIgnoreCase(name)){
     			loadPlayer(p.getUniqueId()); 
     		}
@@ -358,9 +358,12 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	for(int i = 0; i < Data.Players.length(); i++){
     		if(Data.Players.getJSONObject(i).getString("ID").equalsIgnoreCase(uuid.toString())){
     			playerData = Data.Players.getJSONObject(i); 
-    			//Bukkit.getLogger().info("[LoadPlayer]: Player Found! /n" + playerData.toString(4)); //debug
+    			return;
     		} 
     	}
+    	
+    	createPlayer(Bukkit.getOfflinePlayer(uuid));
+    	return; 
     }
     
     /**
@@ -2474,6 +2477,18 @@ public class simpleFactions extends JavaPlugin implements Listener {
   		playerData.put("last online",System.currentTimeMillis());
   		savePlayer(playerData);
     	
+  		for(int i = 0; i < Data.Players.length(); i++){
+  			if(Data.Players.getJSONObject(i).getString("ID").equals(player.getUniqueId().toString())){
+  				Data.Players.remove(i); 
+  			}
+  		}
+  		
+  		for(int i = 0; i < playerIndex.size(); i++){
+  			if(playerIndex.get(i).equals(player.getUniqueId().toString())){
+  				playerIndex.remove(i); 
+  			}
+  		}
+  		
   		Data.Players.put(playerData); 
     	playerIndex.add(player.getUniqueId());
     }
@@ -2494,7 +2509,19 @@ public class simpleFactions extends JavaPlugin implements Listener {
   		playerData.put("chat channel","global");
   		playerData.put("last online",System.currentTimeMillis());
   		savePlayer(playerData);
-
+  		
+  		for(int i = 0; i < Data.Players.length(); i++){
+  			if(Data.Players.getJSONObject(i).getString("ID").equals(player.getUniqueId().toString())){
+  				Data.Players.remove(i); 
+  			}
+  		}
+  		
+  		for(int i = 0; i < playerIndex.size(); i++){
+  			if(playerIndex.get(i).equals(player.getUniqueId().toString())){
+  				playerIndex.remove(i); 
+  			}
+  		}
+  		
   		Data.Players.put(playerData); 
     	playerIndex.add(player.getUniqueId());
     }

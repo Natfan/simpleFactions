@@ -21,6 +21,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -230,7 +231,7 @@ public class eventListener implements Listener {
     /**
      * This is where the plugin edits the chat messages/formatting.
      * */
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
     public void AsyncPlayerChatEvent(AsyncPlayerChatEvent event){
 		event.setMessage(event.getMessage().replace(">", "§a>"));
 		event.setMessage(event.getMessage().replaceAll("&", "§")); 
@@ -267,8 +268,8 @@ public class eventListener implements Listener {
     	String faction = simpleFactions.playerData.getString("faction");
     	String factionString = simpleFactions.playerData.getString("faction").replaceAll("\\$", "\\\\\\$");
     	factionRank += " ";
-    	if(factionRank.contains("leader")) factionRank = "** ";
-    	if(factionRank.contains("officer")) factionRank = "* ";
+    	if(factionRank.contains("leader")) factionRank = Config.configData.getString("faction leader tag");
+    	if(factionRank.contains("officer")) factionRank = Config.configData.getString("faction officer tag");
     	if(factionRank.contains("member")) factionRank = "";
     	if(factionRank.equalsIgnoreCase(" ")) factionRank = "";
     	String factionRelation = "";
