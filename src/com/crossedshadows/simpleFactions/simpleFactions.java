@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -164,6 +165,8 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		}
 		
 		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has enabled successfully!]");
+		
+		reportErrorMessage("test message!");
 		/*
 		boolean hasapi = false; 
 		Plugin[] plugins = getServer().getPluginManager().getPlugins();
@@ -203,6 +206,26 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		}catch(IOException e){
 			Bukkit.getConsoleSender().sendMessage(Config.Rel_Enemy + "Error fetching data from server. No biggy, though.");
 			Bukkit.getConsoleSender().sendMessage(Config.Rel_Enemy + "If you're continually seeing this error, disable getDataFromHome in your config.json file.");
+		}
+	}
+	
+	public static void reportErrorMessage(String e){
+		try{
+			String serverAddress = "server.forgotten-lore.com";
+			int serverPort = 420; //blaze it
+	        Socket s = new Socket(serverAddress, serverPort);
+	        
+	        PrintWriter out =
+                    new PrintWriter(s.getOutputStream(), true);
+                out.println(e);
+	        
+	        s.close(); 
+	        
+	        Bukkit.getConsoleSender().sendMessage(Config.Rel_Faction + "[SimpleFactions]: Error message successfully reported!");
+			
+		}catch(IOException error){
+			Bukkit.getConsoleSender().sendMessage(Config.Rel_Enemy + "Error reporting error to server. The chances. No biggy, though.");
+			Bukkit.getConsoleSender().sendMessage(Config.Rel_Enemy + "If you're continually seeing this error and don't want to keep seeing it, disable reportErrorMessages in your config.json file.");
 		}
 	}
 	
