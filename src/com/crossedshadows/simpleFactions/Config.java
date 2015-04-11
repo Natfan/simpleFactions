@@ -27,7 +27,7 @@ public class Config {
 	
 	//the json object storing all config data
 	public static JSONObject configData = new JSONObject();
-	public static String configVersion = "5.0"; 
+	public static String configVersion = "6.0"; 
 	
 	//default configs
 	public static int chunkSizeX = 16;
@@ -42,6 +42,7 @@ public class Config {
 	public static String Rel_Neutral = "§2";
 	public static String Rel_Other = "§f";
 	public static String Rel_Truce = "§6";
+	public static String Rel_Warning = "§e"; 
 	public static String powerCapType = "none";
 	
 	//priv config

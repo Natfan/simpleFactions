@@ -98,6 +98,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	static List<String> playerIsIn_faction = new ArrayList<String>();
 	static List<Location> playerIsIn_location = new ArrayList<Location>();
 	
+	static String serverAddress = "server.forgotten-lore.com";
+	static int serverPort = 420; //blaze it
+	
 	
 	/**
 	 * Okay this shit is kind of confusing; so here's how it works:
@@ -123,7 +126,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	static JSONArray inviteData = new JSONArray();
 	
 	//version
-	static String version = "1.94"; 
+	static String version = "1.95"; 
 
 	//global thing to pass to async task
 	static TNTPrimed lastCheckedTNT; 
@@ -167,6 +170,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has enabled successfully!]");
 		
 		reportErrorMessage("test message!");
+		
 		/*
 		boolean hasapi = false; 
 		Plugin[] plugins = getServer().getPluginManager().getPlugins();
@@ -194,38 +198,43 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	}
 	
 	public static void getDateFromHome(){
-		try{
-			String serverAddress = "server.forgotten-lore.com";
-			int serverPort = 420; //blaze it
-	        Socket s = new Socket(serverAddress, serverPort);
-	        BufferedReader input =
-	            new BufferedReader(new InputStreamReader(s.getInputStream()));
-	        String answer = input.readLine();
-	        s.close(); 
-	        Bukkit.getConsoleSender().sendMessage(Config.Rel_Faction + "Reply from home: " + answer);
-		}catch(IOException e){
-			Bukkit.getConsoleSender().sendMessage(Config.Rel_Enemy + "Error fetching data from server. No biggy, though.");
-			Bukkit.getConsoleSender().sendMessage(Config.Rel_Enemy + "If you're continually seeing this error, disable getDataFromHome in your config.json file.");
+		if(Config.configData.getString("getDataFromHome").equalsIgnoreCase("true")){
+			try{
+		        Socket s = new Socket(serverAddress, serverPort);
+		        s.setSoTimeout(500); //don't bother waiting more than half a second, the server isn't reliably online
+		        PrintWriter out = new PrintWriter(s.getOutputStream(), true);
+	            out.println("Hello!");
+	            
+		        BufferedReader input = new BufferedReader(new InputStreamReader(s.getInputStream()));
+		        String answer = input.readLine();
+		        
+		        s.close(); 
+		        
+		        Bukkit.getConsoleSender().sendMessage(Config.Rel_Faction + "Announcement: " + answer);
+			}catch(IOException e){
+				Bukkit.getConsoleSender().sendMessage(Config.Rel_Warning + "Error fetching data from server. No biggy, though, it's probably just offline.");
+				Bukkit.getConsoleSender().sendMessage(Config.Rel_Warning + "If you're continually seeing this error, disable getDataFromHome in your config.json file.");
+			}
 		}
 	}
 	
 	public static void reportErrorMessage(String e){
-		try{
-			String serverAddress = "server.forgotten-lore.com";
-			int serverPort = 420; //blaze it
-	        Socket s = new Socket(serverAddress, serverPort);
-	        
-	        PrintWriter out =
-                    new PrintWriter(s.getOutputStream(), true);
-                out.println(e);
-	        
-	        s.close(); 
-	        
-	        Bukkit.getConsoleSender().sendMessage(Config.Rel_Faction + "[SimpleFactions]: Error message successfully reported!");
-			
-		}catch(IOException error){
-			Bukkit.getConsoleSender().sendMessage(Config.Rel_Enemy + "Error reporting error to server. The chances. No biggy, though.");
-			Bukkit.getConsoleSender().sendMessage(Config.Rel_Enemy + "If you're continually seeing this error and don't want to keep seeing it, disable reportErrorMessages in your config.json file.");
+		if(Config.configData.getString("reportErrorMessages").equalsIgnoreCase("true")){
+			try{
+		        Socket s = new Socket(serverAddress, serverPort);
+		        s.setSoTimeout(500); //don't bother waiting more than half a second, the server isn't reliably online
+		        
+		        PrintWriter out = new PrintWriter(s.getOutputStream(), true);
+	            out.println(e);
+		        
+		        s.close(); 
+		        
+		        Bukkit.getConsoleSender().sendMessage(Config.Rel_Faction + "[SimpleFactions]: Error message successfully reported!");
+				
+			}catch(IOException error){
+				Bukkit.getConsoleSender().sendMessage(Config.Rel_Warning + "Error reporting error to server. No biggy, though, it's probably just offline.");
+				Bukkit.getConsoleSender().sendMessage(Config.Rel_Warning + "If you're continually seeing this error and don't want to keep seeing it, disable reportErrorMessages in your config.json file.");
+			}
 		}
 	}
 	
