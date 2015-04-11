@@ -169,7 +169,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		
 		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has enabled successfully!]");
 		
-		reportErrorMessage("test message!");
+		//reportErrorMessage("test message!");
 		
 		/*
 		boolean hasapi = false; 
@@ -194,6 +194,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 	        getLogger().info("MetricsLite connection established!");
 	    } catch (IOException e) {
 	       getLogger().info("Failed to connect to MetricsLite!");
+	       reportErrorMessage(e.toString()); 
 	    }
 	}
 	
@@ -421,6 +422,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 
 			} catch (IOException e) {
 				e.printStackTrace();
+			    reportErrorMessage(e.toString()); 
 			}
     	}
     	
@@ -458,6 +460,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+			reportErrorMessage(e.toString()); 
 		}
     	
     }
@@ -494,6 +497,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 				bw.close();
 			} catch (IOException e) {
 				e.printStackTrace();
+				reportErrorMessage(e.toString()); 
 			}
     	}
     	
@@ -514,6 +518,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
     		
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+			reportErrorMessage(e.toString()); 
 		}
     	
     }
@@ -557,6 +562,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 				Bukkit.getLogger().info("[Debug] " + name + ".json doesn't exist, so we just created one.");
 			} catch (IOException e) {
 				e.printStackTrace();
+				reportErrorMessage(e.toString()); 
 			}
     	}
     	
@@ -579,6 +585,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+			reportErrorMessage(e.toString()); 
 		}
     	
     }
@@ -602,6 +609,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 
 			} catch (IOException e) {
 				e.printStackTrace();
+				reportErrorMessage(e.toString()); 
 			}
     	}
     	try {
@@ -622,6 +630,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+			reportErrorMessage(e.toString()); 
 		}
     	
     }
@@ -682,7 +691,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		}
 		catch(Exception e){
 			e.printStackTrace();
-			System.out.println("error"+e.getMessage());
+			reportErrorMessage(e.toString()); 
 		}
     }
     
@@ -716,7 +725,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		}
 		catch(Exception e){
 			e.printStackTrace();
-			System.out.println("error"+e.getMessage());
+			reportErrorMessage(e.toString()); 
 		}
     }
     
@@ -749,7 +758,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		}
 		catch(Exception e){
 			e.printStackTrace();
-			System.out.println("error"+e.getMessage());
+			reportErrorMessage(e.toString()); 
 		}
     }
     
@@ -769,7 +778,7 @@ public class simpleFactions extends JavaPlugin implements Listener {
 		}
 		catch(Exception e){
 			e.printStackTrace();
-			System.out.println("error"+e.getMessage());
+			reportErrorMessage(e.toString()); 
 		}
     }
     

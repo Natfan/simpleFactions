@@ -129,6 +129,7 @@ public class Config {
 		} catch (MalformedURLException e) {
 			Bukkit.getConsoleSender().sendMessage("§c[SimpleFactions Error]: Malformed URL detected while checking for updates!");
 		} catch (IOException e) {
+			simpleFactions.reportErrorMessage(e.toString()); 
 			Bukkit.getConsoleSender().sendMessage("§c[SimpleFactions Error]: I/O exception while checking for updates. Are you online?");
 		} catch (Throwable e) {
 			Bukkit.getConsoleSender().sendMessage("§c[SimpleFactions Error]: Unable to check for update. You may be offline or Github may be experiencing heavy traffic.");
@@ -181,6 +182,7 @@ public class Config {
 				bw.close();
 			} catch (IOException e) {
 				e.printStackTrace();
+				simpleFactions.reportErrorMessage(e.toString()); 
 			}
     	}
     	try {
@@ -203,6 +205,7 @@ public class Config {
 					baw.close();
 				} catch (IOException e) {
 					e.printStackTrace();
+					simpleFactions.reportErrorMessage(e.toString()); 
 				}
 				
 					FileWriter fw = new FileWriter(configFile);
@@ -214,8 +217,10 @@ public class Config {
 			
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+			simpleFactions.reportErrorMessage(e.toString()); 
 		} catch (IOException e) {
 			e.printStackTrace();
+			simpleFactions.reportErrorMessage(e.toString()); 
 		}
     }
     public static void loadConfigData(){

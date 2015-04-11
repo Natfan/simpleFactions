@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.json.JSONException;
 
 public class Tasks implements Listener {
 	
@@ -69,18 +70,25 @@ public class Tasks implements Listener {
         			for(int i = 0; i < off.length; i++){ //offline players
         				if(!off[i].isOnline()) {
         					
-        					simpleFactions.loadPlayer(off[i].getUniqueId()); 
-        					//Bukkit.getLogger().info(simpleFactions.playerData.toString(4)); //debug
-        					power = simpleFactions.playerData.getDouble("power");
-        					power += powerUpdateOffline;
+        					try{ //people seem to be getting errors around here a lot, lets report them so I can find out why
+            					simpleFactions.loadPlayer(off[i].getUniqueId()); 
+            					
+        						//Bukkit.getLogger().info(simpleFactions.playerData.toString(4)); //debug
+            					power = simpleFactions.playerData.getDouble("power");
+            					power += powerUpdateOffline;
+            					
+            					if(power<Config.configData.getDouble("minimum player power"))
+            						power = Config.configData.getDouble("minimum player power");
+            					if(power>Config.configData.getDouble("max player power"))
+            						power = Config.configData.getDouble("max player power");
+            					
+            					simpleFactions.playerData.put("power",power);
+            					simpleFactions.savePlayer(simpleFactions.playerData);
+        					} catch(JSONException e){
+        						e.printStackTrace(); 
+        						simpleFactions.reportErrorMessage(e.toString()); 
+        					}
         					
-        					if(power<Config.configData.getDouble("minimum player power"))
-        						power = Config.configData.getDouble("minimum player power");
-        					if(power>Config.configData.getDouble("max player power"))
-        						power = Config.configData.getDouble("max player power");
-        					
-        					simpleFactions.playerData.put("power",power);
-        					simpleFactions.savePlayer(simpleFactions.playerData);
         				}
         			}
         		

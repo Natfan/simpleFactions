@@ -45,6 +45,7 @@ public class Language {
 				bw.close();
 			} catch (IOException e) {
 				e.printStackTrace();
+				simpleFactions.reportErrorMessage(e.toString()); 
 			}
     	}
     	try {
@@ -66,6 +67,7 @@ public class Language {
 					baw.newLine();
 					baw.close();
 				} catch (IOException e) {
+					simpleFactions.reportErrorMessage(e.toString()); 
 					e.printStackTrace();
 				}
 				
@@ -78,8 +80,10 @@ public class Language {
 			
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+			simpleFactions.reportErrorMessage(e.toString()); 
 		} catch (IOException e) {
 			e.printStackTrace();
+			simpleFactions.reportErrorMessage(e.toString()); 
 		}
 	}
 	
