@@ -86,7 +86,7 @@ public class Tasks implements Listener {
             					simpleFactions.savePlayer(simpleFactions.playerData);
         					} catch(JSONException e){
         						e.printStackTrace(); 
-        						simpleFactions.reportErrorMessage(e.toString()); 
+        						simpleFactions.reportErrorMessage(e); 
         					}
         					
         				}

@@ -45,7 +45,7 @@ public class Language {
 				bw.close();
 			} catch (IOException e) {
 				e.printStackTrace();
-				simpleFactions.reportErrorMessage(e.toString()); 
+				simpleFactions.reportErrorMessage(e); 
 			}
     	}
     	try {
@@ -67,7 +67,7 @@ public class Language {
 					baw.newLine();
 					baw.close();
 				} catch (IOException e) {
-					simpleFactions.reportErrorMessage(e.toString()); 
+					simpleFactions.reportErrorMessage(e); 
 					e.printStackTrace();
 				}
 				
@@ -80,10 +80,10 @@ public class Language {
 			
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-			simpleFactions.reportErrorMessage(e.toString()); 
+			simpleFactions.reportErrorMessage(e); 
 		} catch (IOException e) {
 			e.printStackTrace();
-			simpleFactions.reportErrorMessage(e.toString()); 
+			simpleFactions.reportErrorMessage(e); 
 		}
 	}
 	
