@@ -49,6 +49,43 @@ public class VaultStuff {
 		}
 	}
 	
+	public boolean canPlayerSpendAmount(UUID player, double amount){
+		if(useVault){
+			if(!econ.hasAccount(Bukkit.getOfflinePlayer(player)))
+				econ.createPlayerAccount(Bukkit.getOfflinePlayer(player));
+			
+			if(econ.getBalance(Bukkit.getOfflinePlayer(player)) > amount){
+				return true; 
+			}
+		}else{
+			simpleFactions.loadPlayer(player);
+			JSONObject playerData = simpleFactions.playerData; 
+			double money = playerData.getDouble("shekels");
+			
+			if(money > amount){
+				return true; 
+			}
+		}
+		
+		return false;
+	}
+	
+	public void playerSpendMoney(UUID player, double amount){
+		if(useVault){
+			if(!econ.hasAccount(Bukkit.getOfflinePlayer(player)))
+				econ.createPlayerAccount(Bukkit.getOfflinePlayer(player));
+			
+			econ.withdrawPlayer(Bukkit.getOfflinePlayer(player), amount);	
+		}else{
+			simpleFactions.loadPlayer(player);
+			JSONObject playerData = simpleFactions.playerData; 
+			double money = playerData.getDouble("shekels");
+			money -= amount;
+			playerData.put("shekels", money); 
+			simpleFactions.savePlayer(playerData);
+		}
+	}
+	
 	/**
 	 * Adds money to a faction of a given uuid
 	 * */
@@ -87,5 +124,32 @@ public class VaultStuff {
 			factionData.put("shekels", money); 
 			simpleFactions.saveFaction(factionData);
 		}
+	}
+	
+	public boolean canFactionSpendThisAmount(String faction, double amount){
+		simpleFactions.loadFaction(faction);
+		JSONObject factionData = simpleFactions.factionData; 
+		double money = 0.0;
+		if(factionData.has("shekels"))
+			money = factionData.getDouble("shekels"); 
+		money -= amount; 
+		
+		if(money > 0)
+			return true; 
+		
+		return false; 
+	}
+	
+	public void spendFactionMoney(String faction, UUID player, double amount){
+
+		simpleFactions.loadFaction(faction);
+		JSONObject factionData = simpleFactions.factionData; 
+		double money = 0.0;
+		if(factionData.has("shekels"))
+			money = factionData.getDouble("shekels"); 
+		money -= amount; 
+		factionData.put("shekels", money); 
+		simpleFactions.saveFaction(factionData);
+		
 	}
 }
