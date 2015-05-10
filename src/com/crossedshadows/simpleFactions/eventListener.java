@@ -713,8 +713,12 @@ public class eventListener implements Listener {
 	public void somethingDied(EntityDeathEvent  event){
 		if(!(event.getEntity() instanceof Player)){
 			if(event.getEntity().getKiller() instanceof Player){
-				UUID uuid = event.getEntity().getKiller().getUniqueId(); 
-				VaultStuff.addMoneyToPlayer(uuid, Config.moneyPerMobKill);
+				Player player = event.getEntity().getKiller(); 
+				
+				if(Config.moneyPerMobKill>0.0){
+					VaultStuff.addMoneyToPlayer(player.getUniqueId(), Config.moneyPerMobKill);
+					player.sendMessage(Language.getMessage("You earned ") + Config.moneyPerMobKill + Language.getMessage(" for killing a mob!"));
+				}
 			}
 		}
 		
@@ -779,12 +783,18 @@ public class eventListener implements Listener {
 		simpleFactions.savePlayer(simpleFactions.playerData);
 		Player p = event.getEntity();
 		if(p.isDead()) {
-			VaultStuff.playerSpendMoney(p.getUniqueId(),Config.costOfDeath); 
-			p.sendMessage(Language.getMessage("You just lost ") + Config.costOfDeath + Language.getMessage(" by dying!")); 
+			
+			if(Config.costOfDeath>0.0){
+				VaultStuff.playerSpendMoney(p.getUniqueId(),Config.costOfDeath); 
+				p.sendMessage(Language.getMessage("You just lost ") + Config.costOfDeath + Language.getMessage(" by dying!")); 
+			}
 			
 			if(p.getKiller() instanceof Player) {
-				VaultStuff.addMoneyToPlayer(p.getKiller().getUniqueId(),Config.moneyPerPlayerKill);
-				p.getKiller().sendMessage(Language.getMessage("You gained ") + Config.moneyPerPlayerKill + Language.getMessage(" by killing ") + p.getName() + "!");
+				
+				if(Config.moneyPerPlayerKill>0.0){
+					VaultStuff.addMoneyToPlayer(p.getKiller().getUniqueId(),Config.moneyPerPlayerKill);
+					p.getKiller().sendMessage(Language.getMessage("You gained ") + Config.moneyPerPlayerKill + Language.getMessage(" by killing ") + p.getName() + "!");
+				}
 				
 				simpleFactions.loadPlayer(p.getKiller().getUniqueId());
 				int kills = simpleFactions.playerData.getInt("kills") + 1;
