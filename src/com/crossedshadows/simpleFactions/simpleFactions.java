@@ -474,6 +474,14 @@ public class simpleFactions extends JavaPlugin implements Listener {
     	
     }
     
+    public static void loadFaction(UUID uuid){
+    	for(int i = 0; i < Data.Factions.length(); i++){
+    		if(Data.Factions.getJSONObject(i).getString("ID").equalsIgnoreCase(uuid.toString())){
+    			factionData = Data.Factions.getJSONObject(i);
+    			return;
+    		}
+    	}
+    }
     
     public static void loadFaction(String name){
     	for(int i = 0; i < Data.Factions.length(); i++){

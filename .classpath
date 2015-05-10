@@ -2,7 +2,8 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="C:/Users/Coty/Desktop/workspace/spigot/Jar/craftbukkit-1.8.3.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Coty/Desktop/workspace/spigot/Jar/spigot-1.8.3.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Coty/Desktop/workspace/Spigot/Jar/craftbukkit-1.8.3.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Coty/Desktop/workspace/Spigot/Jar/spigot-1.8.3.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Coty/Documents/GitHub/simpleFactions/dependancies/Vault.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
