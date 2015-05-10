@@ -168,6 +168,9 @@ public class simpleFactions extends JavaPlugin implements Listener {
 			getDateFromHome(); 
 		}
 		
+		VaultStuff.setupEconomy(); 
+		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has initialized the economy!]");
+		
 		Bukkit.getServer().getConsoleSender().sendMessage("§a[SimpleFactions has enabled successfully!]");
 		
 		//reportErrorMessage("test message!");

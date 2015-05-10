@@ -25,6 +25,14 @@ import org.json.JSONObject;
 
 public class Config {
 	
+	//new configs TODO: put in the config.json file
+	public static double moneyPerPlayerKill = 1.0; 
+	public static double moneyPerMobKill = 0.05;
+	public static double costOfClaim = 1.0; 
+	public static double costOfCreateFaction = 0.0; 
+	public static double costOfDeath = 10.0; 
+	public static boolean allowNegativeBalance = false; 
+	
 	//the json object storing all config data
 	public static JSONObject configData = new JSONObject();
 	public static String configVersion = "6.0"; 

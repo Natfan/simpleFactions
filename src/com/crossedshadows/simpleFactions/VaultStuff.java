@@ -13,9 +13,12 @@ public class VaultStuff {
     public static Economy econ = null;
     public static boolean useVault = false; 
 	
-	private void setupEconomy() {
+    /**
+     * Start the economy for simpleFactions
+     * */
+	static void setupEconomy() {
         if (Bukkit.getServer().getPluginManager().getPlugin("Vault") == null) {
-        	Bukkit.getConsoleSender().sendMessage("[SimpleFactions]: Vault not found!");
+        	Bukkit.getConsoleSender().sendMessage("[SimpleFactions]: Vault not found! Economy will be started without Vault!");
             useVault = false; 
         }
         RegisteredServiceProvider<Economy> rsp = Bukkit.getServer().getServicesManager().getRegistration(Economy.class);
