@@ -3,7 +3,7 @@
 
 		"##DO NOT CHANGE VALUES ON THE LEFT##": 			"##CHANGE THE VALUES ON THE RIGHT TO MAKE THEM REPLACE MESSAGES IN GAME##",
 		
-		"LanguageVersion": 									"2.0",
+		"LanguageVersion": 									"3.0",
 		"LanguageName":										"English",
 		
 		"Try using a command! Example: /sf create faction":	"Try using a command! Example: /sf create faction",
@@ -157,8 +157,14 @@
 		"You cannot hurt peaceful players.":				"You cannot hurt peaceful players.",
 		"Hit player!":										"Hit player!",
 		"You cannot hurt members of":						"You cannot hurt members of",
-		"You have traveled from":							"You have traveled from",
+		"You have traveled from":							"You have travelled from",
 		"to":												"to",
 		"Please provide a name!":							"Please provide a name!",
+		"You gained ":										"You gained ",
+		" by killing ":										" by killing ",
+		"You just lost ":									"You just lost ",
+		" by dying!":										" by dying!",
+		"You earned ": 										"You earned ",
+		" for killing a mob!":								" for killing a mob!",
 		"##END OF CONFIG FILE##": ""
 }

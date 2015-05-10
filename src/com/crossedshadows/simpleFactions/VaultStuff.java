@@ -36,7 +36,7 @@ public class VaultStuff {
 	/**
 	 * Adds money to a player of a given UUID
 	 * */
-	public void addMoneyToPlayer(UUID player, double amount){
+	public static void addMoneyToPlayer(UUID player, double amount){
 		if(useVault){
 			if(!econ.hasAccount(Bukkit.getOfflinePlayer(player)))
 				econ.createPlayerAccount(Bukkit.getOfflinePlayer(player));
@@ -52,7 +52,7 @@ public class VaultStuff {
 		}
 	}
 	
-	public boolean canPlayerSpendAmount(UUID player, double amount){
+	public static boolean canPlayerSpendAmount(UUID player, double amount){
 		if(useVault){
 			if(!econ.hasAccount(Bukkit.getOfflinePlayer(player)))
 				econ.createPlayerAccount(Bukkit.getOfflinePlayer(player));
@@ -73,7 +73,7 @@ public class VaultStuff {
 		return false;
 	}
 	
-	public void playerSpendMoney(UUID player, double amount){
+	public static void playerSpendMoney(UUID player, double amount){
 		if(useVault){
 			if(!econ.hasAccount(Bukkit.getOfflinePlayer(player)))
 				econ.createPlayerAccount(Bukkit.getOfflinePlayer(player));
@@ -92,7 +92,7 @@ public class VaultStuff {
 	/**
 	 * Adds money to a faction of a given uuid
 	 * */
-	public void addMoneyToFaction(String faction, UUID player, double amount){
+	public static void addMoneyToFaction(String faction, UUID player, double amount){
 		boolean hasEnoughMoney = false;
 		
 		//withdraw from player vault
@@ -129,7 +129,7 @@ public class VaultStuff {
 		}
 	}
 	
-	public boolean canFactionSpendThisAmount(String faction, double amount){
+	public static boolean canFactionSpendThisAmount(String faction, double amount){
 		simpleFactions.loadFaction(faction);
 		JSONObject factionData = simpleFactions.factionData; 
 		double money = 0.0;
@@ -143,7 +143,7 @@ public class VaultStuff {
 		return false; 
 	}
 	
-	public void spendFactionMoney(String faction, UUID player, double amount){
+	public static void spendFactionMoney(String faction, UUID player, double amount){
 
 		simpleFactions.loadFaction(faction);
 		JSONObject factionData = simpleFactions.factionData; 

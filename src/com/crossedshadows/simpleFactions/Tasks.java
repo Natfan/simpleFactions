@@ -56,6 +56,7 @@ public class Tasks implements Listener {
         		Config.loadConfig();
             	double power = 0;
             	double update = (1200.0/72000.0);
+            	double moneyUpdateOnline = Config.moneyPerHour * update;
             	double powerUpdateOnline = Config.configData.getDouble("power per hour while online") * update;
             	double powerUpdateOffline = Config.configData.getDouble("power per hour while offline") * update;
             	double powerUpdateEnemyInYourTerritory = Config.configData.getDouble("power per hour while enemy in your territory") * update;
@@ -96,8 +97,10 @@ public class Tasks implements Listener {
         			for(Player player : on){
         				if(player.isOnline()) {
         					
+        					VaultStuff.addMoneyToPlayer(player.getUniqueId(),moneyUpdateOnline); 
+        					
         					simpleFactions.loadPlayer(player.getUniqueId());
-        					//Bukkit.getLogger().info(simpleFactions.playerData.toString(4)); //debug
+        					
         					power  = simpleFactions.playerData.getDouble("power");
         					
         					if(Config.configData.getString("update power while enemy in your territory").equalsIgnoreCase("true")

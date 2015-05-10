@@ -26,7 +26,9 @@ import org.json.JSONObject;
 public class Config {
 	
 	//new configs TODO: put in the config.json file
-	public static double moneyPerPlayerKill = 1.0; 
+	public static double moneyPerPlayerKill = 1.0;
+	public static double maxMoney = 9999999999.0; 
+	public static double moneyPerHour = 1.0; 
 	public static double moneyPerMobKill = 0.05;
 	public static double costOfClaim = 1.0; 
 	public static double costOfCreateFaction = 0.0; 

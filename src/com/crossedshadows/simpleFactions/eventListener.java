@@ -27,6 +27,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
@@ -708,6 +709,17 @@ public class eventListener implements Listener {
 		}
 	}
 	
+	@EventHandler
+	public void somethingDied(EntityDeathEvent  event){
+		if(!(event.getEntity() instanceof Player)){
+			if(event.getEntity().getKiller() instanceof Player){
+				UUID uuid = event.getEntity().getKiller().getUniqueId(); 
+				VaultStuff.addMoneyToPlayer(uuid, Config.moneyPerMobKill);
+			}
+		}
+		
+	}
+	
 	/**
 	 * when a player dies
 	 * */
@@ -767,8 +779,13 @@ public class eventListener implements Listener {
 		simpleFactions.savePlayer(simpleFactions.playerData);
 		Player p = event.getEntity();
 		if(p.isDead()) {
-			p.getKiller();
+			VaultStuff.playerSpendMoney(p.getUniqueId(),Config.costOfDeath); 
+			p.sendMessage(Language.getMessage("You just lost ") + Config.costOfDeath + Language.getMessage(" by dying!")); 
+			
 			if(p.getKiller() instanceof Player) {
+				VaultStuff.addMoneyToPlayer(p.getKiller().getUniqueId(),Config.moneyPerPlayerKill);
+				p.getKiller().sendMessage(Language.getMessage("You gained ") + Config.moneyPerPlayerKill + Language.getMessage(" by killing ") + p.getName() + "!");
+				
 				simpleFactions.loadPlayer(p.getKiller().getUniqueId());
 				int kills = simpleFactions.playerData.getInt("kills") + 1;
 				simpleFactions.playerData.put("kills", kills);
